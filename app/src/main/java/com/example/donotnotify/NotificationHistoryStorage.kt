@@ -9,7 +9,7 @@ class NotificationHistoryStorage(private val context: Context) {
 
     private val gson = Gson()
     private val historyFile = File(context.filesDir, "notification_history.json")
-    private val maxHistorySize = 100 // Let's keep the history to a reasonable size
+    private val maxHistorySize = 200 // Let's keep the history to a reasonable size
 
     fun getHistory(): List<SimpleNotification> {
         if (!historyFile.exists()) {
@@ -22,9 +22,19 @@ class NotificationHistoryStorage(private val context: Context) {
 
     fun saveNotification(notification: SimpleNotification) {
         val history = getHistory().toMutableList()
-        // Remove the notification if it already exists to avoid duplicates.
-        history.remove(notification)
-        // Add the new or existing notification to the top of the list.
+
+        // Manually find and remove the old notification, ignoring the timestamp
+        val index = history.indexOfFirst {
+            it.appLabel == notification.appLabel &&
+            it.packageName == notification.packageName &&
+            it.title == notification.title &&
+            it.text == notification.text
+        }
+        if (index != -1) {
+            history.removeAt(index)
+        }
+
+        // Add the new or updated notification to the top of the list
         history.add(0, notification)
         
         val trimmedHistory = if (history.size > maxHistorySize) history.subList(0, maxHistorySize) else history

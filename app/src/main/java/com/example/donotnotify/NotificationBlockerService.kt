@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import java.util.regex.PatternSyntaxException
 
 class NotificationBlockerService : NotificationListenerService() {
 
@@ -39,7 +40,7 @@ class NotificationBlockerService : NotificationListenerService() {
             packageName // Fallback to package name
         }
 
-        val simpleNotification = SimpleNotification(appLabel, packageName, title, text)
+        val simpleNotification = SimpleNotification(appLabel, packageName, title, text, System.currentTimeMillis())
         var isBlocked = false
 
         // Check against blocking rules
@@ -47,18 +48,23 @@ class NotificationBlockerService : NotificationListenerService() {
         for (rule in rules) {
             if (packageName == rule.appName) {
                 var shouldBlock = false
-
-                if (rule.titleRegex != null && title != null) {
-                    if (title.matches(rule.titleRegex.toRegex())) {
-                        shouldBlock = true
+                try {
+                    if (rule.titleRegex != null && title != null) {
+                        if (title.matches(rule.titleRegex.toRegex())) {
+                            shouldBlock = true
+                        }
                     }
+
+                    if (!shouldBlock && rule.textRegex != null && text != null) {
+                        if (text.matches(rule.textRegex.toRegex())) {
+                            shouldBlock = true
+                        }
+                    }
+                } catch (e: PatternSyntaxException) {
+                    Log.e(TAG, "Invalid regex in rule: $rule", e)
+                    // Treat as no match if the regex is invalid
                 }
 
-                if (!shouldBlock && rule.textRegex != null && text != null) {
-                    if (text.matches(rule.textRegex.toRegex())) {
-                        shouldBlock = true
-                    }
-                }
 
                 if (shouldBlock) {
                     isBlocked = true
