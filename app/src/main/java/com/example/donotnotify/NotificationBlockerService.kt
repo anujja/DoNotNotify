@@ -16,7 +16,10 @@ class NotificationBlockerService : NotificationListenerService() {
 
     companion object {
         const val ACTION_HISTORY_UPDATED = "com.example.donotnotify.HISTORY_UPDATED"
+        private const val DEBOUNCE_PERIOD_MS = 5000L
     }
+
+    private val recentlyBlocked = mutableMapOf<String, Long>()
 
     override fun onCreate() {
         super.onCreate()
@@ -33,6 +36,19 @@ class NotificationBlockerService : NotificationListenerService() {
         val notification = sbn.notification
         val title = notification.extras.getCharSequence("android.title")?.toString()
         val text = notification.extras.getCharSequence("android.text")?.toString()
+        val notificationKey = "$packageName:$title:$text"
+        val currentTime = System.currentTimeMillis()
+
+        // Debounce logic to prevent processing reposted notifications
+        if (recentlyBlocked.containsKey(notificationKey)) {
+            val lastBlockedTime = recentlyBlocked[notificationKey]!!
+            if (currentTime - lastBlockedTime < DEBOUNCE_PERIOD_MS) {
+                Log.i(TAG, "Ignoring duplicate notification: $notificationKey")
+                return
+            }
+        }
+        
+        recentlyBlocked.entries.removeIf { (_, timestamp) -> currentTime - timestamp > DEBOUNCE_PERIOD_MS }
 
         val appLabel = try {
             packageManager.getApplicationLabel(packageManager.getApplicationInfo(packageName, 0)).toString()
@@ -40,38 +56,28 @@ class NotificationBlockerService : NotificationListenerService() {
             packageName // Fallback to package name
         }
 
-        val simpleNotification = SimpleNotification(appLabel, packageName, title, text, System.currentTimeMillis())
+        Log.i(TAG, "Notification Received: App='${appLabel}', Title='${title}', Text='${text}'")
+
+        val simpleNotification = SimpleNotification(appLabel, packageName, title, text, currentTime)
         var isBlocked = false
 
-        // Check against blocking rules
+        // Check against blocking rules with "AND" logic
         val rules = ruleStorage.getRules()
         for (rule in rules) {
-            if (packageName == rule.appName) {
-                var shouldBlock = false
-                try {
-                    if (rule.titleRegex != null && title != null) {
-                        if (title.matches(rule.titleRegex.toRegex())) {
-                            shouldBlock = true
-                        }
-                    }
+            try {
+                val appMatch = rule.appName.isNullOrBlank() || rule.appName == packageName
+                val titleMatch = rule.titleRegex.isNullOrBlank() || (title?.matches(rule.titleRegex.toRegex()) ?: false)
+                val textMatch = rule.textRegex.isNullOrBlank() || (text?.matches(rule.textRegex.toRegex()) ?: false)
 
-                    if (!shouldBlock && rule.textRegex != null && text != null) {
-                        if (text.matches(rule.textRegex.toRegex())) {
-                            shouldBlock = true
-                        }
-                    }
-                } catch (e: PatternSyntaxException) {
-                    Log.e(TAG, "Invalid regex in rule: $rule", e)
-                    // Treat as no match if the regex is invalid
-                }
-
-
-                if (shouldBlock) {
+                if (appMatch && titleMatch && textMatch) {
                     isBlocked = true
                     Log.i(TAG, "Blocking notification from $packageName based on rule: $rule")
                     cancelNotification(sbn.key)
-                    break // Stop checking other rules for this notification
+                    recentlyBlocked[notificationKey] = currentTime
+                    break // Rule matched, no need to check others
                 }
+            } catch (e: PatternSyntaxException) {
+                Log.e(TAG, "Invalid regex in rule: $rule", e)
             }
         }
 
@@ -81,11 +87,6 @@ class NotificationBlockerService : NotificationListenerService() {
             notificationHistoryStorage.saveNotification(simpleNotification)
         }
 
-        // Send a broadcast to signal that the history has been updated
         sendBroadcast(Intent(ACTION_HISTORY_UPDATED))
-
-        Log.i(TAG, "Notification received from $packageName")
-        Log.i(TAG, "Title: $title")
-        Log.i(TAG, "Text: $text")
     }
 }

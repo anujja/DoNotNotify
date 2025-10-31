@@ -2,12 +2,9 @@ package com.example.donotnotify.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,32 +22,22 @@ import androidx.compose.ui.unit.dp
 import com.example.donotnotify.SimpleNotification
 
 @Composable
-fun HistoryScreen(
+fun BlockedScreen(
     notifications: List<SimpleNotification>,
-    onNotificationClick: (SimpleNotification) -> Unit,
-    onClearHistory: () -> Unit
+    onClearBlockedHistory: () -> Unit,
+    onNotificationClick: (SimpleNotification) -> Unit
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         if (notifications.isEmpty()) {
             item {
                 Text(
-                    text = "Waiting to receive new notifications...",
+                    text = "No notifications have been blocked so far.",
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth().padding(top = 32.dp)
                 )
             }
         } else {
-            item {
-                Column(modifier = Modifier.padding(vertical = 16.dp)) {
-                    Text(
-                        text = "Here is a history of notifications you have received. Tap on one to create a rule to block similar notifications in the future.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
             item {
                 Row(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
                     Text("App", modifier = Modifier.weight(0.25f), fontWeight = FontWeight.Bold)
@@ -72,7 +59,7 @@ fun HistoryScreen(
             }
             item {
                 Row(modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp), horizontalArrangement = Arrangement.Center) {
-                    TextButton(onClick = onClearHistory) { Text("Clear History") }
+                    TextButton(onClick = onClearBlockedHistory) { Text("Clear Blocked History") }
                 }
             }
         }
