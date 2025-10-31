@@ -44,16 +44,19 @@ class MainActivity : ComponentActivity() {
     private lateinit var ruleStorage: RuleStorage
     private lateinit var notificationHistoryStorage: NotificationHistoryStorage
     private lateinit var blockedNotificationHistoryStorage: BlockedNotificationHistoryStorage
+    private lateinit var statsStorage: StatsStorage
     private var isServiceEnabled by mutableStateOf(false)
     private var pastNotifications by mutableStateOf<List<SimpleNotification>>(emptyList())
     private var blockedNotifications by mutableStateOf<List<SimpleNotification>>(emptyList())
     private var rules by mutableStateOf<List<BlockerRule>>(emptyList())
+    private var blockedNotificationsCount by mutableStateOf(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ruleStorage = RuleStorage(this)
         notificationHistoryStorage = NotificationHistoryStorage(this)
         blockedNotificationHistoryStorage = BlockedNotificationHistoryStorage(this)
+        statsStorage = StatsStorage(this)
         isServiceEnabled = isNotificationServiceEnabled()
         setContent {
             MainScreen()
@@ -66,6 +69,7 @@ class MainActivity : ComponentActivity() {
         pastNotifications = notificationHistoryStorage.getHistory()
         blockedNotifications = blockedNotificationHistoryStorage.getHistory()
         rules = ruleStorage.getRules()
+        blockedNotificationsCount = statsStorage.getBlockedNotificationsCount()
     }
 
     @Composable
@@ -83,6 +87,7 @@ class MainActivity : ComponentActivity() {
                     if (intent?.action == NotificationBlockerService.ACTION_HISTORY_UPDATED) {
                         pastNotifications = notificationHistoryStorage.getHistory()
                         blockedNotifications = blockedNotificationHistoryStorage.getHistory()
+                        blockedNotificationsCount = statsStorage.getBlockedNotificationsCount()
                     }
                 }
             }
@@ -98,6 +103,7 @@ class MainActivity : ComponentActivity() {
                 pastNotifications = pastNotifications,
                 blockedNotifications = blockedNotifications,
                 rules = rules,
+                blockedNotificationsCount = blockedNotificationsCount,
                 onNotificationClick = { notification -> notificationToShowAddDialog = notification },
                 onBlockedNotificationClick = { notification -> notificationToShowDetailsDialog = notification },
                 onClearHistory = {
@@ -172,6 +178,7 @@ class MainActivity : ComponentActivity() {
         pastNotifications: List<SimpleNotification>,
         blockedNotifications: List<SimpleNotification>,
         rules: List<BlockerRule>,
+        blockedNotificationsCount: Int,
         onNotificationClick: (SimpleNotification) -> Unit,
         onBlockedNotificationClick: (SimpleNotification) -> Unit,
         onClearHistory: () -> Unit,
@@ -196,7 +203,7 @@ class MainActivity : ComponentActivity() {
                     when (page) {
                         0 -> HistoryScreen(pastNotifications, onNotificationClick, onClearHistory)
                         1 -> RulesScreen(rules, onRuleClick)
-                        2 -> BlockedScreen(blockedNotifications, onClearBlockedHistory, onBlockedNotificationClick)
+                        2 -> BlockedScreen(blockedNotifications, blockedNotificationsCount, onClearBlockedHistory, onBlockedNotificationClick)
                     }
                 }
             }

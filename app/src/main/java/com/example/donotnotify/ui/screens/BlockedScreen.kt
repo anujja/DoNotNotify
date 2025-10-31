@@ -24,14 +24,23 @@ import com.example.donotnotify.SimpleNotification
 @Composable
 fun BlockedScreen(
     notifications: List<SimpleNotification>,
+    totalBlockedCount: Int,
     onClearBlockedHistory: () -> Unit,
     onNotificationClick: (SimpleNotification) -> Unit
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+        item {
+            Text(
+                text = "$totalBlockedCount notifications have been blocked so far.",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
+            )
+        }
         if (notifications.isEmpty()) {
             item {
                 Text(
-                    text = "No notifications have been blocked so far.",
+                    text = "No notifications have been blocked recently.",
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth().padding(top = 32.dp)
