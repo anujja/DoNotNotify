@@ -20,11 +20,37 @@ class BlockedNotificationHistoryStorage(private val context: Context) {
         return gson.fromJson(json, type) ?: emptyList()
     }
 
-    fun saveNotification(notification: SimpleNotification) {
+    // Returns true if a new notification was added, false if it was a duplicate
+    fun saveNotification(notification: SimpleNotification): Boolean {
         val history = getHistory().toMutableList()
-        history.add(0, notification) // Add to the top of the list
+
+        // Manually find and remove the old notification, ignoring the timestamp
+        val index = history.indexOfFirst {
+            it.appLabel == notification.appLabel &&
+            it.packageName == notification.packageName &&
+            it.title == notification.title &&
+            it.text == notification.text
+        }
+
+        val isNew = index == -1
+        if (!isNew) {
+            history.removeAt(index)
+        }
+
+        // Add the new or updated notification to the top of the list
+        history.add(0, notification)
+        
         val trimmedHistory = if (history.size > maxHistorySize) history.subList(0, maxHistorySize) else history
         val json = gson.toJson(trimmedHistory)
+        historyFile.writeText(json)
+        
+        return isNew
+    }
+
+    fun deleteNotification(notification: SimpleNotification) {
+        val history = getHistory().toMutableList()
+        history.remove(notification)
+        val json = gson.toJson(history)
         historyFile.writeText(json)
     }
 

@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.example.donotnotify.ui.components.AddRuleDialog
+import com.example.donotnotify.ui.components.DeleteConfirmationDialog
 import com.example.donotnotify.ui.components.EditRuleDialog
 import com.example.donotnotify.ui.components.NotificationDetailsDialog
 import com.example.donotnotify.ui.screens.BlockedScreen
@@ -78,6 +79,8 @@ class MainActivity : ComponentActivity() {
         var notificationToShowAddDialog by remember { mutableStateOf<SimpleNotification?>(null) }
         var notificationToShowDetailsDialog by remember { mutableStateOf<SimpleNotification?>(null) }
         var ruleToEdit by remember { mutableStateOf<BlockerRule?>(null) }
+        var ruleToDelete by remember { mutableStateOf<BlockerRule?>(null) }
+        var notificationToDelete by remember { mutableStateOf<SimpleNotification?>(null) }
         val pagerState = rememberPagerState(pageCount = { 3 })
         val coroutineScope = rememberCoroutineScope()
 
@@ -116,7 +119,14 @@ class MainActivity : ComponentActivity() {
                     blockedNotifications = emptyList()
                     Toast.makeText(context, "Blocked history cleared", Toast.LENGTH_SHORT).show()
                 },
-                onRuleClick = { rule -> ruleToEdit = rule }
+                onRuleClick = { rule -> ruleToEdit = rule },
+                onDeleteRuleClick = { rule -> ruleToDelete = rule },
+                onDeleteNotificationClick = { notification -> notificationToDelete = notification },
+                onDeleteHistoryNotificationClick = {notification ->
+                    notificationHistoryStorage.deleteNotification(notification)
+                    pastNotifications = notificationHistoryStorage.getHistory()
+                    Toast.makeText(context, "Notification deleted", Toast.LENGTH_SHORT).show()
+                }
             )
         } else {
             EnableNotificationListenerScreen(onEnableClick = { openNotificationListenerSettings() })
@@ -170,6 +180,33 @@ class MainActivity : ComponentActivity() {
                 }
             )
         }
+
+        ruleToDelete?.let { rule ->
+            DeleteConfirmationDialog(
+                itemName = "Rule for ${rule.appName}",
+                onDismiss = { ruleToDelete = null },
+                onConfirm = {
+                    val updatedRules = rules - rule
+                    ruleStorage.saveRules(updatedRules)
+                    rules = updatedRules
+                    ruleToDelete = null
+                    Toast.makeText(context, "Rule deleted", Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+
+        notificationToDelete?.let { notification ->
+            DeleteConfirmationDialog(
+                itemName = "Blocked notification from ${notification.appLabel}",
+                onDismiss = { notificationToDelete = null },
+                onConfirm = {
+                    blockedNotificationHistoryStorage.deleteNotification(notification)
+                    blockedNotifications = blockedNotificationHistoryStorage.getHistory()
+                    notificationToDelete = null
+                    Toast.makeText(context, "Notification deleted", Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
     }
 
     @Composable
@@ -183,7 +220,10 @@ class MainActivity : ComponentActivity() {
         onBlockedNotificationClick: (SimpleNotification) -> Unit,
         onClearHistory: () -> Unit,
         onClearBlockedHistory: () -> Unit,
-        onRuleClick: (BlockerRule) -> Unit
+        onRuleClick: (BlockerRule) -> Unit,
+        onDeleteRuleClick: (BlockerRule) -> Unit,
+        onDeleteNotificationClick: (SimpleNotification) -> Unit,
+        onDeleteHistoryNotificationClick: (SimpleNotification) -> Unit
     ) {
         val coroutineScope = rememberCoroutineScope()
         val tabTitles = listOf("History", "Rules", "Blocked")
@@ -201,9 +241,9 @@ class MainActivity : ComponentActivity() {
                 }
                 HorizontalPager(state = pagerState) { page ->
                     when (page) {
-                        0 -> HistoryScreen(pastNotifications, onNotificationClick, onClearHistory)
-                        1 -> RulesScreen(rules, onRuleClick)
-                        2 -> BlockedScreen(blockedNotifications, blockedNotificationsCount, onClearBlockedHistory, onBlockedNotificationClick)
+                        0 -> HistoryScreen(pastNotifications, onNotificationClick, onClearHistory, onDeleteHistoryNotificationClick)
+                        1 -> RulesScreen(rules, onRuleClick, onDeleteRuleClick)
+                        2 -> BlockedScreen(blockedNotifications, blockedNotificationsCount, onClearBlockedHistory, onBlockedNotificationClick, onDeleteNotificationClick)
                     }
                 }
             }

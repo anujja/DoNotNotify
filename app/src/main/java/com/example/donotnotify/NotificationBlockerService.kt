@@ -1,5 +1,6 @@
 package com.example.donotnotify
 
+import android.app.Notification
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.service.notification.NotificationListenerService
@@ -38,15 +39,7 @@ class NotificationBlockerService : NotificationListenerService() {
         val notification = sbn.notification
         val title = notification.extras.getCharSequence("android.title")?.toString()
         val text = notification.extras.getCharSequence("android.text")?.toString()
-        val notificationKey = "$packageName:$title:$text"
         val currentTime = System.currentTimeMillis()
-
-        // Debounce logic
-        if (recentlyBlocked.containsKey(notificationKey) && currentTime - (recentlyBlocked[notificationKey] ?: 0) < DEBOUNCE_PERIOD_MS) {
-            Log.i(TAG, "Ignoring duplicate notification: $notificationKey")
-            return
-        }
-        recentlyBlocked.entries.removeIf { (_, timestamp) -> currentTime - timestamp > DEBOUNCE_PERIOD_MS }
 
         val appLabel = try {
             packageManager.getApplicationLabel(packageManager.getApplicationInfo(packageName, 0)).toString()
@@ -56,10 +49,11 @@ class NotificationBlockerService : NotificationListenerService() {
 
         Log.i(TAG, "Notification Received: App='${appLabel}', Title='${title}', Text='${text}'")
 
-        val simpleNotification = SimpleNotification(appLabel, packageName, title, text, currentTime)
         var isBlocked = false
-
+        var matchedRule: BlockerRule? = null
         val rules = ruleStorage.getRules()
+
+        // 1. Check for a match first
         for (rule in rules) {
             try {
                 val appMatch = rule.appName.isNullOrBlank() || rule.appName == packageName
@@ -68,23 +62,44 @@ class NotificationBlockerService : NotificationListenerService() {
 
                 if (appMatch && titleMatch && textMatch) {
                     isBlocked = true
-                    Log.i(TAG, "Blocking notification from $packageName based on rule: $rule")
-                    cancelNotification(sbn.key)
-                    recentlyBlocked[notificationKey] = currentTime
-                    statsStorage.incrementBlockedNotificationsCount()
-                    break 
+                    matchedRule = rule
+                    break
                 }
             } catch (e: PatternSyntaxException) {
                 Log.e(TAG, "Invalid regex in rule: $rule", e)
             }
         }
 
+        // 2. If it's a blockable notification, cancel it immediately
         if (isBlocked) {
-            blockedNotificationHistoryStorage.saveNotification(simpleNotification)
-        } else {
-            notificationHistoryStorage.saveNotification(simpleNotification)
+            if ((sbn.notification.flags and Notification.FLAG_ONGOING_EVENT) != 0) {
+                Log.w(TAG, "Attempting to block an ongoing notification. Cancellation may not be possible. Key: ${sbn.key}")
+            }
+            Log.i(TAG, "Blocking notification from $packageName based on rule: $matchedRule")
+            cancelNotification(sbn.key)
         }
 
-        sendBroadcast(Intent(ACTION_HISTORY_UPDATED))
+        // 3. Now, handle history and stats, using debounce logic ONLY for recording
+        val notificationKey = "$packageName:$title:$text"
+        val isDuplicate = recentlyBlocked.containsKey(notificationKey) && currentTime - (recentlyBlocked[notificationKey] ?: 0) < DEBOUNCE_PERIOD_MS
+
+        if (isDuplicate) {
+            Log.i(TAG, "Ignoring duplicate for history/stats: $notificationKey")
+        } else {
+            val simpleNotification = SimpleNotification(appLabel, packageName, title, text, currentTime)
+            if (isBlocked) {
+                recentlyBlocked[notificationKey] = currentTime
+                val isNew = blockedNotificationHistoryStorage.saveNotification(simpleNotification)
+                if (isNew) {
+                    statsStorage.incrementBlockedNotificationsCount()
+                }
+            } else {
+                notificationHistoryStorage.saveNotification(simpleNotification)
+            }
+            sendBroadcast(Intent(ACTION_HISTORY_UPDATED))
+        }
+
+        // Clean up old entries from the debounce map
+        recentlyBlocked.entries.removeIf { (_, timestamp) -> currentTime - timestamp > DEBOUNCE_PERIOD_MS }
     }
 }
