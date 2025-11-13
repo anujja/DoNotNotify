@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -18,10 +19,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.donotnotify.SimpleNotification
 
@@ -32,6 +38,14 @@ fun HistoryScreen(
     onClearHistory: () -> Unit,
     onDeleteNotification: (SimpleNotification) -> Unit
 ) {
+    var expandedApps by remember { mutableStateOf(setOf<String>()) }
+    val groupedNotifications = remember(notifications) {
+        notifications
+            .groupBy { it.appLabel ?: it.packageName.orEmpty() }
+            .entries
+            .sortedByDescending { (_, notifs) -> notifs.maxOf { it.timestamp } }
+    }
+
     LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         if (notifications.isEmpty()) {
             item {
@@ -53,37 +67,77 @@ fun HistoryScreen(
                     )
                 }
             }
-            items(notifications) { notification ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .clickable { onNotificationClick(notification) }
-                ) {
+
+            groupedNotifications.forEach { (appName, notifs) ->
+                item {
                     Row(
-                        modifier = Modifier.padding(start = 16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                expandedApps = if (expandedApps.contains(appName)) {
+                                    expandedApps - appName
+                                } else {
+                                    expandedApps + appName
+                                }
+                            }
+                            .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(modifier = Modifier.weight(1f).padding(vertical = 12.dp)) {
-                            Text(
-                                text = (notification.appLabel ?: notification.packageName).orEmpty(),
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "Title: ${notification.title.orEmpty()}",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Text(
-                                text = "Text: ${notification.text.orEmpty()}",
-                                style = MaterialTheme.typography.bodyMedium
+                        Text(
+                            text = "$appName (${notifs.size})",
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(onClick = {
+                            expandedApps = if (expandedApps.contains(appName)) {
+                                expandedApps - appName
+                            } else {
+                                expandedApps + appName
+                            }
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowDropDown,
+                                contentDescription = if (expandedApps.contains(appName)) "Collapse" else "Expand"
                             )
                         }
-                        IconButton(onClick = { onDeleteNotification(notification) }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete")
+                    }
+                }
+
+                if (expandedApps.contains(appName)) {
+                    items(notifs) { notification ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp, horizontal = 8.dp)
+                                .clickable { onNotificationClick(notification) }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(start = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f).padding(vertical = 12.dp)) {
+                                    Text(
+                                        text = "Title: ${notification.title.orEmpty()}",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = "Text: ${notification.text.orEmpty()}",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                                IconButton(onClick = { onDeleteNotification(notification) }) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Delete")
+                                }
+                            }
                         }
                     }
                 }
             }
+
             item {
                 Row(modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp), horizontalArrangement = Arrangement.Center) {
                     TextButton(onClick = onClearHistory) { Text("Clear History") }
