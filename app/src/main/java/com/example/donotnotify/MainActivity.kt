@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton // Import IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
@@ -152,7 +153,8 @@ class MainActivity : ComponentActivity() {
                     notificationHistoryStorage.deleteNotification(notification)
                     pastNotifications = notificationHistoryStorage.getHistory()
                     Toast.makeText(context, "Notification deleted", Toast.LENGTH_SHORT).show()
-                }
+                },
+                isServiceEnabled = isServiceEnabled // Pass isServiceEnabled
             )
         } else {
             EnableNotificationListenerScreen(onEnableClick = { openNotificationListenerSettings() })
@@ -249,8 +251,10 @@ class MainActivity : ComponentActivity() {
         onRuleClick: (BlockerRule) -> Unit,
         onDeleteRuleClick: (BlockerRule) -> Unit,
         onDeleteNotificationClick: (SimpleNotification) -> Unit,
-        onDeleteHistoryNotificationClick: (SimpleNotification) -> Unit
+        onDeleteHistoryNotificationClick: (SimpleNotification) -> Unit,
+        isServiceEnabled: Boolean // Add this parameter
     ) {
+        val context = LocalContext.current // Get context inside Composable
         val coroutineScope = rememberCoroutineScope()
         val tabTitles = listOf("History", "Rules", "Blocked")
 
@@ -260,7 +264,18 @@ class MainActivity : ComponentActivity() {
             topBar = {
                 TopAppBar(
                     title = { Text("Do Not Notify") },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer), // Corrected API usage
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                    actions = {
+                        IconButton(onClick = {
+                            val status = if (isServiceEnabled) "Notification Listener Service is ENABLED" else "Notification Listener Service is DISABLED"
+                            Toast.makeText(context, status, Toast.LENGTH_SHORT).show()
+                        }) {
+                            Icon(
+                                Icons.Default.CheckCircle,
+                                contentDescription = "Service Active",
+                            )
+                        }
+                    }
                 )
             }
         ) { innerPadding ->
