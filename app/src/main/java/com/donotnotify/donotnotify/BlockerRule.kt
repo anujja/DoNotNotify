@@ -7,5 +7,6 @@ import kotlinx.parcelize.Parcelize
 data class BlockerRule(
     val appName: String? = null,
     val titleRegex: String? = null,
-    val textRegex: String? = null
+    val textRegex: String? = null,
+    val blockedCount: Int = 0 // Add blockedCount with a default value
 ) : Parcelable

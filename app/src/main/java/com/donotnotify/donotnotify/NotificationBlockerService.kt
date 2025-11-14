@@ -17,7 +17,7 @@ class NotificationBlockerService : NotificationListenerService() {
     private lateinit var statsStorage: StatsStorage
 
     companion object {
-        const val ACTION_HISTORY_UPDATED = "com.example.donotnotify.HISTORY_UPDATED"
+        const val ACTION_HISTORY_UPDATED = "com.donotnotify.donotnotify.HISTORY_UPDATED"
         private const val DEBOUNCE_PERIOD_MS = 5000L
     }
 
@@ -51,10 +51,11 @@ class NotificationBlockerService : NotificationListenerService() {
 
         var isBlocked = false
         var matchedRule: BlockerRule? = null
-        val rules = ruleStorage.getRules()
+        val rules = ruleStorage.getRules().toMutableList() // Get mutable list of rules
 
         // 1. Check for a match first
-        for (rule in rules) {
+        for (i in rules.indices) {
+            val rule = rules[i]
             try {
                 val appMatch = rule.appName.isNullOrBlank() || rule.appName == packageName
                 val titleMatch = rule.titleRegex.isNullOrBlank() || (title?.matches(rule.titleRegex.toRegex()) ?: false)
@@ -63,6 +64,11 @@ class NotificationBlockerService : NotificationListenerService() {
                 if (appMatch && titleMatch && textMatch) {
                     isBlocked = true
                     matchedRule = rule
+
+                    // Increment blocked count for the matched rule
+                    val updatedRule = rule.copy(blockedCount = rule.blockedCount + 1)
+                    rules[i] = updatedRule // Update the rule in the mutable list
+                    ruleStorage.saveRules(rules) // Save the updated rules immediately
                     break
                 }
             } catch (e: PatternSyntaxException) {
