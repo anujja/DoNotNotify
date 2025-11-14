@@ -80,12 +80,21 @@ fun RulesScreen(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
-                            Text(
-                                text = "Blocked: ${rule.blockedCount}",
-                                color = Color.Red,
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Bold
-                            )
+                            if (rule.blockedCount > 0) {
+                                Text(
+                                    text = "Blocked: ${rule.blockedCount}",
+                                    color = Color.Red,
+                                    style = MaterialTheme.typography.bodySmall,
+//                                    fontWeight = FontWeight.Bold
+                                )
+                            } else {
+                                Text(
+                                    text = "Nothing blocked so far",
+                                    color = Color.Green,
+                                    style = MaterialTheme.typography.bodySmall,
+//                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                         IconButton(onClick = { onDeleteRuleClick(rule) }) {
                             Icon(Icons.Default.Delete, contentDescription = "Delete Rule")
