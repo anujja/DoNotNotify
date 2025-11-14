@@ -9,6 +9,7 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -26,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -44,7 +48,12 @@ import com.example.donotnotify.ui.screens.BlockedScreen
 import com.example.donotnotify.ui.screens.EnableNotificationListenerScreen
 import com.example.donotnotify.ui.screens.HistoryScreen
 import com.example.donotnotify.ui.screens.RulesScreen
+import com.example.donotnotify.ui.theme.DoNotNotifyTheme
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface // Import Surface
+import androidx.compose.material3.TopAppBarDefaults // Import TopAppBarDefaults
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
@@ -59,6 +68,7 @@ class MainActivity : ComponentActivity() {
     private var blockedNotificationsCount by mutableIntStateOf(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         ruleStorage = RuleStorage(this)
         notificationHistoryStorage = NotificationHistoryStorage(this)
@@ -66,7 +76,17 @@ class MainActivity : ComponentActivity() {
         statsStorage = StatsStorage(this)
         isServiceEnabled = isNotificationServiceEnabled()
         setContent {
-            MainScreen()
+            DoNotNotifyTheme {
+                val systemUiController = rememberSystemUiController()
+                val useDarkIcons = MaterialTheme.colorScheme.background.luminance() > 0.5f
+                SideEffect {
+                    systemUiController.setSystemBarsColor(
+                        color = Color.Transparent,
+                        darkIcons = useDarkIcons
+                    )
+                }
+                MainScreen()
+            }
         }
     }
 
@@ -235,36 +255,71 @@ class MainActivity : ComponentActivity() {
         val tabTitles = listOf("History", "Rules", "Blocked")
 
         Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = MaterialTheme.colorScheme.background,
             topBar = {
                 TopAppBar(
                     title = { Text("Do Not Notify") },
-                    actions = {
-                        Icon(
-                            Icons.Default.CheckCircle,
-                            contentDescription = "Service Active",
-                        )
-                    }
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer), // Corrected API usage
                 )
             }
         ) { innerPadding ->
-            Column(modifier = Modifier.padding(innerPadding)) {
-                TabRow(selectedTabIndex = pagerState.currentPage) {
-                    tabTitles.forEachIndexed { index, title ->
-                        Tab(
-                            selected = pagerState.currentPage == index,
-                            onClick = { coroutineScope.launch { pagerState.animateScrollToPage(index) } },
-                            text = { Text(title) }
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.background
+            ) {
+                Column(modifier = Modifier.padding(innerPadding)) {
+                    TabRow(selectedTabIndex = pagerState.currentPage) {
+                        tabTitles.forEachIndexed { index, title ->
+                            Tab(
+                                selected = pagerState.currentPage == index,
+                                onClick = { coroutineScope.launch { pagerState.animateScrollToPage(index) } },
+                                text = { Text(title) }
+                            )
+                        }
+                    }
+                    HorizontalPager(state = pagerState) {
+                        PagerScreenContent(
+                            page = it,
+                            pastNotifications = pastNotifications,
+                            blockedNotifications = blockedNotifications,
+                            rules = rules,
+                            blockedNotificationsCount = blockedNotificationsCount,
+                            onNotificationClick = onNotificationClick,
+                            onBlockedNotificationClick = onBlockedNotificationClick,
+                            onClearHistory = onClearHistory,
+                            onClearBlockedHistory = onClearBlockedHistory,
+                            onRuleClick = onRuleClick,
+                            onDeleteRuleClick = onDeleteRuleClick,
+                            onDeleteNotificationClick = onDeleteNotificationClick,
+                            onDeleteHistoryNotificationClick = onDeleteHistoryNotificationClick
                         )
                     }
                 }
-                HorizontalPager(state = pagerState) { page ->
-                    when (page) {
-                        0 -> HistoryScreen(pastNotifications, onNotificationClick, onClearHistory, onDeleteHistoryNotificationClick)
-                        1 -> RulesScreen(rules, onRuleClick, onDeleteRuleClick)
-                        2 -> BlockedScreen(blockedNotifications, blockedNotificationsCount, onClearBlockedHistory, onBlockedNotificationClick, onDeleteNotificationClick)
-                    }
-                }
             }
+        }
+    }
+
+    @Composable
+    private fun PagerScreenContent(
+        page: Int,
+        pastNotifications: List<SimpleNotification>,
+        blockedNotifications: List<SimpleNotification>,
+        rules: List<BlockerRule>,
+        blockedNotificationsCount: Int,
+        onNotificationClick: (SimpleNotification) -> Unit,
+        onBlockedNotificationClick: (SimpleNotification) -> Unit,
+        onClearHistory: () -> Unit,
+        onClearBlockedHistory: () -> Unit,
+        onRuleClick: (BlockerRule) -> Unit,
+        onDeleteRuleClick: (BlockerRule) -> Unit,
+        onDeleteNotificationClick: (SimpleNotification) -> Unit,
+        onDeleteHistoryNotificationClick: (SimpleNotification) -> Unit
+    ) {
+        when (page) {
+            0 -> HistoryScreen(pastNotifications, onNotificationClick, onClearHistory, onDeleteHistoryNotificationClick)
+            1 -> RulesScreen(rules, onRuleClick, onDeleteRuleClick)
+            2 -> BlockedScreen(blockedNotifications, blockedNotificationsCount, onClearBlockedHistory, onBlockedNotificationClick, onDeleteNotificationClick)
         }
     }
 
@@ -277,4 +332,8 @@ class MainActivity : ComponentActivity() {
         val enabledListeners = NotificationManagerCompat.getEnabledListenerPackages(this)
         return enabledListeners.contains(packageName)
     }
+}
+
+fun Color.luminance(): Float {
+    return (this.red * 0.2126f + this.green * 0.7152f + this.blue * 0.0722f)
 }
