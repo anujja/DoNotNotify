@@ -263,11 +263,11 @@ class MainActivity : ComponentActivity() {
             containerColor = MaterialTheme.colorScheme.background,
             topBar = {
                 TopAppBar(
-                    title = { Text("Do Not Notify") },
+                    title = { Text("DoNotNotify") },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                     actions = {
                         IconButton(onClick = {
-                            val status = if (isServiceEnabled) "Notification Listener Service is enabled" else "Notification Listener Service is disabled"
+                            val status = if (isServiceEnabled) "Notification listener service is enabled" else "Notification listener service is disabled"
                             Toast.makeText(context, status, Toast.LENGTH_SHORT).show()
                         }) {
                             Icon(
