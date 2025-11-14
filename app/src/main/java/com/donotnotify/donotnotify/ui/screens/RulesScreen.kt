@@ -1,4 +1,4 @@
-package com.example.donotnotify.ui.screens
+package com.donotnotify.donotnotify.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -22,7 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.donotnotify.BlockerRule
+import com.donotnotify.donotnotify.BlockerRule
 
 @Composable
 fun RulesScreen(

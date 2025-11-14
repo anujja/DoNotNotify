@@ -1,4 +1,4 @@
-package com.example.donotnotify.ui.screens
+package com.donotnotify.donotnotify.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.donotnotify.SimpleNotification
+import com.donotnotify.donotnotify.SimpleNotification
 
 @Composable
 fun BlockedScreen(

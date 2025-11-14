@@ -1,4 +1,4 @@
-package com.example.donotnotify
+package com.donotnotify.donotnotify
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -41,15 +41,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import com.example.donotnotify.ui.components.AddRuleDialog
-import com.example.donotnotify.ui.components.DeleteConfirmationDialog
-import com.example.donotnotify.ui.components.EditRuleDialog
-import com.example.donotnotify.ui.components.NotificationDetailsDialog
-import com.example.donotnotify.ui.screens.BlockedScreen
-import com.example.donotnotify.ui.screens.EnableNotificationListenerScreen
-import com.example.donotnotify.ui.screens.HistoryScreen
-import com.example.donotnotify.ui.screens.RulesScreen
-import com.example.donotnotify.ui.theme.DoNotNotifyTheme
+import com.donotnotify.donotnotify.ui.components.AddRuleDialog
+import com.donotnotify.donotnotify.ui.components.DeleteConfirmationDialog
+import com.donotnotify.donotnotify.ui.components.EditRuleDialog
+import com.donotnotify.donotnotify.ui.components.NotificationDetailsDialog
+import com.donotnotify.donotnotify.ui.screens.BlockedScreen
+import com.donotnotify.donotnotify.ui.screens.EnableNotificationListenerScreen
+import com.donotnotify.donotnotify.ui.screens.HistoryScreen
+import com.donotnotify.donotnotify.ui.screens.RulesScreen
+import com.donotnotify.donotnotify.ui.theme.DoNotNotifyTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.fillMaxSize
@@ -267,7 +267,7 @@ class MainActivity : ComponentActivity() {
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                     actions = {
                         IconButton(onClick = {
-                            val status = if (isServiceEnabled) "Notification Listener Service is ENABLED" else "Notification Listener Service is DISABLED"
+                            val status = if (isServiceEnabled) "Notification Listener Service is enabled" else "Notification Listener Service is disabled"
                             Toast.makeText(context, status, Toast.LENGTH_SHORT).show()
                         }) {
                             Icon(

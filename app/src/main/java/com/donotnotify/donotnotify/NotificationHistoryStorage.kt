@@ -1,15 +1,15 @@
-package com.example.donotnotify
+package com.donotnotify.donotnotify
 
 import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.io.File
 
-class BlockedNotificationHistoryStorage(private val context: Context) {
+class NotificationHistoryStorage(private val context: Context) {
 
     private val gson = Gson()
-    private val historyFile = File(context.filesDir, "blocked_notification_history.json")
-    private val maxHistorySize = 100 // Let's keep the history to a reasonable size
+    private val historyFile = File(context.filesDir, "notification_history.json")
+    private val maxHistorySize = 500 // Let's keep the history to a reasonable size
 
     fun getHistory(): List<SimpleNotification> {
         if (!historyFile.exists()) {
@@ -20,8 +20,7 @@ class BlockedNotificationHistoryStorage(private val context: Context) {
         return gson.fromJson(json, type) ?: emptyList()
     }
 
-    // Returns true if a new notification was added, false if it was a duplicate
-    fun saveNotification(notification: SimpleNotification): Boolean {
+    fun saveNotification(notification: SimpleNotification) {
         val history = getHistory().toMutableList()
 
         // Manually find and remove the old notification, ignoring the timestamp
@@ -31,9 +30,7 @@ class BlockedNotificationHistoryStorage(private val context: Context) {
             it.title == notification.title &&
             it.text == notification.text
         }
-
-        val isNew = index == -1
-        if (!isNew) {
+        if (index != -1) {
             history.removeAt(index)
         }
 
@@ -43,8 +40,6 @@ class BlockedNotificationHistoryStorage(private val context: Context) {
         val trimmedHistory = if (history.size > maxHistorySize) history.subList(0, maxHistorySize) else history
         val json = gson.toJson(trimmedHistory)
         historyFile.writeText(json)
-        
-        return isNew
     }
 
     fun deleteNotification(notification: SimpleNotification) {

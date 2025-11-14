@@ -1,4 +1,4 @@
-package com.example.donotnotify.ui.theme
+package com.donotnotify.donotnotify.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

@@ -1,4 +1,4 @@
-package com.example.donotnotify.ui.components
+package com.donotnotify.donotnotify.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

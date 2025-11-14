@@ -1,4 +1,4 @@
-package com.example.donotnotify
+package com.donotnotify.donotnotify
 
 import org.junit.Test
 

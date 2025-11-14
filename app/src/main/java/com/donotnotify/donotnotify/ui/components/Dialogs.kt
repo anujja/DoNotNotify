@@ -1,4 +1,4 @@
-package com.example.donotnotify.ui.components
+package com.donotnotify.donotnotify.ui.components
 
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -24,8 +24,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.example.donotnotify.BlockerRule
-import com.example.donotnotify.SimpleNotification
+import com.donotnotify.donotnotify.BlockerRule
+import com.donotnotify.donotnotify.SimpleNotification
 
 @Composable
 fun AddRuleDialog(

@@ -1,4 +1,4 @@
-package com.example.donotnotify
+package com.donotnotify.donotnotify
 
 import android.app.Notification
 import android.content.Intent

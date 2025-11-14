@@ -1,4 +1,4 @@
-package com.example.donotnotify.ui.screens
+package com.donotnotify.donotnotify.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -53,12 +53,12 @@ fun EnableNotificationListenerScreen(onEnableClick: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "This app needs access to your notifications to block them. Please enable the notification listener service in your device settings.",
+                    text = "This app needs access to your notifications to block them. Please enable the access in your device settings.",
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(onClick = onEnableClick) {
-                    Text("Enable Notification Listener")
+                    Text("Enable Notification Access")
                 }
             }
         }
