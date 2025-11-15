@@ -20,6 +20,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -83,6 +84,14 @@ fun BlockedScreen(
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis
                             )
+                            if (notification.wasOngoing) {
+                                Text(
+                                    text = "Note: This was an ongoing notification. It may not have been fully blocked.",
+                                    color = Color.Red,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                         IconButton(onClick = { onDeleteNotificationClick(notification) }) {
                             Icon(Icons.Default.Delete, contentDescription = "Delete Blocked Notification")

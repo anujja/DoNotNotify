@@ -87,8 +87,9 @@ class NotificationBlockerService : NotificationListenerService() {
         }
 
         // 2. If it's a blockable notification, cancel it immediately
+        val wasOngoing = (sbn.notification.flags and Notification.FLAG_ONGOING_EVENT) != 0
         if (isBlocked) {
-            if ((sbn.notification.flags and Notification.FLAG_ONGOING_EVENT) != 0) {
+            if (wasOngoing) {
                 Log.w(TAG, "Attempting to block an ongoing notification. Cancellation may not be possible. Key: ${sbn.key}")
             }
             Log.i(TAG, "Blocking notification from $packageName based on rule: $matchedRule")
@@ -102,7 +103,7 @@ class NotificationBlockerService : NotificationListenerService() {
         if (isDuplicate) {
             Log.i(TAG, "Ignoring duplicate for history/stats: $notificationKey")
         } else {
-            val simpleNotification = SimpleNotification(appLabel, packageName, title, text, currentTime)
+            val simpleNotification = SimpleNotification(appLabel, packageName, title, text, currentTime, wasOngoing = wasOngoing && isBlocked)
             if (isBlocked) {
                 recentlyBlocked[notificationKey] = currentTime
                 val isNew = blockedNotificationHistoryStorage.saveNotification(simpleNotification)
