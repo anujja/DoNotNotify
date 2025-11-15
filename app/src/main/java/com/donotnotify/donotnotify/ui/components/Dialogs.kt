@@ -11,6 +11,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -25,8 +29,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.donotnotify.donotnotify.BlockerRule
+import com.donotnotify.donotnotify.MatchType
 import com.donotnotify.donotnotify.SimpleNotification
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddRuleDialog(
     notification: SimpleNotification,
@@ -35,12 +41,20 @@ fun AddRuleDialog(
 ) {
     val context = LocalContext.current
     var appName by remember { mutableStateOf(notification.packageName.orEmpty()) }
-    var titleRegex by remember { mutableStateOf(notification.title.orEmpty()) }
-    var textRegex by remember { mutableStateOf(notification.text.orEmpty()) }
+    var titleFilter by remember { mutableStateOf(notification.title.orEmpty()) }
+    var titleMatchType by remember { mutableStateOf(MatchType.REGEX) }
+    var textFilter by remember { mutableStateOf(notification.text.orEmpty()) }
+    var textMatchType by remember { mutableStateOf(MatchType.REGEX) }
+
     Dialog(onDismissRequest = onDismiss) {
         Card {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Add New Rule", fontWeight = FontWeight.Bold, fontSize = 20.sp, modifier = Modifier.padding(bottom = 16.dp))
+                Text(
+                    "Add New Rule",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
                 TextField(
                     value = appName,
                     onValueChange = { appName = it },
@@ -52,14 +66,72 @@ fun AddRuleDialog(
                             Toast.makeText(context, "App name (package name) cannot be changed", Toast.LENGTH_SHORT).show()
                         }
                 )
-                TextField(value = titleRegex, onValueChange = { titleRegex = it }, label = { Text("Title Regex (Optional)") }, modifier = Modifier.fillMaxWidth())
-                TextField(value = textRegex, onValueChange = { textRegex = it }, label = { Text("Text Regex (Optional)") }, modifier = Modifier.fillMaxWidth())
-                Row(modifier = Modifier.fillMaxWidth().padding(top = 16.dp), horizontalArrangement = Arrangement.End) {
+
+                Spacer(modifier = Modifier.padding(vertical = 8.dp))
+
+                TextField(
+                    value = titleFilter,
+                    onValueChange = { titleFilter = it },
+                    label = { Text("Title Filter (Optional)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp)
+                ) {
+                    MatchType.entries.forEachIndexed { index, matchType ->
+                        SegmentedButton(
+                            selected = titleMatchType == matchType,
+                            onClick = { titleMatchType = matchType },
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = MatchType.entries.size),
+                        ) {
+                            Text(matchType.name)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.padding(vertical = 8.dp))
+
+                TextField(
+                    value = textFilter,
+                    onValueChange = { textFilter = it },
+                    label = { Text("Text Filter (Optional)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp)
+                ) {
+                    MatchType.entries.forEachIndexed { index, matchType ->
+                        SegmentedButton(
+                            selected = textMatchType == matchType,
+                            onClick = { textMatchType = matchType },
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = MatchType.entries.size),
+                        ) {
+                            Text(matchType.name)
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
                     Button(onClick = onDismiss, modifier = Modifier.padding(end = 8.dp)) {
                         Text("Cancel")
                     }
                     Button(onClick = {
-                        val newRule = BlockerRule(appName, titleRegex.ifBlank { null }, textRegex.ifBlank { null })
+                        val newRule = BlockerRule(
+                            appName = appName,
+                            titleFilter = titleFilter.ifBlank { null },
+                            titleMatchType = titleMatchType,
+                            textFilter = textFilter.ifBlank { null },
+                            textMatchType = textMatchType
+                        )
                         onAddRule(newRule)
                     }) {
                         Text("Save Rule")
@@ -70,6 +142,7 @@ fun AddRuleDialog(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditRuleDialog(
     rule: BlockerRule,
@@ -78,16 +151,79 @@ fun EditRuleDialog(
     onDeleteRule: (BlockerRule) -> Unit
 ) {
     var appName by remember { mutableStateOf(rule.appName.orEmpty()) }
-    var titleRegex by remember { mutableStateOf(rule.titleRegex.orEmpty()) }
-    var textRegex by remember { mutableStateOf(rule.textRegex.orEmpty()) }
+    var titleFilter by remember { mutableStateOf(rule.titleFilter.orEmpty()) }
+    var titleMatchType by remember { mutableStateOf(rule.titleMatchType) }
+    var textFilter by remember { mutableStateOf(rule.textFilter.orEmpty()) }
+    var textMatchType by remember { mutableStateOf(rule.textMatchType) }
+
     Dialog(onDismissRequest = onDismiss) {
         Card {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Edit Rule", fontWeight = FontWeight.Bold, fontSize = 20.sp, modifier = Modifier.padding(bottom = 16.dp))
-                TextField(value = appName, onValueChange = { appName = it }, label = { Text("App Name") }, modifier = Modifier.fillMaxWidth())
-                TextField(value = titleRegex, onValueChange = { titleRegex = it }, label = { Text("Title Regex (Optional)") }, modifier = Modifier.fillMaxWidth())
-                TextField(value = textRegex, onValueChange = { textRegex = it }, label = { Text("Text Regex (Optional)") }, modifier = Modifier.fillMaxWidth())
-                Row(modifier = Modifier.fillMaxWidth().padding(top = 16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(
+                    "Edit Rule",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                TextField(
+                    value = appName,
+                    onValueChange = { appName = it },
+                    label = { Text("App Name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.padding(vertical = 8.dp))
+
+                TextField(
+                    value = titleFilter,
+                    onValueChange = { titleFilter = it },
+                    label = { Text("Title Filter (Optional)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp)
+                ) {
+                    MatchType.entries.forEachIndexed { index, matchType ->
+                        SegmentedButton(
+                            selected = titleMatchType == matchType,
+                            onClick = { titleMatchType = matchType },
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = MatchType.entries.size),
+                        ) {
+                            Text(matchType.name)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.padding(vertical = 8.dp))
+
+                TextField(
+                    value = textFilter,
+                    onValueChange = { textFilter = it },
+                    label = { Text("Text Filter (Optional)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp)
+                ) {
+                    MatchType.entries.forEachIndexed { index, matchType ->
+                        SegmentedButton(
+                            selected = textMatchType == matchType,
+                            onClick = { textMatchType = matchType },
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = MatchType.entries.size),
+                        ) {
+                            Text(matchType.name)
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                     Button(onClick = { onDeleteRule(rule) }) {
                         Text("Delete")
                     }
@@ -97,7 +233,14 @@ fun EditRuleDialog(
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Button(onClick = {
-                            val newRule = BlockerRule(appName, titleRegex.ifBlank { null }, textRegex.ifBlank { null })
+                            val newRule = BlockerRule(
+                                appName = appName,
+                                titleFilter = titleFilter.ifBlank { null },
+                                titleMatchType = titleMatchType,
+                                textFilter = textFilter.ifBlank { null },
+                                textMatchType = textMatchType,
+                                blockedCount = rule.blockedCount // Preserve the blocked count
+                            )
                             onUpdateRule(rule, newRule)
                         }) {
                             Text("Save")

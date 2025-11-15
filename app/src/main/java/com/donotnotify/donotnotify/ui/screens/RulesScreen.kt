@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.donotnotify.donotnotify.BlockerRule
+import com.donotnotify.donotnotify.MatchType
 
 @Composable
 fun RulesScreen(
@@ -68,14 +69,16 @@ fun RulesScreen(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
+                            val titleFilterText = if (rule.titleFilter.isNullOrBlank()) "N/A" else "${rule.titleFilter.orEmpty()} (${rule.titleMatchType.name.lowercase()})"
                             Text(
-                                text = "Title: ${rule.titleRegex.orEmpty()}",
+                                text = "Title: $titleFilterText",
                                 style = MaterialTheme.typography.bodyMedium,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
+                            val textFilterText = if (rule.textFilter.isNullOrBlank()) "N/A" else "${rule.textFilter.orEmpty()} (${rule.textMatchType.name.lowercase()})"
                             Text(
-                                text = "Text: ${rule.textRegex.orEmpty()}",
+                                text = "Text: $textFilterText",
                                 style = MaterialTheme.typography.bodyMedium,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -85,14 +88,14 @@ fun RulesScreen(
                                     text = "Blocked: ${rule.blockedCount}",
                                     color = Color.Red,
                                     style = MaterialTheme.typography.bodySmall,
-//                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold
                                 )
                             } else {
                                 Text(
                                     text = "Nothing blocked so far",
                                     color = Color.Green,
                                     style = MaterialTheme.typography.bodySmall,
-//                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }

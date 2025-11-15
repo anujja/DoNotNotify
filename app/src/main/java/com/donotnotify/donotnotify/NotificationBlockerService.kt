@@ -58,8 +58,16 @@ class NotificationBlockerService : NotificationListenerService() {
             val rule = rules[i]
             try {
                 val appMatch = rule.appName.isNullOrBlank() || rule.appName == packageName
-                val titleMatch = rule.titleRegex.isNullOrBlank() || (title?.matches(rule.titleRegex.toRegex()) ?: false)
-                val textMatch = rule.textRegex.isNullOrBlank() || (text?.matches(rule.textRegex.toRegex()) ?: false)
+
+                val titleMatch = when (rule.titleMatchType) {
+                    MatchType.REGEX -> rule.titleFilter.isNullOrBlank() || (title?.matches(rule.titleFilter.toRegex()) ?: false)
+                    MatchType.CONTAINS -> rule.titleFilter.isNullOrBlank() || (title?.contains(rule.titleFilter!!, ignoreCase = true) ?: false)
+                }
+
+                val textMatch = when (rule.textMatchType) {
+                    MatchType.REGEX -> rule.textFilter.isNullOrBlank() || (text?.matches(rule.textFilter.toRegex()) ?: false)
+                    MatchType.CONTAINS -> rule.textFilter.isNullOrBlank() || (text?.contains(rule.textFilter!!, ignoreCase = true) ?: false)
+                }
 
                 if (appMatch && titleMatch && textMatch) {
                     isBlocked = true
@@ -73,6 +81,8 @@ class NotificationBlockerService : NotificationListenerService() {
                 }
             } catch (e: PatternSyntaxException) {
                 Log.e(TAG, "Invalid regex in rule: $rule", e)
+            } catch (e: NullPointerException) {
+                Log.e(TAG, "Null filter for CONTAINS match type in rule: $rule", e)
             }
         }
 

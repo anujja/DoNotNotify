@@ -3,10 +3,17 @@ package com.donotnotify.donotnotify
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
+enum class MatchType {
+    REGEX,
+    CONTAINS
+}
+
 @Parcelize
 data class BlockerRule(
     val appName: String? = null,
-    val titleRegex: String? = null,
-    val textRegex: String? = null,
-    val blockedCount: Int = 0 // Add blockedCount with a default value
+    val titleFilter: String? = null,
+    val titleMatchType: MatchType = MatchType.REGEX,
+    val textFilter: String? = null,
+    val textMatchType: MatchType = MatchType.REGEX,
+    val blockedCount: Int = 0
 ) : Parcelable
