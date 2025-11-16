@@ -1,5 +1,6 @@
 package com.donotnotify.donotnotify.ui.components
 
+import android.util.Log // Import Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,11 +41,12 @@ fun AddRuleDialog(
     onAddRule: (BlockerRule) -> Unit
 ) {
     val context = LocalContext.current
-    var appName by remember { mutableStateOf(notification.packageName.orEmpty()) }
+    var appName by remember { mutableStateOf(notification.appLabel.orEmpty()) }
+    val packageName = remember { mutableStateOf(notification.packageName.orEmpty()) }.value
     var titleFilter by remember { mutableStateOf(notification.title.orEmpty()) }
-    var titleMatchType by remember { mutableStateOf(MatchType.REGEX) }
+    var titleMatchType by remember { mutableStateOf(MatchType.CONTAINS) }
     var textFilter by remember { mutableStateOf(notification.text.orEmpty()) }
-    var textMatchType by remember { mutableStateOf(MatchType.REGEX) }
+    var textMatchType by remember { mutableStateOf(MatchType.CONTAINS) }
 
     Dialog(onDismissRequest = onDismiss) {
         Card {
@@ -58,12 +60,12 @@ fun AddRuleDialog(
                 TextField(
                     value = appName,
                     onValueChange = { appName = it },
-                    label = { Text("App Name (Package Name)") },
+                    label = { Text("App Name") },
                     readOnly = true,
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            Toast.makeText(context, "App name (package name) cannot be changed", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "App name cannot be changed", Toast.LENGTH_SHORT).show()
                         }
                 )
 
@@ -127,12 +129,14 @@ fun AddRuleDialog(
                     Button(onClick = {
                         val newRule = BlockerRule(
                             appName = appName,
+                            packageName = packageName,
                             titleFilter = titleFilter.ifBlank { null },
                             titleMatchType = titleMatchType,
                             textFilter = textFilter.ifBlank { null },
                             textMatchType = textMatchType
                         )
                         onAddRule(newRule)
+                        Log.d("RuleEvent", "Rule Created: $newRule") // Log new rule
                     }) {
                         Text("Save Rule")
                     }
@@ -150,7 +154,9 @@ fun EditRuleDialog(
     onUpdateRule: (BlockerRule, BlockerRule) -> Unit,
     onDeleteRule: (BlockerRule) -> Unit
 ) {
+    val context = LocalContext.current
     var appName by remember { mutableStateOf(rule.appName.orEmpty()) }
+    val packageName = remember { mutableStateOf(rule.packageName.orEmpty()) }.value
     var titleFilter by remember { mutableStateOf(rule.titleFilter.orEmpty()) }
     var titleMatchType by remember { mutableStateOf(rule.titleMatchType) }
     var textFilter by remember { mutableStateOf(rule.textFilter.orEmpty()) }
@@ -169,7 +175,12 @@ fun EditRuleDialog(
                     value = appName,
                     onValueChange = { appName = it },
                     label = { Text("App Name") },
-                    modifier = Modifier.fillMaxWidth()
+                    readOnly = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            Toast.makeText(context, "App name cannot be changed", Toast.LENGTH_SHORT).show()
+                        }
                 )
 
                 Spacer(modifier = Modifier.padding(vertical = 8.dp))
@@ -235,13 +246,15 @@ fun EditRuleDialog(
                         Button(onClick = {
                             val newRule = BlockerRule(
                                 appName = appName,
+                                packageName = packageName,
                                 titleFilter = titleFilter.ifBlank { null },
                                 titleMatchType = titleMatchType,
                                 textFilter = textFilter.ifBlank { null },
                                 textMatchType = textMatchType,
-                                blockedCount = rule.blockedCount // Preserve the blocked count
+                                blockedCount = rule.blockedCount
                             )
                             onUpdateRule(rule, newRule)
+                            Log.d("RuleEvent", "Rule Updated: $newRule") // Log updated rule
                         }) {
                             Text("Save")
                         }

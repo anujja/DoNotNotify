@@ -11,6 +11,7 @@ enum class MatchType {
 @Parcelize
 data class BlockerRule(
     val appName: String? = null,
+    val packageName: String? = null, // Added packageName
     val titleFilter: String? = null,
     val titleMatchType: MatchType = MatchType.REGEX,
     val textFilter: String? = null,

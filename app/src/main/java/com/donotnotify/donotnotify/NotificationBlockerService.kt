@@ -57,7 +57,7 @@ class NotificationBlockerService : NotificationListenerService() {
         for (i in rules.indices) {
             val rule = rules[i]
             try {
-                val appMatch = rule.appName.isNullOrBlank() || rule.appName == packageName
+                val appMatch = rule.appName.isNullOrBlank() || rule.packageName == packageName
 
                 val titleMatch = when (rule.titleMatchType) {
                     MatchType.REGEX -> rule.titleFilter.isNullOrBlank() || (title?.matches(rule.titleFilter.toRegex()) ?: false)
@@ -68,6 +68,8 @@ class NotificationBlockerService : NotificationListenerService() {
                     MatchType.REGEX -> rule.textFilter.isNullOrBlank() || (text?.matches(rule.textFilter.toRegex()) ?: false)
                     MatchType.CONTAINS -> rule.textFilter.isNullOrBlank() || (text?.contains(rule.textFilter!!, ignoreCase = true) ?: false)
                 }
+
+//                Log.i(TAG, "App Match: $appMatch, Title Match: $titleMatch, Text Match: $textMatch")
 
                 if (appMatch && titleMatch && textMatch) {
                     isBlocked = true
