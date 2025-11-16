@@ -93,7 +93,7 @@ fun RulesScreen(
                             } else {
                                 Text(
                                     text = "Nothing blocked so far",
-                                    color = Color.Green,
+                                    color = Color.Gray,
                                     style = MaterialTheme.typography.bodySmall,
                                     fontWeight = FontWeight.Bold
                                 )

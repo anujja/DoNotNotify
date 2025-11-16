@@ -264,7 +264,12 @@ class MainActivity : ComponentActivity() {
             topBar = {
                 TopAppBar(
                     title = { Text("DoNotNotify") },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+//                    // Remove explicit colors to use default theme colors
+//                    colors = TopAppBarDefaults.topAppBarColors(
+//                        containerColor = MaterialTheme.colorScheme.surfaceVariant, // Using surfaceVariant for a neutral background
+//                        titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+//                        actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+//                    ),
                     actions = {
                         IconButton(onClick = {
                             val status = if (isServiceEnabled) "Notification listener service is enabled" else "Notification listener service is disabled"
@@ -284,12 +289,20 @@ class MainActivity : ComponentActivity() {
                 color = MaterialTheme.colorScheme.background
             ) {
                 Column(modifier = Modifier.padding(innerPadding)) {
-                    TabRow(selectedTabIndex = pagerState.currentPage) {
+                    TabRow(
+                        selectedTabIndex = pagerState.currentPage,
+                        // Remove explicit colors for TabRow to use default theme colors
+                        // containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        // contentColor = MaterialTheme.colorScheme.onSurfaceVariant // This affects the indicator color and unselected tab text
+                    ) {
                         tabTitles.forEachIndexed { index, title ->
                             Tab(
                                 selected = pagerState.currentPage == index,
                                 onClick = { coroutineScope.launch { pagerState.animateScrollToPage(index) } },
-                                text = { Text(title) }
+                                text = { Text(title) },
+                                // Remove explicit content colors for Tab to use default from TabRow or theme
+                                selectedContentColor = MaterialTheme.colorScheme.onSurface,
+                                unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) // Adjust alpha for unselected tab text
                             )
                         }
                     }
