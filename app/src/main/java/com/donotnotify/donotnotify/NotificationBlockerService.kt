@@ -49,42 +49,46 @@ class NotificationBlockerService : NotificationListenerService() {
 
         Log.i(TAG, "Notification Received: App='${appLabel}', Title='${title}', Text='${text}'")
 
-        var isBlocked = false
+        val allRules = ruleStorage.getRules().toMutableList()
+        val rulesForPackage = allRules.filter { it.packageName == packageName }
+
+        val whitelistRules = rulesForPackage.filter { it.ruleType == RuleType.WHITELIST }
+        val blacklistRules = rulesForPackage.filter { it.ruleType == RuleType.BLACKLIST }
+
+        val hasWhitelistRules = whitelistRules.isNotEmpty()
+
+        var matchesWhitelist = false
+        for (rule in whitelistRules) {
+            if (notificationMatchesRule(sbn, rule)) {
+                matchesWhitelist = true
+                break
+            }
+        }
+
+        var matchesBlacklist = false
+        var matchedBlacklistRule: BlockerRule? = null
+        for (rule in blacklistRules) {
+            if (notificationMatchesRule(sbn, rule)) {
+                matchesBlacklist = true
+                matchedBlacklistRule = rule
+                break
+            }
+        }
+
+        val isBlocked = (hasWhitelistRules && !matchesWhitelist) || matchesBlacklist
         var matchedRule: BlockerRule? = null
-        val rules = ruleStorage.getRules().toMutableList() // Get mutable list of rules
 
-        // 1. Check for a match first
-        for (i in rules.indices) {
-            val rule = rules[i]
-            try {
-                val appMatch = rule.appName.isNullOrBlank() || rule.packageName == packageName
-
-                val titleMatch = when (rule.titleMatchType) {
-                    MatchType.REGEX -> rule.titleFilter.isNullOrBlank() || (title?.matches(rule.titleFilter.toRegex()) ?: false)
-                    MatchType.CONTAINS -> rule.titleFilter.isNullOrBlank() || (title?.contains(rule.titleFilter!!, ignoreCase = true) ?: false)
+        if (isBlocked) {
+            if (matchesBlacklist) {
+                matchedRule = matchedBlacklistRule
+                val ruleIndex = allRules.indexOf(matchedBlacklistRule)
+                if (ruleIndex != -1) {
+                    val updatedRule = matchedBlacklistRule!!.copy(blockedCount = matchedBlacklistRule.blockedCount + 1)
+                    allRules[ruleIndex] = updatedRule
+                    ruleStorage.saveRules(allRules)
                 }
-
-                val textMatch = when (rule.textMatchType) {
-                    MatchType.REGEX -> rule.textFilter.isNullOrBlank() || (text?.matches(rule.textFilter.toRegex()) ?: false)
-                    MatchType.CONTAINS -> rule.textFilter.isNullOrBlank() || (text?.contains(rule.textFilter!!, ignoreCase = true) ?: false)
-                }
-
-//                Log.i(TAG, "App Match: $appMatch, Title Match: $titleMatch, Text Match: $textMatch")
-
-                if (appMatch && titleMatch && textMatch) {
-                    isBlocked = true
-                    matchedRule = rule
-
-                    // Increment blocked count for the matched rule
-                    val updatedRule = rule.copy(blockedCount = rule.blockedCount + 1)
-                    rules[i] = updatedRule // Update the rule in the mutable list
-                    ruleStorage.saveRules(rules) // Save the updated rules immediately
-                    break
-                }
-            } catch (e: PatternSyntaxException) {
-                Log.e(TAG, "Invalid regex in rule: $rule", e)
-            } catch (e: NullPointerException) {
-                Log.e(TAG, "Null filter for CONTAINS match type in rule: $rule", e)
+            } else {
+                Log.i(TAG, "Blocking notification from $packageName because it did not match any whitelist rule.")
             }
         }
 
@@ -94,7 +98,7 @@ class NotificationBlockerService : NotificationListenerService() {
             if (wasOngoing) {
                 Log.w(TAG, "Attempting to block an ongoing notification. Cancellation may not be possible. Key: ${sbn.key}")
             }
-            Log.i(TAG, "Blocking notification from $packageName based on rule: $matchedRule")
+            Log.i(TAG, "Blocking notification from $packageName. Matched rule: $matchedRule")
             cancelNotification(sbn.key)
         }
 
@@ -120,5 +124,31 @@ class NotificationBlockerService : NotificationListenerService() {
 
         // Clean up old entries from the debounce map
         recentlyBlocked.entries.removeIf { (_, timestamp) -> currentTime - timestamp > DEBOUNCE_PERIOD_MS }
+    }
+
+    private fun notificationMatchesRule(sbn: StatusBarNotification, rule: BlockerRule): Boolean {
+        val notification = sbn.notification
+        val title = notification.extras.getCharSequence("android.title")?.toString()
+        val text = notification.extras.getCharSequence("android.text")?.toString()
+
+        try {
+            val appMatch = rule.packageName == sbn.packageName
+
+            val titleMatch = when (rule.titleMatchType) {
+                MatchType.REGEX -> rule.titleFilter.isNullOrBlank() || (title?.matches(rule.titleFilter.toRegex()) ?: false)
+                MatchType.CONTAINS -> rule.titleFilter.isNullOrBlank() || (title?.contains(rule.titleFilter!!, ignoreCase = true) ?: false)
+            }
+
+            val textMatch = when (rule.textMatchType) {
+                MatchType.REGEX -> rule.textFilter.isNullOrBlank() || (text?.matches(rule.textFilter.toRegex()) ?: false)
+                MatchType.CONTAINS -> rule.textFilter.isNullOrBlank() || (text?.contains(rule.textFilter!!, ignoreCase = true) ?: false)
+            }
+            return appMatch && titleMatch && textMatch
+        } catch (e: PatternSyntaxException) {
+            Log.e(TAG, "Invalid regex in rule: $rule", e)
+        } catch (e: NullPointerException) {
+            Log.e(TAG, "Null filter for CONTAINS match type in rule: $rule", e)
+        }
+        return false
     }
 }

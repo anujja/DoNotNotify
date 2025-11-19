@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.donotnotify.donotnotify.BlockerRule
 import com.donotnotify.donotnotify.MatchType
+import com.donotnotify.donotnotify.RuleType
 import com.donotnotify.donotnotify.SimpleNotification
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,6 +48,7 @@ fun AddRuleDialog(
     var titleMatchType by remember { mutableStateOf(MatchType.CONTAINS) }
     var textFilter by remember { mutableStateOf(notification.text.orEmpty()) }
     var textMatchType by remember { mutableStateOf(MatchType.CONTAINS) }
+    var ruleType by remember { mutableStateOf(RuleType.BLACKLIST) }
 
     Dialog(onDismissRequest = onDismiss) {
         Card {
@@ -57,6 +59,23 @@ fun AddRuleDialog(
                     fontSize = 20.sp,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
+
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
+                ) {
+                    RuleType.entries.forEachIndexed { index, type ->
+                        SegmentedButton(
+                            selected = ruleType == type,
+                            onClick = { ruleType = type },
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = RuleType.entries.size),
+                        ) {
+                            Text(type.name)
+                        }
+                    }
+                }
+
                 TextField(
                     value = appName,
                     onValueChange = { appName = it },
@@ -65,7 +84,9 @@ fun AddRuleDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            Toast.makeText(context, "App name cannot be changed", Toast.LENGTH_SHORT).show()
+                            Toast
+                                .makeText(context, "App name cannot be changed", Toast.LENGTH_SHORT)
+                                .show()
                         }
                 )
 
@@ -133,7 +154,8 @@ fun AddRuleDialog(
                             titleFilter = titleFilter.ifBlank { null },
                             titleMatchType = titleMatchType,
                             textFilter = textFilter.ifBlank { null },
-                            textMatchType = textMatchType
+                            textMatchType = textMatchType,
+                            ruleType = ruleType
                         )
                         onAddRule(newRule)
                         Log.d("RuleEvent", "Rule Created: $newRule") // Log new rule
@@ -161,6 +183,7 @@ fun EditRuleDialog(
     var titleMatchType by remember { mutableStateOf(rule.titleMatchType) }
     var textFilter by remember { mutableStateOf(rule.textFilter.orEmpty()) }
     var textMatchType by remember { mutableStateOf(rule.textMatchType) }
+    var ruleType by remember { mutableStateOf(rule.ruleType) }
 
     Dialog(onDismissRequest = onDismiss) {
         Card {
@@ -171,6 +194,23 @@ fun EditRuleDialog(
                     fontSize = 20.sp,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
+
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
+                ) {
+                    RuleType.entries.forEachIndexed { index, type ->
+                        SegmentedButton(
+                            selected = ruleType == type,
+                            onClick = { ruleType = type },
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = RuleType.entries.size),
+                        ) {
+                            Text(type.name)
+                        }
+                    }
+                }
+
                 TextField(
                     value = appName,
                     onValueChange = { appName = it },
@@ -179,7 +219,9 @@ fun EditRuleDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            Toast.makeText(context, "App name cannot be changed", Toast.LENGTH_SHORT).show()
+                            Toast
+                                .makeText(context, "App name cannot be changed", Toast.LENGTH_SHORT)
+                                .show()
                         }
                 )
 
@@ -232,7 +274,9 @@ fun EditRuleDialog(
                 }
 
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Button(onClick = { onDeleteRule(rule) }) {
@@ -251,7 +295,8 @@ fun EditRuleDialog(
                                 titleMatchType = titleMatchType,
                                 textFilter = textFilter.ifBlank { null },
                                 textMatchType = textMatchType,
-                                blockedCount = rule.blockedCount
+                                blockedCount = rule.blockedCount,
+                                ruleType = ruleType
                             )
                             onUpdateRule(rule, newRule)
                             Log.d("RuleEvent", "Rule Updated: $newRule") // Log updated rule

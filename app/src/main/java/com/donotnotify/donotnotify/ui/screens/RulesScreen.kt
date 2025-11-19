@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.donotnotify.donotnotify.BlockerRule
 import com.donotnotify.donotnotify.MatchType
+import com.donotnotify.donotnotify.RuleType
 
 @Composable
 fun RulesScreen(
@@ -63,12 +64,21 @@ fun RulesScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f).padding(vertical = 12.dp)) {
-                            Text(
-                                text = rule.appName.orEmpty(),
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                            Row {
+                                Text(
+                                    text = rule.appName.orEmpty(),
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Text(
+                                    text = rule.ruleType.name,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (rule.ruleType == RuleType.BLACKLIST) Color.Red else Color(0xFF006400),
+                                    modifier = Modifier.padding(start = 8.dp, end = 8.dp)
+                                )
+                            }
                             val titleFilterText = if (rule.titleFilter.isNullOrBlank()) "N/A" else "${rule.titleFilter.orEmpty()} (${rule.titleMatchType.name.lowercase()})"
                             Text(
                                 text = "Title: $titleFilterText",
