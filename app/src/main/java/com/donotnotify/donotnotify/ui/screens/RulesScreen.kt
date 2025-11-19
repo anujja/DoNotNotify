@@ -26,7 +26,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.donotnotify.donotnotify.BlockerRule
-import com.donotnotify.donotnotify.MatchType
 import com.donotnotify.donotnotify.RuleType
 
 @Composable
@@ -105,9 +104,9 @@ fun RulesScreen(
                                 imageVector = icon,
                                 contentDescription = rule.ruleType.name
                             )
-                            if (rule.blockedCount > 0) {
+                            if (rule.hitCount > 0) {
                                 Text(
-                                    text = "Hits: ${rule.blockedCount}",
+                                    text = "Hits: ${rule.hitCount}",
                                     style = MaterialTheme.typography.bodySmall,
                                     fontWeight = FontWeight.Bold
                                 )

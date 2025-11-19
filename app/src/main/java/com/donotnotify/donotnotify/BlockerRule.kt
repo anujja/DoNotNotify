@@ -18,9 +18,9 @@ data class BlockerRule(
     val appName: String? = null,
     val packageName: String? = null, // Added packageName
     val titleFilter: String? = null,
-    val titleMatchType: MatchType = MatchType.REGEX,
+    val titleMatchType: MatchType = MatchType.CONTAINS,
     val textFilter: String? = null,
-    val textMatchType: MatchType = MatchType.REGEX,
-    val blockedCount: Int = 0,
+    val textMatchType: MatchType = MatchType.CONTAINS,
+    val hitCount: Int = 0,
     val ruleType: RuleType = RuleType.BLACKLIST
 ) : Parcelable

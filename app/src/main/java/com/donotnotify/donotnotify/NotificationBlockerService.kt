@@ -83,7 +83,7 @@ class NotificationBlockerService : NotificationListenerService() {
                 matchedRule = matchedBlacklistRule
                 val ruleIndex = allRules.indexOf(matchedBlacklistRule)
                 if (ruleIndex != -1) {
-                    val updatedRule = matchedBlacklistRule!!.copy(blockedCount = matchedBlacklistRule.blockedCount + 1)
+                    val updatedRule = matchedBlacklistRule!!.copy(hitCount = matchedBlacklistRule.hitCount + 1)
                     allRules[ruleIndex] = updatedRule
                     ruleStorage.saveRules(allRules)
                 }

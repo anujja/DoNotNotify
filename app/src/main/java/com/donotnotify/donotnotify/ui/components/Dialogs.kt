@@ -295,7 +295,7 @@ fun EditRuleDialog(
                                 titleMatchType = titleMatchType,
                                 textFilter = textFilter.ifBlank { null },
                                 textMatchType = textMatchType,
-                                blockedCount = rule.blockedCount,
+                                hitCount = rule.hitCount,
                                 ruleType = ruleType
                             )
                             onUpdateRule(rule, newRule)
