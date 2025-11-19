@@ -9,7 +9,8 @@ class NotificationHistoryStorage(private val context: Context) {
 
     private val gson = Gson()
     private val historyFile = File(context.filesDir, "notification_history.json")
-    private val maxHistorySize = 500 // Let's keep the history to a reasonable size
+    private val sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    private val maxHistorySize get() = sharedPreferences.getInt("maxHistorySize", 500)
 
     fun getHistory(): List<SimpleNotification> {
         if (!historyFile.exists()) {

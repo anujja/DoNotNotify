@@ -18,6 +18,7 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton // Import IconButton
@@ -49,6 +50,7 @@ import com.donotnotify.donotnotify.ui.screens.BlockedScreen
 import com.donotnotify.donotnotify.ui.screens.EnableNotificationListenerScreen
 import com.donotnotify.donotnotify.ui.screens.HistoryScreen
 import com.donotnotify.donotnotify.ui.screens.RulesScreen
+import com.donotnotify.donotnotify.ui.screens.SettingsScreen
 import com.donotnotify.donotnotify.ui.theme.DoNotNotifyTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
@@ -67,6 +69,7 @@ class MainActivity : ComponentActivity() {
     private var blockedNotifications by mutableStateOf<List<SimpleNotification>>(emptyList())
     private var rules by mutableStateOf<List<BlockerRule>>(emptyList())
     private var blockedNotificationsCount by mutableIntStateOf(0)
+    private var showSettingsScreen by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -127,7 +130,9 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        if (isServiceEnabled) {
+        if (showSettingsScreen) {
+            SettingsScreen(onClose = { showSettingsScreen = false })
+        } else if (isServiceEnabled) {
             TabbedScreen(
                 pagerState = pagerState,
                 pastNotifications = pastNotifications,
@@ -149,12 +154,13 @@ class MainActivity : ComponentActivity() {
                 onRuleClick = { rule -> ruleToEdit = rule },
                 onDeleteRuleClick = { rule -> ruleToDelete = rule },
                 onDeleteNotificationClick = { notification -> notificationToDelete = notification },
-                onDeleteHistoryNotificationClick = {notification -> 
+                onDeleteHistoryNotificationClick = {notification ->
                     notificationHistoryStorage.deleteNotification(notification)
                     pastNotifications = notificationHistoryStorage.getHistory()
                     Toast.makeText(context, "Notification deleted", Toast.LENGTH_SHORT).show()
                 },
-                isServiceEnabled = isServiceEnabled // Pass isServiceEnabled
+                isServiceEnabled = isServiceEnabled, // Pass isServiceEnabled
+                onSettingsClick = { showSettingsScreen = true }
             )
         } else {
             EnableNotificationListenerScreen(onEnableClick = { openNotificationListenerSettings() })
@@ -252,7 +258,8 @@ class MainActivity : ComponentActivity() {
         onDeleteRuleClick: (BlockerRule) -> Unit,
         onDeleteNotificationClick: (SimpleNotification) -> Unit,
         onDeleteHistoryNotificationClick: (SimpleNotification) -> Unit,
-        isServiceEnabled: Boolean // Add this parameter
+        isServiceEnabled: Boolean, // Add this parameter
+        onSettingsClick: () -> Unit
     ) {
         val context = LocalContext.current // Get context inside Composable
         val coroutineScope = rememberCoroutineScope()
@@ -264,12 +271,6 @@ class MainActivity : ComponentActivity() {
             topBar = {
                 TopAppBar(
                     title = { Text("DoNotNotify") },
-//                    // Remove explicit colors to use default theme colors
-//                    colors = TopAppBarDefaults.topAppBarColors(
-//                        containerColor = MaterialTheme.colorScheme.surfaceVariant, // Using surfaceVariant for a neutral background
-//                        titleContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-//                        actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-//                    ),
                     actions = {
                         IconButton(onClick = {
                             val status = if (isServiceEnabled) "Notification listener service is enabled" else "Notification listener service is disabled"
@@ -278,6 +279,12 @@ class MainActivity : ComponentActivity() {
                             Icon(
                                 Icons.Default.CheckCircle,
                                 contentDescription = "Service Active",
+                            )
+                        }
+                        IconButton(onClick = onSettingsClick) {
+                            Icon(
+                                Icons.Default.Settings,
+                                contentDescription = "Settings"
                             )
                         }
                     }
@@ -291,16 +298,12 @@ class MainActivity : ComponentActivity() {
                 Column(modifier = Modifier.padding(innerPadding)) {
                     TabRow(
                         selectedTabIndex = pagerState.currentPage,
-                        // Remove explicit colors for TabRow to use default theme colors
-                        // containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        // contentColor = MaterialTheme.colorScheme.onSurfaceVariant // This affects the indicator color and unselected tab text
                     ) {
                         tabTitles.forEachIndexed { index, title ->
                             Tab(
                                 selected = pagerState.currentPage == index,
                                 onClick = { coroutineScope.launch { pagerState.animateScrollToPage(index) } },
                                 text = { Text(title) },
-                                // Remove explicit content colors for Tab to use default from TabRow or theme
                                 selectedContentColor = MaterialTheme.colorScheme.onSurface,
                                 unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) // Adjust alpha for unselected tab text
                             )
