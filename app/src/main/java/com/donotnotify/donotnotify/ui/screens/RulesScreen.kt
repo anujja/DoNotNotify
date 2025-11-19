@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -64,7 +66,7 @@ fun RulesScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f).padding(vertical = 12.dp)) {
-                            Row {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = rule.appName.orEmpty(),
                                     fontWeight = FontWeight.Bold,
@@ -72,10 +74,10 @@ fun RulesScreen(
                                     overflow = TextOverflow.Ellipsis,
                                     modifier = Modifier.weight(1f)
                                 )
-                                Text(
-                                    text = rule.ruleType.name,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (rule.ruleType == RuleType.BLACKLIST) Color.Red else Color(0xFF006400),
+                                val icon = if (rule.ruleType == RuleType.BLACKLIST) Icons.Filled.Block else Icons.Filled.CheckCircle
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = rule.ruleType.name,
                                     modifier = Modifier.padding(start = 8.dp, end = 8.dp)
                                 )
                             }
@@ -96,14 +98,14 @@ fun RulesScreen(
                             if (rule.blockedCount > 0) {
                                 Text(
                                     text = "Blocked: ${rule.blockedCount}",
-                                    color = Color.Red,
+//                                    color = Color.Red,
                                     style = MaterialTheme.typography.bodySmall,
                                     fontWeight = FontWeight.Bold
                                 )
                             } else {
                                 Text(
                                     text = "Nothing blocked so far",
-                                    color = Color.Gray,
+//                                    color = Color.Gray,
                                     style = MaterialTheme.typography.bodySmall,
                                     fontWeight = FontWeight.Bold
                                 )
