@@ -60,7 +60,7 @@ fun HistoryScreen(
             item {
                 Column(modifier = Modifier.padding(vertical = 16.dp)) {
                     Text(
-                        text = "Here is a history of notifications you have received. Tap on one to create a rule to block similar notifications in the future.",
+                        text = "Your notifications history. Tap on one to create a rule to block similar notifications in the future.",
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()

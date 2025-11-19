@@ -273,7 +273,7 @@ class MainActivity : ComponentActivity() {
                     title = { Text("DoNotNotify") },
                     actions = {
                         IconButton(onClick = {
-                            val status = if (isServiceEnabled) "Notification listener service is enabled" else "Notification listener service is disabled"
+                            val status = if (isServiceEnabled) "Notification service is enabled" else "Notification service is disabled"
                             Toast.makeText(context, status, Toast.LENGTH_SHORT).show()
                         }) {
                             Icon(

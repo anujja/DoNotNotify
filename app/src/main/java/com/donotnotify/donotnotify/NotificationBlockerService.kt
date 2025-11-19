@@ -57,10 +57,17 @@ class NotificationBlockerService : NotificationListenerService() {
 
         val hasWhitelistRules = whitelistRules.isNotEmpty()
 
+        var rulesModified = false
         var matchesWhitelist = false
         for (rule in whitelistRules) {
             if (notificationMatchesRule(sbn, rule)) {
                 matchesWhitelist = true
+                val ruleIndex = allRules.indexOf(rule)
+                if (ruleIndex != -1) {
+                    val updatedRule = rule.copy(hitCount = rule.hitCount + 1)
+                    allRules[ruleIndex] = updatedRule
+                    rulesModified = true
+                }
                 break
             }
         }
@@ -71,23 +78,25 @@ class NotificationBlockerService : NotificationListenerService() {
             if (notificationMatchesRule(sbn, rule)) {
                 matchesBlacklist = true
                 matchedBlacklistRule = rule
+                val ruleIndex = allRules.indexOf(rule)
+                if (ruleIndex != -1) {
+                    val updatedRule = rule.copy(hitCount = rule.hitCount + 1)
+                    allRules[ruleIndex] = updatedRule
+                    rulesModified = true
+                }
                 break
             }
         }
 
+        if (rulesModified) {
+            ruleStorage.saveRules(allRules)
+        }
+
         val isBlocked = (hasWhitelistRules && !matchesWhitelist) || matchesBlacklist
-        var matchedRule: BlockerRule? = null
+        val matchedRule: BlockerRule? = if (matchesBlacklist) matchedBlacklistRule else null
 
         if (isBlocked) {
-            if (matchesBlacklist) {
-                matchedRule = matchedBlacklistRule
-                val ruleIndex = allRules.indexOf(matchedBlacklistRule)
-                if (ruleIndex != -1) {
-                    val updatedRule = matchedBlacklistRule!!.copy(hitCount = matchedBlacklistRule.hitCount + 1)
-                    allRules[ruleIndex] = updatedRule
-                    ruleStorage.saveRules(allRules)
-                }
-            } else {
+            if (!matchesBlacklist) {
                 Log.i(TAG, "Blocking notification from $packageName because it did not match any whitelist rule.")
             }
         }
