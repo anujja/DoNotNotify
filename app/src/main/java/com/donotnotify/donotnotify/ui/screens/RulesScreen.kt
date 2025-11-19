@@ -1,6 +1,7 @@
 package com.donotnotify.donotnotify.ui.screens
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,7 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -35,14 +35,18 @@ fun RulesScreen(
     onRuleClick: (BlockerRule) -> Unit,
     onDeleteRuleClick: (BlockerRule) -> Unit
 ) {
-    LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+    LazyColumn(modifier = Modifier
+        .fillMaxSize()
+        .padding(horizontal = 16.dp)) {
         if (rules.isEmpty()) {
             item {
                 Text(
                     text = "No rules have been created yet to block notifications. To create a rule, please switch to the \"History\" tab and select a notification that you would like to block.",
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(top = 32.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 32.dp)
                 )
             }
         } else {
@@ -51,7 +55,9 @@ fun RulesScreen(
                     text = "Any notifications matching the rules given below will be blocked automatically.",
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp)
                 )
             }
             items(rules) { rule ->
@@ -65,22 +71,15 @@ fun RulesScreen(
                         modifier = Modifier.padding(start = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(modifier = Modifier.weight(1f).padding(vertical = 12.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = rule.appName.orEmpty(),
-                                    fontWeight = FontWeight.Bold,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                val icon = if (rule.ruleType == RuleType.BLACKLIST) Icons.Filled.Block else Icons.Filled.CheckCircle
-                                Icon(
-                                    imageVector = icon,
-                                    contentDescription = rule.ruleType.name,
-                                    modifier = Modifier.padding(start = 8.dp, end = 8.dp)
-                                )
-                            }
+                        Column(modifier = Modifier
+                            .weight(1f)
+                            .padding(vertical = 12.dp)) {
+                            Text(
+                                text = rule.appName.orEmpty(),
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
                             val titleFilterText = if (rule.titleFilter.isNullOrBlank()) "N/A" else "${rule.titleFilter.orEmpty()} (${rule.titleMatchType.name.lowercase()})"
                             Text(
                                 text = "Title: $titleFilterText",
@@ -95,17 +94,26 @@ fun RulesScreen(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
+                        }
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        ) {
+                            val icon = if (rule.ruleType == RuleType.BLACKLIST) Icons.Filled.Block else Icons.Filled.CheckCircle
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = rule.ruleType.name
+                            )
                             if (rule.blockedCount > 0) {
                                 Text(
-                                    text = "Blocked: ${rule.blockedCount}",
-//                                    color = Color.Red,
+                                    text = "Hits: ${rule.blockedCount}",
                                     style = MaterialTheme.typography.bodySmall,
                                     fontWeight = FontWeight.Bold
                                 )
                             } else {
                                 Text(
-                                    text = "Nothing blocked so far",
-//                                    color = Color.Gray,
+                                    text = "No hits",
                                     style = MaterialTheme.typography.bodySmall,
                                     fontWeight = FontWeight.Bold
                                 )
