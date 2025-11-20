@@ -50,7 +50,7 @@ class NotificationBlockerService : NotificationListenerService() {
         Log.i(TAG, "Notification Received: App='${appLabel}', Title='${title}', Text='${text}'")
 
         val allRules = ruleStorage.getRules().toMutableList()
-        val rulesForPackage = allRules.filter { it.packageName == packageName }
+        val rulesForPackage = allRules.filter { it.packageName == packageName && it.isEnabled }
 
         val whitelistRules = rulesForPackage.filter { it.ruleType == RuleType.WHITELIST }
         val blacklistRules = rulesForPackage.filter { it.ruleType == RuleType.BLACKLIST }

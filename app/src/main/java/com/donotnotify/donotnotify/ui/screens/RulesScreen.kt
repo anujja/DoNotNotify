@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -64,7 +66,10 @@ fun RulesScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp)
-                        .clickable { onRuleClick(rule) }
+                        .clickable { onRuleClick(rule) },
+//                    colors = CardDefaults.cardColors(
+//                        containerColor = if (rule.isEnabled) MaterialTheme.colorScheme.surfaceVariant else Color.Gray
+//                    )
                 ) {
                     Row(
                         modifier = Modifier.padding(start = 16.dp),
@@ -74,7 +79,7 @@ fun RulesScreen(
                             .weight(1f)
                             .padding(vertical = 12.dp)) {
                             Text(
-                                text = rule.appName.orEmpty(),
+                                text = if (rule.isEnabled) rule.appName.orEmpty() else "${rule.appName.orEmpty()} (disabled)",
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis

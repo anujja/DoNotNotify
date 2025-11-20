@@ -16,6 +16,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -23,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -155,7 +157,8 @@ fun AddRuleDialog(
                             titleMatchType = titleMatchType,
                             textFilter = textFilter.ifBlank { null },
                             textMatchType = textMatchType,
-                            ruleType = ruleType
+                            ruleType = ruleType,
+                            isEnabled = true
                         )
                         onAddRule(newRule)
                         Log.d("RuleEvent", "Rule Created: $newRule") // Log new rule
@@ -184,6 +187,7 @@ fun EditRuleDialog(
     var textFilter by remember { mutableStateOf(rule.textFilter.orEmpty()) }
     var textMatchType by remember { mutableStateOf(rule.textMatchType) }
     var ruleType by remember { mutableStateOf(rule.ruleType) }
+    var isEnabled by remember { mutableStateOf(rule.isEnabled) }
 
     Dialog(onDismissRequest = onDismiss) {
         Card {
@@ -273,6 +277,20 @@ fun EditRuleDialog(
                     }
                 }
 
+                Spacer(modifier = Modifier.padding(vertical = 16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Enabled")
+                    Switch(
+                        checked = isEnabled,
+                        onCheckedChange = { isEnabled = it }
+                    )
+                }
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -296,7 +314,8 @@ fun EditRuleDialog(
                                 textFilter = textFilter.ifBlank { null },
                                 textMatchType = textMatchType,
                                 hitCount = rule.hitCount,
-                                ruleType = ruleType
+                                ruleType = ruleType,
+                                isEnabled = isEnabled
                             )
                             onUpdateRule(rule, newRule)
                             Log.d("RuleEvent", "Rule Updated: $newRule") // Log updated rule
