@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.donotnotify.donotnotify.BlockerRule
@@ -66,10 +67,7 @@ fun RulesScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp)
-                        .clickable { onRuleClick(rule) },
-//                    colors = CardDefaults.cardColors(
-//                        containerColor = if (rule.isEnabled) MaterialTheme.colorScheme.surfaceVariant else Color.Gray
-//                    )
+                        .clickable { onRuleClick(rule) }
                 ) {
                     Row(
                         modifier = Modifier.padding(start = 16.dp),
@@ -79,10 +77,11 @@ fun RulesScreen(
                             .weight(1f)
                             .padding(vertical = 12.dp)) {
                             Text(
-                                text = if (rule.isEnabled) rule.appName.orEmpty() else "${rule.appName.orEmpty()} (disabled)",
+                                text = rule.appName.orEmpty(),
                                 fontWeight = FontWeight.Bold,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                overflow = TextOverflow.Ellipsis,
+                                textDecoration = if (rule.isEnabled) null else TextDecoration.LineThrough
                             )
                             val titleFilterText = if (rule.titleFilter.isNullOrBlank()) "N/A" else "${rule.titleFilter.orEmpty()} (${rule.titleMatchType.name.lowercase()})"
                             Text(
