@@ -32,7 +32,6 @@ import com.donotnotify.donotnotify.SimpleNotification
 @Composable
 fun BlockedScreen(
     notifications: List<SimpleNotification>,
-    totalBlockedCount: Int,
     onClearBlockedHistory: () -> Unit,
     onNotificationClick: (SimpleNotification) -> Unit,
     onDeleteNotificationClick: (SimpleNotification) -> Unit
@@ -41,16 +40,6 @@ fun BlockedScreen(
     LazyColumn(modifier = Modifier
         .fillMaxSize()
         .padding(horizontal = 16.dp)) {
-        item {
-            Text(
-                text = "$totalBlockedCount notifications have been blocked so far.",
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp)
-            )
-        }
         if (notifications.isEmpty()) {
             item {
                 Text(
@@ -59,7 +48,7 @@ fun BlockedScreen(
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 32.dp)
+                        .padding(top = 32.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
                 )
             }
         } else {

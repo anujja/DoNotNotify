@@ -32,7 +32,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -56,19 +55,16 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface // Import Surface
-import androidx.compose.material3.TopAppBarDefaults // Import TopAppBarDefaults
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
     private lateinit var ruleStorage: RuleStorage
     private lateinit var notificationHistoryStorage: NotificationHistoryStorage
     private lateinit var blockedNotificationHistoryStorage: BlockedNotificationHistoryStorage
-    private lateinit var statsStorage: StatsStorage
     private var isServiceEnabled by mutableStateOf(false)
     private var pastNotifications by mutableStateOf<List<SimpleNotification>>(emptyList())
     private var blockedNotifications by mutableStateOf<List<SimpleNotification>>(emptyList())
     private var rules by mutableStateOf<List<BlockerRule>>(emptyList())
-    private var blockedNotificationsCount by mutableIntStateOf(0)
     private var showSettingsScreen by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,7 +73,6 @@ class MainActivity : ComponentActivity() {
         ruleStorage = RuleStorage(this)
         notificationHistoryStorage = NotificationHistoryStorage(this)
         blockedNotificationHistoryStorage = BlockedNotificationHistoryStorage(this)
-        statsStorage = StatsStorage(this)
         isServiceEnabled = isNotificationServiceEnabled()
         setContent {
             DoNotNotifyTheme {
@@ -100,7 +95,6 @@ class MainActivity : ComponentActivity() {
         pastNotifications = notificationHistoryStorage.getHistory()
         blockedNotifications = blockedNotificationHistoryStorage.getHistory()
         rules = ruleStorage.getRules()
-        blockedNotificationsCount = statsStorage.getBlockedNotificationsCount()
     }
 
     @Composable
@@ -120,7 +114,6 @@ class MainActivity : ComponentActivity() {
                     if (intent?.action == NotificationBlockerService.ACTION_HISTORY_UPDATED) {
                         pastNotifications = notificationHistoryStorage.getHistory()
                         blockedNotifications = blockedNotificationHistoryStorage.getHistory()
-                        blockedNotificationsCount = statsStorage.getBlockedNotificationsCount()
                     }
                 }
             }
@@ -138,7 +131,6 @@ class MainActivity : ComponentActivity() {
                 pastNotifications = pastNotifications,
                 blockedNotifications = blockedNotifications,
                 rules = rules,
-                blockedNotificationsCount = blockedNotificationsCount,
                 onNotificationClick = { notification -> notificationToShowAddDialog = notification },
                 onBlockedNotificationClick = { notification -> notificationToShowDetailsDialog = notification },
                 onClearHistory = {
@@ -249,7 +241,6 @@ class MainActivity : ComponentActivity() {
         pastNotifications: List<SimpleNotification>,
         blockedNotifications: List<SimpleNotification>,
         rules: List<BlockerRule>,
-        blockedNotificationsCount: Int,
         onNotificationClick: (SimpleNotification) -> Unit,
         onBlockedNotificationClick: (SimpleNotification) -> Unit,
         onClearHistory: () -> Unit,
@@ -258,12 +249,12 @@ class MainActivity : ComponentActivity() {
         onDeleteRuleClick: (BlockerRule) -> Unit,
         onDeleteNotificationClick: (SimpleNotification) -> Unit,
         onDeleteHistoryNotificationClick: (SimpleNotification) -> Unit,
-        isServiceEnabled: Boolean, // Add this parameter
+        isServiceEnabled: Boolean, // Pass isServiceEnabled
         onSettingsClick: () -> Unit
     ) {
         val context = LocalContext.current // Get context inside Composable
         val coroutineScope = rememberCoroutineScope()
-        val tabTitles = listOf("History", "Rules", "Blocked")
+        val tabTitles = listOf("History", "Rules (${rules.count { it.isEnabled }})", "Blocked (${blockedNotifications.size})")
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -315,7 +306,6 @@ class MainActivity : ComponentActivity() {
                             pastNotifications = pastNotifications,
                             blockedNotifications = blockedNotifications,
                             rules = rules,
-                            blockedNotificationsCount = blockedNotificationsCount,
                             onNotificationClick = onNotificationClick,
                             onBlockedNotificationClick = onBlockedNotificationClick,
                             onClearHistory = onClearHistory,
@@ -337,7 +327,6 @@ class MainActivity : ComponentActivity() {
         pastNotifications: List<SimpleNotification>,
         blockedNotifications: List<SimpleNotification>,
         rules: List<BlockerRule>,
-        blockedNotificationsCount: Int,
         onNotificationClick: (SimpleNotification) -> Unit,
         onBlockedNotificationClick: (SimpleNotification) -> Unit,
         onClearHistory: () -> Unit,
@@ -350,7 +339,7 @@ class MainActivity : ComponentActivity() {
         when (page) {
             0 -> HistoryScreen(pastNotifications, onNotificationClick, onClearHistory, onDeleteHistoryNotificationClick)
             1 -> RulesScreen(rules, onRuleClick, onDeleteRuleClick)
-            2 -> BlockedScreen(blockedNotifications, blockedNotificationsCount, onClearBlockedHistory, onBlockedNotificationClick, onDeleteNotificationClick)
+            2 -> BlockedScreen(blockedNotifications, onClearBlockedHistory, onBlockedNotificationClick, onDeleteNotificationClick)
         }
     }
 

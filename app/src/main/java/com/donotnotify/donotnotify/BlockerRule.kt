@@ -4,8 +4,8 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 enum class MatchType {
-    REGEX,
-    CONTAINS
+    CONTAINS,
+    REGEX
 }
 
 enum class RuleType {

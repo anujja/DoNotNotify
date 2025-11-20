@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -56,7 +57,7 @@ fun AddRuleDialog(
         Card {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    "Add New Rule",
+                    "Add New Rule ($appName)",
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -77,20 +78,6 @@ fun AddRuleDialog(
                         }
                     }
                 }
-
-                TextField(
-                    value = appName,
-                    onValueChange = { appName = it },
-                    label = { Text("App Name") },
-                    readOnly = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            Toast
-                                .makeText(context, "App name cannot be changed", Toast.LENGTH_SHORT)
-                                .show()
-                        }
-                )
 
                 Spacer(modifier = Modifier.padding(vertical = 8.dp))
 
@@ -193,7 +180,7 @@ fun EditRuleDialog(
         Card {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    "Edit Rule",
+                    "Edit Rule ($appName)",
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -214,20 +201,6 @@ fun EditRuleDialog(
                         }
                     }
                 }
-
-                TextField(
-                    value = appName,
-                    onValueChange = { appName = it },
-                    label = { Text("App Name") },
-                    readOnly = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            Toast
-                                .makeText(context, "App name cannot be changed", Toast.LENGTH_SHORT)
-                                .show()
-                        }
-                )
 
                 Spacer(modifier = Modifier.padding(vertical = 8.dp))
 
