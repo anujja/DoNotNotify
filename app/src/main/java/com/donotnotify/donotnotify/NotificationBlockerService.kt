@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
-import java.util.regex.PatternSyntaxException
 
 class NotificationBlockerService : NotificationListenerService() {
 
@@ -60,7 +59,7 @@ class NotificationBlockerService : NotificationListenerService() {
         var rulesModified = false
         var matchesWhitelist = false
         for (rule in whitelistRules) {
-            if (notificationMatchesRule(sbn, rule)) {
+            if (RuleMatcher.matches(rule, packageName, title, text)) {
                 matchesWhitelist = true
                 val ruleIndex = allRules.indexOf(rule)
                 if (ruleIndex != -1) {
@@ -75,7 +74,7 @@ class NotificationBlockerService : NotificationListenerService() {
         var matchesBlacklist = false
         var matchedBlacklistRule: BlockerRule? = null
         for (rule in blacklistRules) {
-            if (notificationMatchesRule(sbn, rule)) {
+            if (RuleMatcher.matches(rule, packageName, title, text)) {
                 matchesBlacklist = true
                 matchedBlacklistRule = rule
                 val ruleIndex = allRules.indexOf(rule)
@@ -133,31 +132,5 @@ class NotificationBlockerService : NotificationListenerService() {
 
         // Clean up old entries from the debounce map
         recentlyBlocked.entries.removeIf { (_, timestamp) -> currentTime - timestamp > DEBOUNCE_PERIOD_MS }
-    }
-
-    private fun notificationMatchesRule(sbn: StatusBarNotification, rule: BlockerRule): Boolean {
-        val notification = sbn.notification
-        val title = notification.extras.getCharSequence("android.title")?.toString()
-        val text = notification.extras.getCharSequence("android.text")?.toString()
-
-        try {
-            val appMatch = rule.packageName == sbn.packageName
-
-            val titleMatch = when (rule.titleMatchType) {
-                MatchType.REGEX -> rule.titleFilter.isNullOrBlank() || (title?.matches(rule.titleFilter.toRegex()) ?: false)
-                MatchType.CONTAINS -> rule.titleFilter.isNullOrBlank() || (title?.contains(rule.titleFilter!!, ignoreCase = true) ?: false)
-            }
-
-            val textMatch = when (rule.textMatchType) {
-                MatchType.REGEX -> rule.textFilter.isNullOrBlank() || (text?.matches(rule.textFilter.toRegex()) ?: false)
-                MatchType.CONTAINS -> rule.textFilter.isNullOrBlank() || (text?.contains(rule.textFilter!!, ignoreCase = true) ?: false)
-            }
-            return appMatch && titleMatch && textMatch
-        } catch (e: PatternSyntaxException) {
-            Log.e(TAG, "Invalid regex in rule: $rule", e)
-        } catch (e: NullPointerException) {
-            Log.e(TAG, "Null filter for CONTAINS match type in rule: $rule", e)
-        }
-        return false
     }
 }

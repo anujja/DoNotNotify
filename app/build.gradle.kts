@@ -7,9 +7,7 @@ plugins {
 
 android {
     namespace = "com.donotnotify.donotnotify"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.donotnotify.donotnotify"
