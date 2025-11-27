@@ -7,6 +7,37 @@
 
     <queries>
         <package android:name="com.mygate.user" />
+        <package android:name="com.flipkart.android" />
+        <package android:name="com.amazon.mShop.android.shopping" />
+        <package android:name="com.myntra.android" />
+        <package android:name="in.swiggy.android" />
+        <package android:name="com.application.zomato" />
+        <package android:name="com.instagram.android" />
+        <package android:name="com.facebook.katana" />
+        <package android:name="com.google.android.youtube" />
+        <package android:name="com.duolingo" />
+        <package android:name="com.netflix.mediaclient" />
+        <package android:name="com.amazon.avod.thirdpartyclient" />
+        <package android:name="com.king.candycrushsaga" />
+        <package android:name="com.truecaller" />
+        <package android:name="com.twitter.android" />
+        <package android:name="com.zhiliaoapp.musically" />
+        <package android:name="com.snapchat.android" />
+        <package android:name="com.reddit.frontpage" />
+        <package android:name="com.pinterest" />
+        <package android:name="com.spotify.music" />
+        <package android:name="com.ubercab.eats" />
+        <package android:name="com.dd.doordash" />
+        <package android:name="com.grubhub.android" />
+        <package android:name="com.ebay.mobile" />
+        <package android:name="com.alibaba.aliexpresshd" />
+        <package android:name="com.etsy.android" />
+        <package android:name="com.tinder" />
+        <package android:name="tv.twitch.android.app" />
+        <package android:name="com.disney.disneyplus" />
+        <package android:name="com.hulu.plus" />
+        <package android:name="com.linkedin.android" />
+
     </queries>
 
     <application
