@@ -1,5 +1,6 @@
 package com.donotnotify.donotnotify.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -74,6 +75,9 @@ fun HistoryScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
+                                if (!expandedApps.contains(appName)) {
+                                    Log.d("HistoryScreen", "Expanded app: $appName, package: ${notifs.firstOrNull()?.packageName}")
+                                }
                                 expandedApps = if (expandedApps.contains(appName)) {
                                     expandedApps - appName
                                 } else {
@@ -89,6 +93,9 @@ fun HistoryScreen(
                             modifier = Modifier.weight(1f)
                         )
                         IconButton(onClick = {
+                            if (!expandedApps.contains(appName)) {
+                                Log.d("HistoryScreen", "Expanded app: $appName, package: ${notifs.firstOrNull()?.packageName}")
+                            }
                             expandedApps = if (expandedApps.contains(appName)) {
                                 expandedApps - appName
                             } else {

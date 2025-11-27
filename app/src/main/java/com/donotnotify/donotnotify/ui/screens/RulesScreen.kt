@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -35,7 +36,8 @@ import com.donotnotify.donotnotify.RuleType
 fun RulesScreen(
     rules: List<BlockerRule>,
     onRuleClick: (BlockerRule) -> Unit,
-    onDeleteRuleClick: (BlockerRule) -> Unit
+    onDeleteRuleClick: (BlockerRule) -> Unit,
+    onBrowsePrebuiltRulesClick: () -> Unit
 ) {
     LazyColumn(modifier = Modifier
         .fillMaxSize()
@@ -127,6 +129,16 @@ fun RulesScreen(
                         }
                     }
                 }
+            }
+        }
+        item {
+            Button(
+                onClick = onBrowsePrebuiltRulesClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp)
+            ) {
+                Text("Browse Pre-built Rules")
             }
         }
     }

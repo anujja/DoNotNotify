@@ -12,6 +12,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
@@ -24,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton // Import IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface // Import Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -48,13 +50,12 @@ import com.donotnotify.donotnotify.ui.components.NotificationDetailsDialog
 import com.donotnotify.donotnotify.ui.screens.BlockedScreen
 import com.donotnotify.donotnotify.ui.screens.EnableNotificationListenerScreen
 import com.donotnotify.donotnotify.ui.screens.HistoryScreen
+import com.donotnotify.donotnotify.ui.screens.PrebuiltRulesScreen
 import com.donotnotify.donotnotify.ui.screens.RulesScreen
 import com.donotnotify.donotnotify.ui.screens.SettingsScreen
 import com.donotnotify.donotnotify.ui.theme.DoNotNotifyTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Surface // Import Surface
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
@@ -66,6 +67,7 @@ class MainActivity : ComponentActivity() {
     private var blockedNotifications by mutableStateOf<List<SimpleNotification>>(emptyList())
     private var rules by mutableStateOf<List<BlockerRule>>(emptyList())
     private var showSettingsScreen by mutableStateOf(false)
+    private var showPrebuiltRulesScreen by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -117,7 +119,12 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
-            ContextCompat.registerReceiver(context, historyUpdateReceiver, IntentFilter(NotificationBlockerService.ACTION_HISTORY_UPDATED), ContextCompat.RECEIVER_EXPORTED)
+            ContextCompat.registerReceiver(
+                context,
+                historyUpdateReceiver,
+                IntentFilter(NotificationBlockerService.ACTION_HISTORY_UPDATED),
+                ContextCompat.RECEIVER_EXPORTED
+            )
             onDispose {
                 context.unregisterReceiver(historyUpdateReceiver)
             }
@@ -125,6 +132,17 @@ class MainActivity : ComponentActivity() {
 
         if (showSettingsScreen) {
             SettingsScreen(onClose = { showSettingsScreen = false })
+        } else if (showPrebuiltRulesScreen) {
+            PrebuiltRulesScreen(
+                userRules = rules,
+                onClose = { showPrebuiltRulesScreen = false },
+                onAddRule = { rule ->
+                    val updatedRules = rules + rule
+                    ruleStorage.saveRules(updatedRules)
+                    rules = updatedRules
+                    Toast.makeText(context, "Rule added", Toast.LENGTH_SHORT).show()
+                }
+            )
         } else if (isServiceEnabled) {
             TabbedScreen(
                 pagerState = pagerState,
@@ -132,7 +150,9 @@ class MainActivity : ComponentActivity() {
                 blockedNotifications = blockedNotifications,
                 rules = rules,
                 onNotificationClick = { notification -> notificationToShowAddDialog = notification },
-                onBlockedNotificationClick = { notification -> notificationToShowDetailsDialog = notification },
+                onBlockedNotificationClick = { notification ->
+                    notificationToShowDetailsDialog = notification
+                },
                 onClearHistory = {
                     notificationHistoryStorage.clearHistory()
                     pastNotifications = emptyList()
@@ -146,13 +166,14 @@ class MainActivity : ComponentActivity() {
                 onRuleClick = { rule -> ruleToEdit = rule },
                 onDeleteRuleClick = { rule -> ruleToDelete = rule },
                 onDeleteNotificationClick = { notification -> notificationToDelete = notification },
-                onDeleteHistoryNotificationClick = {notification ->
+                onDeleteHistoryNotificationClick = { notification ->
                     notificationHistoryStorage.deleteNotification(notification)
                     pastNotifications = notificationHistoryStorage.getHistory()
                     Toast.makeText(context, "Notification deleted", Toast.LENGTH_SHORT).show()
                 },
                 isServiceEnabled = isServiceEnabled, // Pass isServiceEnabled
-                onSettingsClick = { showSettingsScreen = true }
+                onSettingsClick = { showSettingsScreen = true },
+                onBrowsePrebuiltRulesClick = { showPrebuiltRulesScreen = true }
             )
         } else {
             EnableNotificationListenerScreen(onEnableClick = { openNotificationListenerSettings() })
@@ -250,11 +271,13 @@ class MainActivity : ComponentActivity() {
         onDeleteNotificationClick: (SimpleNotification) -> Unit,
         onDeleteHistoryNotificationClick: (SimpleNotification) -> Unit,
         isServiceEnabled: Boolean, // Pass isServiceEnabled
-        onSettingsClick: () -> Unit
+        onSettingsClick: () -> Unit,
+        onBrowsePrebuiltRulesClick: () -> Unit
     ) {
         val context = LocalContext.current // Get context inside Composable
         val coroutineScope = rememberCoroutineScope()
-        val tabTitles = listOf("History", "Rules (${rules.count { it.isEnabled }})", "Blocked (${blockedNotifications.size})")
+        val tabTitles =
+            listOf("History", "Rules (${rules.count { it.isEnabled }})", "Blocked (${blockedNotifications.size})")
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -264,7 +287,8 @@ class MainActivity : ComponentActivity() {
                     title = { Text("DoNotNotify") },
                     actions = {
                         IconButton(onClick = {
-                            val status = if (isServiceEnabled) "Notification service is enabled" else "Notification service is disabled"
+                            val status =
+                                if (isServiceEnabled) "Notification service is enabled" else "Notification service is disabled"
                             Toast.makeText(context, status, Toast.LENGTH_SHORT).show()
                         }) {
                             Icon(
@@ -313,7 +337,8 @@ class MainActivity : ComponentActivity() {
                             onRuleClick = onRuleClick,
                             onDeleteRuleClick = onDeleteRuleClick,
                             onDeleteNotificationClick = onDeleteNotificationClick,
-                            onDeleteHistoryNotificationClick = onDeleteHistoryNotificationClick
+                            onDeleteHistoryNotificationClick = onDeleteHistoryNotificationClick,
+                            onBrowsePrebuiltRulesClick = onBrowsePrebuiltRulesClick
                         )
                     }
                 }
@@ -334,12 +359,24 @@ class MainActivity : ComponentActivity() {
         onRuleClick: (BlockerRule) -> Unit,
         onDeleteRuleClick: (BlockerRule) -> Unit,
         onDeleteNotificationClick: (SimpleNotification) -> Unit,
-        onDeleteHistoryNotificationClick: (SimpleNotification) -> Unit
+        onDeleteHistoryNotificationClick: (SimpleNotification) -> Unit,
+        onBrowsePrebuiltRulesClick: () -> Unit
     ) {
         when (page) {
-            0 -> HistoryScreen(pastNotifications, onNotificationClick, onClearHistory, onDeleteHistoryNotificationClick)
-            1 -> RulesScreen(rules, onRuleClick, onDeleteRuleClick)
-            2 -> BlockedScreen(blockedNotifications, onClearBlockedHistory, onBlockedNotificationClick, onDeleteNotificationClick)
+            0 -> HistoryScreen(
+                pastNotifications,
+                onNotificationClick,
+                onClearHistory,
+                onDeleteHistoryNotificationClick
+            )
+
+            1 -> RulesScreen(rules, onRuleClick, onDeleteRuleClick, onBrowsePrebuiltRulesClick)
+            2 -> BlockedScreen(
+                blockedNotifications,
+                onClearBlockedHistory,
+                onBlockedNotificationClick,
+                onDeleteNotificationClick
+            )
         }
     }
 
