@@ -40,6 +40,11 @@ class NotificationBlockerService : NotificationListenerService() {
         val text = notification.extras.getCharSequence("android.text")?.toString()
         val currentTime = System.currentTimeMillis()
 
+        if (title.isNullOrBlank() && text.isNullOrBlank()) {
+            Log.i(TAG, "Ignoring notification with no title and text from ${sbn.packageName}")
+            return
+        }
+
         val appLabel = try {
             packageManager.getApplicationLabel(packageManager.getApplicationInfo(packageName, 0)).toString()
         } catch (e: PackageManager.NameNotFoundException) {

@@ -50,11 +50,10 @@ fun PrebuiltRulesScreen(
         prebuiltRules = repository.getPrebuiltRules()
     }
 
-    val installedAppPackages = packageManager.getInstalledPackages(PackageManager.GET_META_DATA)
+    val installedAppPackages = packageManager.getInstalledPackages(0)
         .map { it.packageName }
 
     Log.i("PrebuiltRulesScreen", "Installed App Packages: $installedAppPackages")
-
 
     val filteredRules = prebuiltRules.filter { rule ->
         rule.packageName in installedAppPackages && userRules.none { it.packageName == rule.packageName && it.titleFilter == rule.titleFilter && it.textFilter == rule.textFilter }

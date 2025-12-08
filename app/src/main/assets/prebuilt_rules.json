@@ -2,7 +2,7 @@
   {
     "appName": "Mygate",
     "packageName": "com.mygate.user",
-    "textFilter": ".*(checked|approval).*",
+    "textFilter": ".*(checked|approv).*",
     "textMatchType": "REGEX",
     "ruleType": "WHITELIST",
     "isEnabled": true

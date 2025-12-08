@@ -1,6 +1,9 @@
 package com.donotnotify.donotnotify.ui.screens
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,7 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -29,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.donotnotify.donotnotify.ui.components.AboutDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,6 +41,13 @@ fun SettingsScreen(onClose: () -> Unit) {
     val sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
     var maxHistorySize by remember {
         mutableStateOf(sharedPreferences.getInt("maxHistorySize", 500).toString())
+    }
+    var showAboutDialog by remember { mutableStateOf(false) }
+
+    if (showAboutDialog) {
+        AboutDialog {
+            showAboutDialog = false
+        }
     }
 
     Scaffold(
@@ -55,11 +66,11 @@ fun SettingsScreen(onClose: () -> Unit) {
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -70,26 +81,42 @@ fun SettingsScreen(onClose: () -> Unit) {
                 )
                 TextField(
                     value = maxHistorySize,
-                    onValueChange = { maxHistorySize = it },
+                    onValueChange = { newText ->
+                        maxHistorySize = newText
+                        newText.toIntOrNull()?.let { newSize ->
+                            with(sharedPreferences.edit()) {
+                                putInt("maxHistorySize", newSize)
+                                apply()
+                            }
+                        }
+                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(0.5f)
                 )
             }
-            Button(
-                onClick = {
-                    val newSize = maxHistorySize.toIntOrNull()
-                    if (newSize != null) {
-                        with(sharedPreferences.edit()) {
-                            putInt("maxHistorySize", newSize)
-                            apply()
-                        }
-                        onClose()
-                    }
-                },
-                modifier = Modifier.padding(top = 16.dp)
+            Divider()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showAboutDialog = true }
+                    .padding(16.dp),
             ) {
-                Text("Save")
+                Text("About", style = MaterialTheme.typography.bodyLarge)
             }
+            Divider()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        val intent =
+                            Intent(Intent.ACTION_VIEW, Uri.parse("https://donotnotify.com/help.html"))
+                        context.startActivity(intent)
+                    }
+                    .padding(16.dp),
+            ) {
+                Text("Help", style = MaterialTheme.typography.bodyLarge)
+            }
+            Divider()
         }
     }
 }
