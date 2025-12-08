@@ -50,7 +50,9 @@ fun PrebuiltRulesScreen(
         prebuiltRules = repository.getPrebuiltRules()
     }
 
-    val installedAppPackages = packageManager.getInstalledPackages(PackageManager.GET_META_DATA)
+    // Use getInstalledApplications with MATCH_ALL to get a more complete list of installed apps,
+    // as getInstalledPackages can be subject to package visibility restrictions on newer Android versions.
+    val installedAppPackages = packageManager.getInstalledApplications(PackageManager.MATCH_ALL)
         .map { it.packageName }
 
     Log.i("PrebuiltRulesScreen", "Installed App Packages: $installedAppPackages")
