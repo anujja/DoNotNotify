@@ -14,6 +14,7 @@ class NotificationBlockerService : NotificationListenerService() {
     private lateinit var notificationHistoryStorage: NotificationHistoryStorage
     private lateinit var blockedNotificationHistoryStorage: BlockedNotificationHistoryStorage
     private lateinit var statsStorage: StatsStorage
+    private lateinit var unmonitoredAppsStorage: UnmonitoredAppsStorage
 
     companion object {
         const val ACTION_HISTORY_UPDATED = "com.donotnotify.donotnotify.HISTORY_UPDATED"
@@ -28,6 +29,7 @@ class NotificationBlockerService : NotificationListenerService() {
         notificationHistoryStorage = NotificationHistoryStorage(this)
         blockedNotificationHistoryStorage = BlockedNotificationHistoryStorage(this)
         statsStorage = StatsStorage(this)
+        unmonitoredAppsStorage = UnmonitoredAppsStorage(this)
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
@@ -130,7 +132,9 @@ class NotificationBlockerService : NotificationListenerService() {
                     statsStorage.incrementBlockedNotificationsCount()
                 }
             } else {
-                notificationHistoryStorage.saveNotification(simpleNotification)
+                if (!unmonitoredAppsStorage.isAppUnmonitored(packageName)) {
+                    notificationHistoryStorage.saveNotification(simpleNotification)
+                }
             }
             sendBroadcast(Intent(ACTION_HISTORY_UPDATED))
         }

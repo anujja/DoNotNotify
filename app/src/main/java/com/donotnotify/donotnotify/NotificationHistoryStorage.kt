@@ -50,6 +50,13 @@ class NotificationHistoryStorage(private val context: Context) {
         historyFile.writeText(json)
     }
 
+    fun deleteNotificationsFromPackage(packageName: String) {
+        val history = getHistory().toMutableList()
+        history.removeAll { it.packageName == packageName }
+        val json = gson.toJson(history)
+        historyFile.writeText(json)
+    }
+
     fun clearHistory() {
         if (historyFile.exists()) {
             historyFile.delete()

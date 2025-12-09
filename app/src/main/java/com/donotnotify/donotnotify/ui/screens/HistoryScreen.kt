@@ -37,7 +37,8 @@ fun HistoryScreen(
     notifications: List<SimpleNotification>,
     onNotificationClick: (SimpleNotification) -> Unit,
     onClearHistory: () -> Unit,
-    onDeleteNotification: (SimpleNotification) -> Unit
+    onDeleteNotification: (SimpleNotification) -> Unit,
+    onStopMonitoring: (String, String) -> Unit
 ) {
     var expandedApps by remember { mutableStateOf(setOf<String>()) }
     val groupedNotifications = remember(notifications) {
@@ -61,7 +62,7 @@ fun HistoryScreen(
             item {
                 Column(modifier = Modifier.padding(vertical = 16.dp)) {
                     Text(
-                        text = "Your notifications history. Tap on one to create a rule to block similar notifications in the future.",
+                        text = "Tap on a notification to create a rule to block similar notifications in the future.",
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
@@ -139,6 +140,21 @@ fun HistoryScreen(
                                 IconButton(onClick = { onDeleteNotification(notification) }) {
                                     Icon(Icons.Default.Delete, contentDescription = "Delete")
                                 }
+                            }
+                        }
+                    }
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(8.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            TextButton(onClick = {
+                                val packageName = notifs.firstOrNull()?.packageName
+                                if (packageName != null) {
+                                    onStopMonitoring(packageName, appName)
+                                }
+                            }) {
+                                Text("Stop monitoring $appName")
                             }
                         }
                     }

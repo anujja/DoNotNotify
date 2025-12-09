@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Divider
@@ -36,7 +38,10 @@ import com.donotnotify.donotnotify.ui.components.AboutDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(onClose: () -> Unit) {
+fun SettingsScreen(
+    onClose: () -> Unit,
+    onOpenUnmonitoredApps: () -> Unit
+) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
     var maxHistorySize by remember {
@@ -66,6 +71,7 @@ fun SettingsScreen(onClose: () -> Unit) {
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
         ) {
             Row(
                 modifier = Modifier
@@ -95,6 +101,17 @@ fun SettingsScreen(onClose: () -> Unit) {
                 )
             }
             Divider()
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onOpenUnmonitoredApps() }
+                    .padding(16.dp),
+            ) {
+                Text("Unmonitored Apps", style = MaterialTheme.typography.bodyLarge)
+            }
+            Divider()
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

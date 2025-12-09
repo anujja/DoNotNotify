@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -53,6 +54,7 @@ import com.donotnotify.donotnotify.ui.screens.HistoryScreen
 import com.donotnotify.donotnotify.ui.screens.PrebuiltRulesScreen
 import com.donotnotify.donotnotify.ui.screens.RulesScreen
 import com.donotnotify.donotnotify.ui.screens.SettingsScreen
+import com.donotnotify.donotnotify.ui.screens.UnmonitoredAppsScreen
 import com.donotnotify.donotnotify.ui.theme.DoNotNotifyTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
@@ -62,12 +64,15 @@ class MainActivity : ComponentActivity() {
     private lateinit var ruleStorage: RuleStorage
     private lateinit var notificationHistoryStorage: NotificationHistoryStorage
     private lateinit var blockedNotificationHistoryStorage: BlockedNotificationHistoryStorage
+    private lateinit var unmonitoredAppsStorage: UnmonitoredAppsStorage
     private var isServiceEnabled by mutableStateOf(false)
     private var pastNotifications by mutableStateOf<List<SimpleNotification>>(emptyList())
     private var blockedNotifications by mutableStateOf<List<SimpleNotification>>(emptyList())
     private var rules by mutableStateOf<List<BlockerRule>>(emptyList())
+    private var unmonitoredApps by mutableStateOf<Set<String>>(emptySet())
     private var showSettingsScreen by mutableStateOf(false)
     private var showPrebuiltRulesScreen by mutableStateOf(false)
+    private var showUnmonitoredAppsScreen by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -75,6 +80,7 @@ class MainActivity : ComponentActivity() {
         ruleStorage = RuleStorage(this)
         notificationHistoryStorage = NotificationHistoryStorage(this)
         blockedNotificationHistoryStorage = BlockedNotificationHistoryStorage(this)
+        unmonitoredAppsStorage = UnmonitoredAppsStorage(this)
         isServiceEnabled = isNotificationServiceEnabled()
         setContent {
             DoNotNotifyTheme {
@@ -97,6 +103,7 @@ class MainActivity : ComponentActivity() {
         pastNotifications = notificationHistoryStorage.getHistory()
         blockedNotifications = blockedNotificationHistoryStorage.getHistory()
         rules = ruleStorage.getRules()
+        unmonitoredApps = unmonitoredAppsStorage.getUnmonitoredApps()
     }
 
     @Composable
@@ -130,9 +137,25 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        if (showSettingsScreen) {
-            SettingsScreen(onClose = { showSettingsScreen = false })
+        if (showUnmonitoredAppsScreen) {
+            BackHandler { showUnmonitoredAppsScreen = false }
+            UnmonitoredAppsScreen(
+                unmonitoredApps = unmonitoredApps,
+                onClose = { showUnmonitoredAppsScreen = false },
+                onResumeMonitoring = { packageName ->
+                    unmonitoredAppsStorage.removeApp(packageName)
+                    unmonitoredApps = unmonitoredAppsStorage.getUnmonitoredApps()
+                    Toast.makeText(context, "Resumed monitoring $packageName", Toast.LENGTH_SHORT).show()
+                }
+            )
+        } else if (showSettingsScreen) {
+            BackHandler { showSettingsScreen = false }
+            SettingsScreen(
+                onClose = { showSettingsScreen = false },
+                onOpenUnmonitoredApps = { showUnmonitoredAppsScreen = true }
+            )
         } else if (showPrebuiltRulesScreen) {
+            BackHandler { showPrebuiltRulesScreen = false }
             PrebuiltRulesScreen(
                 userRules = rules,
                 onClose = { showPrebuiltRulesScreen = false },
@@ -173,7 +196,14 @@ class MainActivity : ComponentActivity() {
                 },
                 isServiceEnabled = isServiceEnabled, // Pass isServiceEnabled
                 onSettingsClick = { showSettingsScreen = true },
-                onBrowsePrebuiltRulesClick = { showPrebuiltRulesScreen = true }
+                onBrowsePrebuiltRulesClick = { showPrebuiltRulesScreen = true },
+                onStopMonitoring = { packageName, appName ->
+                    unmonitoredAppsStorage.addApp(packageName)
+                    unmonitoredApps = unmonitoredAppsStorage.getUnmonitoredApps()
+                    notificationHistoryStorage.deleteNotificationsFromPackage(packageName)
+                    pastNotifications = notificationHistoryStorage.getHistory()
+                    Toast.makeText(context, "Stopped monitoring $appName", Toast.LENGTH_SHORT).show()
+                }
             )
         } else {
             EnableNotificationListenerScreen(onEnableClick = { openNotificationListenerSettings() })
@@ -272,7 +302,8 @@ class MainActivity : ComponentActivity() {
         onDeleteHistoryNotificationClick: (SimpleNotification) -> Unit,
         isServiceEnabled: Boolean, // Pass isServiceEnabled
         onSettingsClick: () -> Unit,
-        onBrowsePrebuiltRulesClick: () -> Unit
+        onBrowsePrebuiltRulesClick: () -> Unit,
+        onStopMonitoring: (String, String) -> Unit
     ) {
         val context = LocalContext.current // Get context inside Composable
         val coroutineScope = rememberCoroutineScope()
@@ -338,7 +369,8 @@ class MainActivity : ComponentActivity() {
                             onDeleteRuleClick = onDeleteRuleClick,
                             onDeleteNotificationClick = onDeleteNotificationClick,
                             onDeleteHistoryNotificationClick = onDeleteHistoryNotificationClick,
-                            onBrowsePrebuiltRulesClick = onBrowsePrebuiltRulesClick
+                            onBrowsePrebuiltRulesClick = onBrowsePrebuiltRulesClick,
+                            onStopMonitoring = onStopMonitoring
                         )
                     }
                 }
@@ -360,14 +392,16 @@ class MainActivity : ComponentActivity() {
         onDeleteRuleClick: (BlockerRule) -> Unit,
         onDeleteNotificationClick: (SimpleNotification) -> Unit,
         onDeleteHistoryNotificationClick: (SimpleNotification) -> Unit,
-        onBrowsePrebuiltRulesClick: () -> Unit
+        onBrowsePrebuiltRulesClick: () -> Unit,
+        onStopMonitoring: (String, String) -> Unit
     ) {
         when (page) {
             0 -> HistoryScreen(
                 pastNotifications,
                 onNotificationClick,
                 onClearHistory,
-                onDeleteHistoryNotificationClick
+                onDeleteHistoryNotificationClick,
+                onStopMonitoring
             )
 
             1 -> RulesScreen(rules, onRuleClick, onDeleteRuleClick, onBrowsePrebuiltRulesClick)
