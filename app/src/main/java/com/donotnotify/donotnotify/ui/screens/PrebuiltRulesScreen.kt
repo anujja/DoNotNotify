@@ -50,7 +50,7 @@ fun PrebuiltRulesScreen(
         prebuiltRules = repository.getPrebuiltRules()
     }
 
-    val installedAppPackages = packageManager.getInstalledPackages(0)
+    val installedAppPackages = packageManager.getInstalledPackages(PackageManager.MATCH_ALL)
         .map { it.packageName }
 
     Log.i("PrebuiltRulesScreen", "Installed App Packages: $installedAppPackages")

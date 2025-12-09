@@ -1,5 +1,6 @@
 package com.donotnotify.donotnotify.ui.screens
 
+import android.text.format.DateUtils
 import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -135,6 +136,11 @@ fun HistoryScreen(
                                         style = MaterialTheme.typography.bodyMedium,
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = DateUtils.getRelativeTimeSpanString(notification.timestamp).toString(),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp, end = 16.dp)
                                     )
                                 }
                                 IconButton(onClick = { onDeleteNotification(notification) }) {
