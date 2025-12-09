@@ -19,3 +19,6 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep the BlockerRule class and its members for Gson deserialization.
+-keep class com.donotnotify.donotnotify.BlockerRule { *; }
