@@ -54,7 +54,6 @@ import com.donotnotify.donotnotify.ui.screens.HistoryScreen
 import com.donotnotify.donotnotify.ui.screens.PrebuiltRulesScreen
 import com.donotnotify.donotnotify.ui.screens.RulesScreen
 import com.donotnotify.donotnotify.ui.screens.SettingsScreen
-import com.donotnotify.donotnotify.ui.screens.UnmonitoredAppsScreen
 import com.donotnotify.donotnotify.ui.theme.DoNotNotifyTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
@@ -72,7 +71,6 @@ class MainActivity : ComponentActivity() {
     private var unmonitoredApps by mutableStateOf<Set<String>>(emptySet())
     private var showSettingsScreen by mutableStateOf(false)
     private var showPrebuiltRulesScreen by mutableStateOf(false)
-    private var showUnmonitoredAppsScreen by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -137,22 +135,10 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        if (showUnmonitoredAppsScreen) {
-            BackHandler { showUnmonitoredAppsScreen = false }
-            UnmonitoredAppsScreen(
-                unmonitoredApps = unmonitoredApps,
-                onClose = { showUnmonitoredAppsScreen = false },
-                onResumeMonitoring = { packageName ->
-                    unmonitoredAppsStorage.removeApp(packageName)
-                    unmonitoredApps = unmonitoredAppsStorage.getUnmonitoredApps()
-                    Toast.makeText(context, "Resumed monitoring $packageName", Toast.LENGTH_SHORT).show()
-                }
-            )
-        } else if (showSettingsScreen) {
+        if (showSettingsScreen) {
             BackHandler { showSettingsScreen = false }
             SettingsScreen(
-                onClose = { showSettingsScreen = false },
-                onOpenUnmonitoredApps = { showUnmonitoredAppsScreen = true }
+                onClose = { showSettingsScreen = false }
             )
         } else if (showPrebuiltRulesScreen) {
             BackHandler { showPrebuiltRulesScreen = false }
@@ -172,6 +158,7 @@ class MainActivity : ComponentActivity() {
                 pastNotifications = pastNotifications,
                 blockedNotifications = blockedNotifications,
                 rules = rules,
+                unmonitoredApps = unmonitoredApps,
                 onNotificationClick = { notification -> notificationToShowAddDialog = notification },
                 onBlockedNotificationClick = { notification ->
                     notificationToShowDetailsDialog = notification
@@ -203,6 +190,11 @@ class MainActivity : ComponentActivity() {
                     notificationHistoryStorage.deleteNotificationsFromPackage(packageName)
                     pastNotifications = notificationHistoryStorage.getHistory()
                     Toast.makeText(context, "Stopped monitoring $appName", Toast.LENGTH_SHORT).show()
+                },
+                onResumeMonitoring = { packageName ->
+                    unmonitoredAppsStorage.removeApp(packageName)
+                    unmonitoredApps = unmonitoredAppsStorage.getUnmonitoredApps()
+                    Toast.makeText(context, "Resumed monitoring $packageName", Toast.LENGTH_SHORT).show()
                 }
             )
         } else {
@@ -292,6 +284,7 @@ class MainActivity : ComponentActivity() {
         pastNotifications: List<SimpleNotification>,
         blockedNotifications: List<SimpleNotification>,
         rules: List<BlockerRule>,
+        unmonitoredApps: Set<String>,
         onNotificationClick: (SimpleNotification) -> Unit,
         onBlockedNotificationClick: (SimpleNotification) -> Unit,
         onClearHistory: () -> Unit,
@@ -303,7 +296,8 @@ class MainActivity : ComponentActivity() {
         isServiceEnabled: Boolean, // Pass isServiceEnabled
         onSettingsClick: () -> Unit,
         onBrowsePrebuiltRulesClick: () -> Unit,
-        onStopMonitoring: (String, String) -> Unit
+        onStopMonitoring: (String, String) -> Unit,
+        onResumeMonitoring: (String) -> Unit
     ) {
         val context = LocalContext.current // Get context inside Composable
         val coroutineScope = rememberCoroutineScope()
@@ -361,6 +355,7 @@ class MainActivity : ComponentActivity() {
                             pastNotifications = pastNotifications,
                             blockedNotifications = blockedNotifications,
                             rules = rules,
+                            unmonitoredApps = unmonitoredApps,
                             onNotificationClick = onNotificationClick,
                             onBlockedNotificationClick = onBlockedNotificationClick,
                             onClearHistory = onClearHistory,
@@ -370,7 +365,8 @@ class MainActivity : ComponentActivity() {
                             onDeleteNotificationClick = onDeleteNotificationClick,
                             onDeleteHistoryNotificationClick = onDeleteHistoryNotificationClick,
                             onBrowsePrebuiltRulesClick = onBrowsePrebuiltRulesClick,
-                            onStopMonitoring = onStopMonitoring
+                            onStopMonitoring = onStopMonitoring,
+                            onResumeMonitoring = onResumeMonitoring
                         )
                     }
                 }
@@ -384,6 +380,7 @@ class MainActivity : ComponentActivity() {
         pastNotifications: List<SimpleNotification>,
         blockedNotifications: List<SimpleNotification>,
         rules: List<BlockerRule>,
+        unmonitoredApps: Set<String>,
         onNotificationClick: (SimpleNotification) -> Unit,
         onBlockedNotificationClick: (SimpleNotification) -> Unit,
         onClearHistory: () -> Unit,
@@ -393,15 +390,18 @@ class MainActivity : ComponentActivity() {
         onDeleteNotificationClick: (SimpleNotification) -> Unit,
         onDeleteHistoryNotificationClick: (SimpleNotification) -> Unit,
         onBrowsePrebuiltRulesClick: () -> Unit,
-        onStopMonitoring: (String, String) -> Unit
+        onStopMonitoring: (String, String) -> Unit,
+        onResumeMonitoring: (String) -> Unit
     ) {
         when (page) {
             0 -> HistoryScreen(
                 pastNotifications,
+                unmonitoredApps,
                 onNotificationClick,
                 onClearHistory,
                 onDeleteHistoryNotificationClick,
-                onStopMonitoring
+                onStopMonitoring,
+                onResumeMonitoring
             )
 
             1 -> RulesScreen(rules, onRuleClick, onDeleteRuleClick, onBrowsePrebuiltRulesClick)

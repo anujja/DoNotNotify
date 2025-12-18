@@ -39,8 +39,7 @@ import com.donotnotify.donotnotify.ui.components.AboutDialog
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onClose: () -> Unit,
-    onOpenUnmonitoredApps: () -> Unit
+    onClose: () -> Unit
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -99,16 +98,6 @@ fun SettingsScreen(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(0.5f)
                 )
-            }
-            Divider()
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onOpenUnmonitoredApps() }
-                    .padding(16.dp),
-            ) {
-                Text("Unmonitored Apps", style = MaterialTheme.typography.bodyLarge)
             }
             Divider()
 
