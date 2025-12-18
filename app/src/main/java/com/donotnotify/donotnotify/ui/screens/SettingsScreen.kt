@@ -44,8 +44,8 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-    var maxHistorySize by remember {
-        mutableStateOf(sharedPreferences.getInt("maxHistorySize", 500).toString())
+    var historyDays by remember {
+        mutableStateOf(sharedPreferences.getInt("historyDays", 5).toString())
     }
     var showAboutDialog by remember { mutableStateOf(false) }
 
@@ -81,17 +81,17 @@ fun SettingsScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Max Notification History Size:",
+                    text = "History Retention (Days):",
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.weight(1f)
                 )
                 TextField(
-                    value = maxHistorySize,
+                    value = historyDays,
                     onValueChange = { newText ->
-                        maxHistorySize = newText
-                        newText.toIntOrNull()?.let { newSize ->
+                        historyDays = newText
+                        newText.toIntOrNull()?.let { newDays ->
                             with(sharedPreferences.edit()) {
-                                putInt("maxHistorySize", newSize)
+                                putInt("historyDays", newDays)
                                 apply()
                             }
                         }

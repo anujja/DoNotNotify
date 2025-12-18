@@ -10,7 +10,7 @@ class NotificationHistoryStorage(private val context: Context) {
     private val gson = Gson()
     private val historyFile = File(context.filesDir, "notification_history.json")
     private val sharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-    private val maxHistorySize get() = sharedPreferences.getInt("maxHistorySize", 500)
+    private val historyDays get() = sharedPreferences.getInt("historyDays", 5)
 
     fun getHistory(): List<SimpleNotification> {
         if (!historyFile.exists()) {
@@ -38,8 +38,11 @@ class NotificationHistoryStorage(private val context: Context) {
         // Add the new or updated notification to the top of the list
         history.add(0, notification)
         
-        val trimmedHistory = if (history.size > maxHistorySize) history.subList(0, maxHistorySize) else history
-        val json = gson.toJson(trimmedHistory)
+        // Prune old notifications
+        val cutoff = System.currentTimeMillis() - (historyDays * 24 * 60 * 60 * 1000L)
+        val filteredHistory = history.filter { it.timestamp >= cutoff }
+
+        val json = gson.toJson(filteredHistory)
         historyFile.writeText(json)
     }
 

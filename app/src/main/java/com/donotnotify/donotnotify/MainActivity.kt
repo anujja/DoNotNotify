@@ -308,7 +308,7 @@ class MainActivity : ComponentActivity() {
         val context = LocalContext.current // Get context inside Composable
         val coroutineScope = rememberCoroutineScope()
         val tabTitles =
-            listOf("History", "Rules (${rules.count { it.isEnabled }})", "Blocked (${blockedNotifications.size})")
+            listOf("History (${pastNotifications.size})", "Rules (${rules.count { it.isEnabled }})", "Blocked (${blockedNotifications.size})")
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
