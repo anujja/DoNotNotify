@@ -21,4 +21,4 @@
 #-renamesourcefileattribute SourceFile
 
 # Keep the BlockerRule class and its members for Gson deserialization.
--keep class com.donotnotify.donotnotify.BlockerRule { *; }
+# -keep class com.donotnotify.donotnotify.BlockerRule { *; }

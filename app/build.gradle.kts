@@ -13,8 +13,8 @@ android {
         applicationId = "com.donotnotify.donotnotify"
         minSdk = 24
         targetSdk = 36
-        versionCode = 12
-        versionName = "1.71"
+        versionCode = 14
+        versionName = "1.73"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

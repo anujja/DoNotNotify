@@ -1,18 +1,21 @@
 package com.donotnotify.donotnotify
 
 import android.os.Parcelable
+import androidx.annotation.Keep
 import kotlinx.parcelize.Parcelize
-
+@Keep
 enum class MatchType {
     CONTAINS,
     REGEX
 }
 
+@Keep
 enum class RuleType {
     BLACKLIST,
     WHITELIST
 }
 
+@Keep
 @Parcelize
 data class BlockerRule(
     val appName: String? = null,
