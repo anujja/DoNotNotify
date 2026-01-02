@@ -85,14 +85,14 @@ fun RulesScreen(
                                 overflow = TextOverflow.Ellipsis,
                                 textDecoration = if (rule.isEnabled) null else TextDecoration.LineThrough
                             )
-                            val titleFilterText = if (rule.titleFilter.isNullOrBlank()) "N/A" else "${rule.titleFilter.orEmpty()} (${rule.titleMatchType.name.lowercase()})"
+                            val titleFilterText = if (rule.titleFilter.isNullOrBlank()) "N/A" else rule.titleFilter.orEmpty()
                             Text(
                                 text = "Title: $titleFilterText",
                                 style = MaterialTheme.typography.bodyMedium,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
-                            val textFilterText = if (rule.textFilter.isNullOrBlank()) "N/A" else "${rule.textFilter.orEmpty()} (${rule.textMatchType.name.lowercase()})"
+                            val textFilterText = if (rule.textFilter.isNullOrBlank()) "N/A" else rule.textFilter.orEmpty()
                             Text(
                                 text = "Text: $textFilterText",
                                 style = MaterialTheme.typography.bodyMedium,

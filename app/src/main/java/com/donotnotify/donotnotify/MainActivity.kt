@@ -45,6 +45,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.donotnotify.donotnotify.ui.components.AddRuleDialog
+import com.donotnotify.donotnotify.ui.components.AutoAddedRulesDialog
 import com.donotnotify.donotnotify.ui.components.DeleteConfirmationDialog
 import com.donotnotify.donotnotify.ui.components.EditRuleDialog
 import com.donotnotify.donotnotify.ui.components.NotificationDetailsDialog
@@ -64,6 +65,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var notificationHistoryStorage: NotificationHistoryStorage
     private lateinit var blockedNotificationHistoryStorage: BlockedNotificationHistoryStorage
     private lateinit var unmonitoredAppsStorage: UnmonitoredAppsStorage
+    private lateinit var prebuiltRulesRepository: PrebuiltRulesRepository
     private var isServiceEnabled by mutableStateOf(false)
     private var pastNotifications by mutableStateOf<List<SimpleNotification>>(emptyList())
     private var blockedNotifications by mutableStateOf<List<SimpleNotification>>(emptyList())
@@ -71,6 +73,8 @@ class MainActivity : ComponentActivity() {
     private var unmonitoredApps by mutableStateOf<Set<String>>(emptySet())
     private var showSettingsScreen by mutableStateOf(false)
     private var showPrebuiltRulesScreen by mutableStateOf(false)
+    private var autoAddedApps by mutableStateOf<List<String>>(emptyList())
+    private var showAutoAddedDialog by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -79,6 +83,17 @@ class MainActivity : ComponentActivity() {
         notificationHistoryStorage = NotificationHistoryStorage(this)
         blockedNotificationHistoryStorage = BlockedNotificationHistoryStorage(this)
         unmonitoredAppsStorage = UnmonitoredAppsStorage(this)
+        prebuiltRulesRepository = PrebuiltRulesRepository(this)
+        
+        val newApps = checkForNewRules()
+        if (newApps.isNotEmpty()) {
+            autoAddedApps = newApps
+            val sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE)
+            if (sharedPreferences.getBoolean("show_auto_add_dialog", true)) {
+                showAutoAddedDialog = true
+            }
+        }
+
         isServiceEnabled = isNotificationServiceEnabled()
         setContent {
             DoNotNotifyTheme {
@@ -102,6 +117,34 @@ class MainActivity : ComponentActivity() {
         blockedNotifications = blockedNotificationHistoryStorage.getHistory()
         rules = ruleStorage.getRules()
         unmonitoredApps = unmonitoredAppsStorage.getUnmonitoredApps()
+    }
+
+    private fun checkForNewRules(): List<String> {
+        val sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val processedPackages = sharedPreferences.getStringSet("processed_packages", emptySet()) ?: emptySet()
+        val installedPackages = packageManager.getInstalledPackages(0).map { it.packageName }.toSet()
+        val prebuiltRules = prebuiltRulesRepository.getPrebuiltRules()
+        val existingRules = ruleStorage.getRules()
+
+        val newRules = prebuiltRules.filter { rule ->
+            val packageName = rule.packageName ?: return@filter false
+            packageName in installedPackages &&
+                    packageName !in processedPackages &&
+                    existingRules.none { it.packageName == packageName }
+        }
+
+        if (newRules.isNotEmpty()) {
+            val updatedRules = existingRules + newRules
+            ruleStorage.saveRules(updatedRules)
+            
+            val newProcessedPackages = processedPackages + newRules.mapNotNull { it.packageName }
+            with(sharedPreferences.edit()) {
+                putStringSet("processed_packages", newProcessedPackages)
+                apply()
+            }
+            return newRules.mapNotNull { it.appName }
+        }
+        return emptyList()
     }
 
     @Composable
@@ -133,6 +176,21 @@ class MainActivity : ComponentActivity() {
             onDispose {
                 context.unregisterReceiver(historyUpdateReceiver)
             }
+        }
+
+        if (showAutoAddedDialog && pagerState.currentPage == 1) {
+            AutoAddedRulesDialog(
+                addedApps = autoAddedApps,
+                onDismiss = { showAutoAddedDialog = false },
+                onDoNotShowAgain = {
+                    showAutoAddedDialog = false
+                    val sharedPreferences = getSharedPreferences("settings", Context.MODE_PRIVATE)
+                    with(sharedPreferences.edit()) {
+                        putBoolean("show_auto_add_dialog", false)
+                        apply()
+                    }
+                }
+            )
         }
 
         if (showSettingsScreen) {
