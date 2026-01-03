@@ -95,17 +95,6 @@ fun HistoryScreen(
                 )
             }
         } else {
-            item {
-                Column(modifier = Modifier.padding(vertical = 16.dp)) {
-                    Text(
-                        text = "Tap on a notification to create a rule to block similar notifications in the future.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-
             groupedNotifications.forEach { (appName, notifs) ->
                 item {
                     Row(

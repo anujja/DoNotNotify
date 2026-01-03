@@ -3,6 +3,7 @@ package com.donotnotify.donotnotify
 import android.os.Parcelable
 import androidx.annotation.Keep
 import kotlinx.parcelize.Parcelize
+import java.util.UUID
 
 @Keep
 @Parcelize
@@ -12,5 +13,6 @@ data class SimpleNotification(
     val title: String?,
     val text: String?,
     val timestamp: Long,
-    val wasOngoing: Boolean = false // New field to indicate if it was an ongoing notification
+    val wasOngoing: Boolean = false,
+    val id: String? = UUID.randomUUID().toString()
 ) : Parcelable

@@ -125,6 +125,13 @@ class NotificationBlockerService : NotificationListenerService() {
             Log.i(TAG, "Ignoring duplicate for history/stats: $notificationKey")
         } else {
             val simpleNotification = SimpleNotification(appLabel, packageName, title, text, currentTime, wasOngoing = wasOngoing && isBlocked)
+            
+            sbn.notification.contentIntent?.let { intent ->
+                simpleNotification.id?.let { id ->
+                    NotificationActionRepository.saveAction(id, intent)
+                }
+            }
+
             if (isBlocked) {
                 recentlyBlocked[notificationKey] = currentTime
                 val isNew = blockedNotificationHistoryStorage.saveNotification(simpleNotification)

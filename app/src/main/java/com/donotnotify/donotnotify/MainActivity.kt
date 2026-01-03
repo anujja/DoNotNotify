@@ -1,5 +1,6 @@
 package com.donotnotify.donotnotify
 
+import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -48,6 +49,7 @@ import com.donotnotify.donotnotify.ui.components.AddRuleDialog
 import com.donotnotify.donotnotify.ui.components.AutoAddedRulesDialog
 import com.donotnotify.donotnotify.ui.components.DeleteConfirmationDialog
 import com.donotnotify.donotnotify.ui.components.EditRuleDialog
+import com.donotnotify.donotnotify.ui.components.HistoryNotificationDetailsDialog
 import com.donotnotify.donotnotify.ui.components.NotificationDetailsDialog
 import com.donotnotify.donotnotify.ui.screens.BlockedScreen
 import com.donotnotify.donotnotify.ui.screens.EnableNotificationListenerScreen
@@ -152,6 +154,7 @@ class MainActivity : ComponentActivity() {
         val context = LocalContext.current
         var notificationToShowAddDialog by remember { mutableStateOf<SimpleNotification?>(null) }
         var notificationToShowDetailsDialog by remember { mutableStateOf<SimpleNotification?>(null) }
+        var notificationToShowHistoryDetailsDialog by remember { mutableStateOf<SimpleNotification?>(null) }
         var ruleToEdit by remember { mutableStateOf<BlockerRule?>(null) }
         var ruleToDelete by remember { mutableStateOf<BlockerRule?>(null) }
         var notificationToDelete by remember { mutableStateOf<SimpleNotification?>(null) }
@@ -217,7 +220,7 @@ class MainActivity : ComponentActivity() {
                 blockedNotifications = blockedNotifications,
                 rules = rules,
                 unmonitoredApps = unmonitoredApps,
-                onNotificationClick = { notification -> notificationToShowAddDialog = notification },
+                onNotificationClick = { notification -> notificationToShowHistoryDetailsDialog = notification },
                 onBlockedNotificationClick = { notification ->
                     notificationToShowDetailsDialog = notification
                 },
@@ -278,6 +281,45 @@ class MainActivity : ComponentActivity() {
             NotificationDetailsDialog(
                 notification = notification,
                 onDismiss = { notificationToShowDetailsDialog = null }
+            )
+        }
+        
+        notificationToShowHistoryDetailsDialog?.let { notification ->
+            val isActionAvailable = if (notification.id != null) {
+                NotificationActionRepository.getAction(notification.id) != null
+            } else {
+                false
+            }
+            HistoryNotificationDetailsDialog(
+                notification = notification,
+                isActionAvailable = isActionAvailable,
+                onDismiss = { notificationToShowHistoryDetailsDialog = null },
+                onTriggerAction = {
+                    val intent = if (notification.id != null) NotificationActionRepository.getAction(notification.id) else null
+                    if (intent != null) {
+                        try {
+                            val options = android.app.ActivityOptions.makeBasic()
+                            if (android.os.Build.VERSION.SDK_INT >= 34) {
+                                options.setPendingIntentBackgroundActivityStartMode(android.app.ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS)
+                            }
+                            
+                            val actionIntent = Intent()
+                            actionIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            
+                            intent.send(context, 0, actionIntent, null, null, null, options.toBundle())
+                            Toast.makeText(context, "Action triggered", Toast.LENGTH_SHORT).show()
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "Failed to trigger action", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(context, "Notification action is no longer available", Toast.LENGTH_SHORT).show()
+                    }
+                    notificationToShowHistoryDetailsDialog = null
+                },
+                onCreateRule = {
+                    notificationToShowHistoryDetailsDialog = null
+                    notificationToShowAddDialog = notification
+                }
             )
         }
 

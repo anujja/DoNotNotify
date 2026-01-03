@@ -31,7 +31,6 @@ fun NotificationDetailsDialog(
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("Notification Details", fontWeight = FontWeight.Bold, fontSize = 20.sp, modifier = Modifier.padding(bottom = 16.dp))
                 DetailRow("App:", notification.appLabel ?: notification.packageName.orEmpty())
-                DetailRow("Package:", notification.packageName.orEmpty())
                 DetailRow("Title:", notification.title.orEmpty())
                 DetailRow("Text:", notification.text.orEmpty())
                 DetailRow("Time:", dateFormat.format(Date(notification.timestamp)))
