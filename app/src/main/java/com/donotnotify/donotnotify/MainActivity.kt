@@ -307,7 +307,6 @@ class MainActivity : ComponentActivity() {
                             actionIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             
                             intent.send(context, 0, actionIntent, null, null, null, options.toBundle())
-                            Toast.makeText(context, "Action triggered", Toast.LENGTH_SHORT).show()
                         } catch (e: Exception) {
                             Toast.makeText(context, "Failed to trigger action", Toast.LENGTH_SHORT).show()
                         }
