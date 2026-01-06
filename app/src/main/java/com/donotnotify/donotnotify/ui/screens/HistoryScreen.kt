@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
@@ -35,6 +36,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.donotnotify.donotnotify.SimpleNotification
 
 @Composable
@@ -49,6 +52,7 @@ fun HistoryScreen(
 ) {
     var expandedApps by remember { mutableStateOf(setOf<String>()) }
     var isUnmonitoredAppsExpanded by remember { mutableStateOf(false) }
+    var showClearHistoryDialog by remember { mutableStateOf(false) }
     val groupedNotifications = remember(notifications) {
         notifications
             .groupBy { it.appLabel ?: it.packageName.orEmpty() }
@@ -78,6 +82,39 @@ fun HistoryScreen(
     LaunchedEffect(isUnmonitoredAppsExpanded) {
         if (isUnmonitoredAppsExpanded) {
             listState.animateScrollToItem(unmonitoredAppsHeaderIndex)
+        }
+    }
+
+    if (showClearHistoryDialog) {
+        Dialog(onDismissRequest = { showClearHistoryDialog = false }) {
+            Card {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Clear History?",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Text(
+                        text = "Are you sure you want to clear all notification history?",
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Button(onClick = { showClearHistoryDialog = false }, modifier = Modifier.padding(end = 8.dp)) {
+                            Text("Cancel")
+                        }
+                        Button(onClick = {
+                            onClearHistory()
+                            showClearHistoryDialog = false
+                        }) {
+                            Text("Clear")
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -194,7 +231,7 @@ fun HistoryScreen(
 
             item {
                 Row(modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp), horizontalArrangement = Arrangement.Center) {
-                    TextButton(onClick = onClearHistory) { Text("Clear History") }
+                    Button(onClick = { showClearHistoryDialog = true }) { Text("Clear History") }
                 }
             }
         }

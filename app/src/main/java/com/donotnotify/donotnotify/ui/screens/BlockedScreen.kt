@@ -13,13 +13,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -27,6 +31,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.donotnotify.donotnotify.SimpleNotification
 
 @Composable
@@ -37,6 +43,41 @@ fun BlockedScreen(
     onDeleteNotificationClick: (SimpleNotification) -> Unit
 ) {
     val context = LocalContext.current
+    var showClearBlockedHistoryDialog by remember { mutableStateOf(false) }
+
+    if (showClearBlockedHistoryDialog) {
+        Dialog(onDismissRequest = { showClearBlockedHistoryDialog = false }) {
+            Card {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Clear Blocked History?",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Text(
+                        text = "Are you sure you want to clear all blocked notification history?",
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Button(onClick = { showClearBlockedHistoryDialog = false }, modifier = Modifier.padding(end = 8.dp)) {
+                            Text("Cancel")
+                        }
+                        Button(onClick = {
+                            onClearBlockedHistory()
+                            showClearBlockedHistoryDialog = false
+                        }) {
+                            Text("Clear")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     LazyColumn(modifier = Modifier
         .fillMaxSize()
         .padding(horizontal = 16.dp)) {
@@ -106,7 +147,7 @@ fun BlockedScreen(
                 Row(modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 16.dp), horizontalArrangement = Arrangement.Center) {
-                    TextButton(onClick = onClearBlockedHistory) { Text("Clear Blocked History") }
+                    Button(onClick = { showClearBlockedHistoryDialog = true }) { Text("Clear Blocked History") }
                 }
             }
         }
