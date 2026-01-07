@@ -2,6 +2,7 @@ package com.donotnotify.donotnotify.ui.screens
 
 import android.text.format.DateUtils
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
@@ -204,6 +206,17 @@ fun HistoryScreen(
                                         textAlign = TextAlign.End,
                                         modifier = Modifier.fillMaxWidth().padding(top = 4.dp, end = 16.dp)
                                     )
+                                }
+                                if (notification.wasOngoing) {
+                                    IconButton(onClick = {
+                                        Toast.makeText(context, "This was an ongoing notification. It may not be possible to block it.", Toast.LENGTH_LONG).show()
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Warning,
+                                            contentDescription = "Ongoing Notification",
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
                                 }
                                 IconButton(onClick = { onDeleteNotification(notification) }) {
                                     Icon(Icons.Default.Delete, contentDescription = "Delete")
