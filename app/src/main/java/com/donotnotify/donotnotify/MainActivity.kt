@@ -197,9 +197,15 @@ class MainActivity : ComponentActivity() {
         }
 
         if (showSettingsScreen) {
-            BackHandler { showSettingsScreen = false }
+            BackHandler { 
+                showSettingsScreen = false 
+                rules = ruleStorage.getRules()
+            }
             SettingsScreen(
-                onClose = { showSettingsScreen = false }
+                onClose = { 
+                    showSettingsScreen = false 
+                    rules = ruleStorage.getRules()
+                }
             )
         } else if (showPrebuiltRulesScreen) {
             BackHandler { showPrebuiltRulesScreen = false }
