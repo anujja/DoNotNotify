@@ -111,9 +111,22 @@ fun SettingsScreen(
                         val importedRules: List<BlockerRule>? = gson.fromJson(json, type)
                         if (importedRules != null) {
                             val currentRules = ruleStorage.getRules().toMutableList()
-                            currentRules.addAll(importedRules)
-                            ruleStorage.saveRules(currentRules)
-                            exportImportMessage = "Rules imported successfully."
+                            val newRules = importedRules.filter { imported ->
+                                currentRules.none { current ->
+                                    current.packageName == imported.packageName &&
+                                            current.titleFilter == imported.titleFilter &&
+                                            current.titleMatchType == imported.titleMatchType &&
+                                            current.textFilter == imported.textFilter &&
+                                            current.textMatchType == imported.textMatchType &&
+                                            current.ruleType == imported.ruleType
+                                }
+                            }
+
+                            if (newRules.isNotEmpty()) {
+                                currentRules.addAll(newRules)
+                                ruleStorage.saveRules(currentRules)
+                            }
+                            exportImportMessage = "Successfully imported ${newRules.size} rules."
                         } else {
                             exportImportMessage = "Invalid rules file: Could not parse rules."
                         }
@@ -220,7 +233,7 @@ fun SettingsScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { }
+                    .clickable { showExportImportDialog = true }
                     .padding(16.dp),
             ) {
                 Text("Export/Import Rules", style = MaterialTheme.typography.bodyLarge)
