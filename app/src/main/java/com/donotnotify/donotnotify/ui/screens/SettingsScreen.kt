@@ -245,6 +245,20 @@ fun SettingsScreen(
                     .fillMaxWidth()
                     .clickable {
                         val intent =
+                            Intent(Intent.ACTION_VIEW, Uri.parse("https://buymeacoffee.com/jainanuj"))
+                        context.startActivity(intent)
+                    }
+                    .padding(16.dp),
+            ) {
+                Text("But me a coffee!", style = MaterialTheme.typography.bodyLarge)
+            }
+            Divider()
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        val intent =
                             Intent(Intent.ACTION_VIEW, Uri.parse("https://donotnotify.com/"))
                         context.startActivity(intent)
                     }
@@ -253,6 +267,26 @@ fun SettingsScreen(
                 Text("Visit Website", style = MaterialTheme.typography.bodyLarge)
             }
             Divider()
+
+            val packageInfo = try {
+                context.packageManager.getPackageInfo(context.packageName, 0)
+            } catch (e: Exception) {
+                null
+            }
+            val versionName = packageInfo?.versionName ?: "Unknown"
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 32.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "DoNotNotify v$versionName",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
