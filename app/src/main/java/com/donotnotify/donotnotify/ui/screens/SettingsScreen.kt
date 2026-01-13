@@ -250,7 +250,7 @@ fun SettingsScreen(
                     }
                     .padding(16.dp),
             ) {
-                Text("But me a coffee!", style = MaterialTheme.typography.bodyLarge)
+                Text("Buy me a coffee!", style = MaterialTheme.typography.bodyLarge)
             }
             Divider()
 
