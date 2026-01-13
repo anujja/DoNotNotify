@@ -68,6 +68,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var blockedNotificationHistoryStorage: BlockedNotificationHistoryStorage
     private lateinit var unmonitoredAppsStorage: UnmonitoredAppsStorage
     private lateinit var prebuiltRulesRepository: PrebuiltRulesRepository
+    private lateinit var appInfoStorage: AppInfoStorage
     private var isServiceEnabled by mutableStateOf(false)
     private var pastNotifications by mutableStateOf<List<SimpleNotification>>(emptyList())
     private var blockedNotifications by mutableStateOf<List<SimpleNotification>>(emptyList())
@@ -86,6 +87,7 @@ class MainActivity : ComponentActivity() {
         blockedNotificationHistoryStorage = BlockedNotificationHistoryStorage(this)
         unmonitoredAppsStorage = UnmonitoredAppsStorage(this)
         prebuiltRulesRepository = PrebuiltRulesRepository(this)
+        appInfoStorage = AppInfoStorage(this)
         
         val newApps = checkForNewRules()
         if (newApps.isNotEmpty()) {
@@ -232,6 +234,7 @@ class MainActivity : ComponentActivity() {
                 },
                 onClearHistory = {
                     notificationHistoryStorage.clearHistory()
+                    appInfoStorage.clearAllAppInfo()
                     pastNotifications = emptyList()
                     Toast.makeText(context, "History cleared", Toast.LENGTH_SHORT).show()
                 },
@@ -256,6 +259,7 @@ class MainActivity : ComponentActivity() {
                     unmonitoredApps = unmonitoredAppsStorage.getUnmonitoredApps()
                     notificationHistoryStorage.deleteNotificationsFromPackage(packageName)
                     pastNotifications = notificationHistoryStorage.getHistory()
+                    appInfoStorage.deleteAppInfo(packageName)
                     Toast.makeText(context, "Stopped monitoring $appName", Toast.LENGTH_SHORT).show()
                 },
                 onResumeMonitoring = { packageName ->

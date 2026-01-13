@@ -15,10 +15,12 @@ class NotificationBlockerService : NotificationListenerService() {
     private lateinit var blockedNotificationHistoryStorage: BlockedNotificationHistoryStorage
     private lateinit var statsStorage: StatsStorage
     private lateinit var unmonitoredAppsStorage: UnmonitoredAppsStorage
+    private lateinit var appInfoStorage: AppInfoStorage
 
     companion object {
         const val ACTION_HISTORY_UPDATED = "com.donotnotify.donotnotify.HISTORY_UPDATED"
         private const val DEBOUNCE_PERIOD_MS = 5000L
+        private const val EXTRA_SUBSTITUTE_APP_NAME = "android.substName"
     }
 
     private val recentlyBlocked = mutableMapOf<String, Long>()
@@ -30,6 +32,7 @@ class NotificationBlockerService : NotificationListenerService() {
         blockedNotificationHistoryStorage = BlockedNotificationHistoryStorage(this)
         statsStorage = StatsStorage(this)
         unmonitoredAppsStorage = UnmonitoredAppsStorage(this)
+        appInfoStorage = AppInfoStorage(this)
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
@@ -47,10 +50,36 @@ class NotificationBlockerService : NotificationListenerService() {
             return
         }
 
-        val appLabel = try {
+        var appLabel = try {
             packageManager.getApplicationLabel(packageManager.getApplicationInfo(packageName, 0)).toString()
         } catch (e: PackageManager.NameNotFoundException) {
-            packageName
+            notification.extras.getString(EXTRA_SUBSTITUTE_APP_NAME)?: packageName
+        }
+
+//        if (appLabel.isNullOrBlank()) {
+//            appLabel = notification.extras.getString(EXTRA_SUBSTITUTE_APP_NAME)
+//                ?: packageName
+//        }
+
+        // Save App Info if not exists
+        if (!appInfoStorage.isAppInfoSaved(packageName)) {
+            try {
+                // Extract app name from notification extras or fallback to package name
+                val appName = appLabel
+
+                // Extract app icon from notification (prefer large icon)
+//                val iconDrawable = notification.getLargeIcon()?.loadDrawable(this)
+//                    ?: notification.smallIcon?.loadDrawable(this)
+                val iconDrawable = notification.smallIcon?.loadDrawable(this)
+
+                if (iconDrawable != null) {
+                    appInfoStorage.saveAppInfo(packageName, appName, iconDrawable)
+                } else {
+                    Log.w(TAG, "Could not load icon for $packageName")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to save app info for $packageName", e)
+            }
         }
 
         Log.i(TAG, "Notification Received: App='${appLabel}', Title='${title}', Text='${text}'")
