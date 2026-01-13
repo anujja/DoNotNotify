@@ -37,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -174,7 +175,8 @@ fun HistoryScreen(
                             Image(
                                 bitmap = appIcon!!.asImageBitmap(),
                                 contentDescription = null,
-                                modifier = Modifier.size(32.dp).padding(end = 8.dp)
+                                modifier = Modifier.size(32.dp).padding(end = 8.dp),
+                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
                             )
                         }
                         Text(
