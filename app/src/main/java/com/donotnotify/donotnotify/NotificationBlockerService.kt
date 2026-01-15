@@ -56,10 +56,10 @@ class NotificationBlockerService : NotificationListenerService() {
             notification.extras.getString(EXTRA_SUBSTITUTE_APP_NAME)?: packageName
         }
 
-//        if (appLabel.isNullOrBlank()) {
-//            appLabel = notification.extras.getString(EXTRA_SUBSTITUTE_APP_NAME)
-//                ?: packageName
-//        }
+        if (appLabel.isNullOrBlank() || appLabel == packageName) {
+            appLabel = notification.extras.getString(EXTRA_SUBSTITUTE_APP_NAME)
+                ?: packageName
+        }
 
         // Save App Info if not exists
         if (!appInfoStorage.isAppInfoSaved(packageName)) {
@@ -67,9 +67,7 @@ class NotificationBlockerService : NotificationListenerService() {
                 // Extract app name from notification extras or fallback to package name
                 val appName = appLabel
 
-                // Extract app icon from notification (prefer large icon)
-//                val iconDrawable = notification.getLargeIcon()?.loadDrawable(this)
-//                    ?: notification.smallIcon?.loadDrawable(this)
+                // Extract app icon from notification
                 val iconDrawable = notification.smallIcon?.loadDrawable(this)
 
                 if (iconDrawable != null) {
