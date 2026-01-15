@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,25 +41,27 @@ import com.donotnotify.donotnotify.SimpleNotification
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddRuleDialog(
-    notification: SimpleNotification,
+private fun RuleDialog(
+    title: String,
+    initialRule: BlockerRule,
+    isEditMode: Boolean,
     onDismiss: () -> Unit,
-    onAddRule: (BlockerRule) -> Unit
+    onSave: (BlockerRule) -> Unit,
+    onDelete: (() -> Unit)? = null
 ) {
-    val context = LocalContext.current
-    var appName by remember { mutableStateOf(notification.appLabel.orEmpty()) }
-    val packageName = remember { mutableStateOf(notification.packageName.orEmpty()) }.value
-    var titleFilter by remember { mutableStateOf(notification.title.orEmpty()) }
-    var titleMatchType by remember { mutableStateOf(MatchType.CONTAINS) }
-    var textFilter by remember { mutableStateOf(notification.text.orEmpty()) }
-    var textMatchType by remember { mutableStateOf(MatchType.CONTAINS) }
-    var ruleType by remember { mutableStateOf(RuleType.BLACKLIST) }
+    var titleFilter by remember { mutableStateOf(initialRule.titleFilter.orEmpty()) }
+    var titleMatchType by remember { mutableStateOf(initialRule.titleMatchType) }
+    var textFilter by remember { mutableStateOf(initialRule.textFilter.orEmpty()) }
+    var textMatchType by remember { mutableStateOf(initialRule.textMatchType) }
+    var ruleType by remember { mutableStateOf(initialRule.ruleType) }
+    var isEnabled by remember { mutableStateOf(initialRule.isEnabled) }
+    val scrollState = rememberScrollState()
 
     Dialog(onDismissRequest = onDismiss) {
         Card {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(16.dp).verticalScroll(scrollState)) {
                 Text(
-                    "Add New Rule ($appName)",
+                    title,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -127,35 +131,88 @@ fun AddRuleDialog(
                     }
                 }
 
+                if (isEditMode) {
+                    Spacer(modifier = Modifier.padding(vertical = 16.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text("Enabled")
+                        Switch(
+                            checked = isEnabled,
+                            onCheckedChange = { isEnabled = it }
+                        )
+                    }
+                }
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp),
-                    horizontalArrangement = Arrangement.End
+                    horizontalArrangement = if (isEditMode) Arrangement.SpaceBetween else Arrangement.End
                 ) {
-                    Button(onClick = onDismiss, modifier = Modifier.padding(end = 8.dp)) {
-                        Text("Cancel")
+                    if (isEditMode && onDelete != null) {
+                        Button(onClick = onDelete) {
+                            Text("Delete")
+                        }
                     }
-                    Button(onClick = {
-                        val newRule = BlockerRule(
-                            appName = appName,
-                            packageName = packageName,
-                            titleFilter = titleFilter.ifBlank { null },
-                            titleMatchType = titleMatchType,
-                            textFilter = textFilter.ifBlank { null },
-                            textMatchType = textMatchType,
-                            ruleType = ruleType,
-                            isEnabled = true
-                        )
-                        onAddRule(newRule)
-                        Log.d("RuleEvent", "Rule Created: $newRule") // Log new rule
-                    }) {
-                        Text("Save Rule")
+                    Row {
+                        Button(onClick = onDismiss) {
+                            Text("Cancel")
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(onClick = {
+                            val newRule = initialRule.copy(
+                                titleFilter = titleFilter.ifBlank { null },
+                                titleMatchType = titleMatchType,
+                                textFilter = textFilter.ifBlank { null },
+                                textMatchType = textMatchType,
+                                ruleType = ruleType,
+                                isEnabled = isEnabled
+                            )
+                            onSave(newRule)
+                        }) {
+                            Text(if (isEditMode) "Save" else "Save Rule")
+                        }
                     }
                 }
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddRuleDialog(
+    notification: SimpleNotification,
+    onDismiss: () -> Unit,
+    onAddRule: (BlockerRule) -> Unit
+) {
+    val initialRule = remember(notification) {
+        BlockerRule(
+            appName = notification.appLabel.orEmpty(),
+            packageName = notification.packageName.orEmpty(),
+            titleFilter = notification.title,
+            titleMatchType = MatchType.CONTAINS,
+            textFilter = notification.text,
+            textMatchType = MatchType.CONTAINS,
+            ruleType = RuleType.BLACKLIST,
+            isEnabled = true
+        )
+    }
+
+    RuleDialog(
+        title = "Add New Rule (${initialRule.appName})",
+        initialRule = initialRule,
+        isEditMode = false,
+        onDismiss = onDismiss,
+        onSave = { newRule ->
+            onAddRule(newRule)
+            Log.d("RuleEvent", "Rule Created: $newRule")
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -166,138 +223,15 @@ fun EditRuleDialog(
     onUpdateRule: (BlockerRule, BlockerRule) -> Unit,
     onDeleteRule: (BlockerRule) -> Unit
 ) {
-    val context = LocalContext.current
-    var appName by remember { mutableStateOf(rule.appName.orEmpty()) }
-    val packageName = remember { mutableStateOf(rule.packageName.orEmpty()) }.value
-    var titleFilter by remember { mutableStateOf(rule.titleFilter.orEmpty()) }
-    var titleMatchType by remember { mutableStateOf(rule.titleMatchType) }
-    var textFilter by remember { mutableStateOf(rule.textFilter.orEmpty()) }
-    var textMatchType by remember { mutableStateOf(rule.textMatchType) }
-    var ruleType by remember { mutableStateOf(rule.ruleType) }
-    var isEnabled by remember { mutableStateOf(rule.isEnabled) }
-
-    Dialog(onDismissRequest = onDismiss) {
-        Card {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    "Edit Rule ($appName)",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                SingleChoiceSegmentedButtonRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
-                ) {
-                    RuleType.entries.forEachIndexed { index, type ->
-                        SegmentedButton(
-                            selected = ruleType == type,
-                            onClick = { ruleType = type },
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = RuleType.entries.size),
-                        ) {
-                            Text(type.name)
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.padding(vertical = 8.dp))
-
-                TextField(
-                    value = titleFilter,
-                    onValueChange = { titleFilter = it },
-                    label = { Text("Title Filter (Optional)") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                SingleChoiceSegmentedButtonRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp)
-                ) {
-                    MatchType.entries.forEachIndexed { index, matchType ->
-                        SegmentedButton(
-                            selected = titleMatchType == matchType,
-                            onClick = { titleMatchType = matchType },
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = MatchType.entries.size),
-                        ) {
-                            Text(matchType.name)
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.padding(vertical = 8.dp))
-
-                TextField(
-                    value = textFilter,
-                    onValueChange = { textFilter = it },
-                    label = { Text("Text Filter (Optional)") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                SingleChoiceSegmentedButtonRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp)
-                ) {
-                    MatchType.entries.forEachIndexed { index, matchType ->
-                        SegmentedButton(
-                            selected = textMatchType == matchType,
-                            onClick = { textMatchType = matchType },
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = MatchType.entries.size),
-                        ) {
-                            Text(matchType.name)
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.padding(vertical = 16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text("Enabled")
-                    Switch(
-                        checked = isEnabled,
-                        onCheckedChange = { isEnabled = it }
-                    )
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Button(onClick = { onDeleteRule(rule) }) {
-                        Text("Delete")
-                    }
-                    Row {
-                        Button(onClick = onDismiss) {
-                            Text("Cancel")
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Button(onClick = {
-                            val newRule = BlockerRule(
-                                appName = appName,
-                                packageName = packageName,
-                                titleFilter = titleFilter.ifBlank { null },
-                                titleMatchType = titleMatchType,
-                                textFilter = textFilter.ifBlank { null },
-                                textMatchType = textMatchType,
-                                hitCount = rule.hitCount,
-                                ruleType = ruleType,
-                                isEnabled = isEnabled
-                            )
-                            onUpdateRule(rule, newRule)
-                            Log.d("RuleEvent", "Rule Updated: $newRule") // Log updated rule
-                        }) {
-                            Text("Save")
-                        }
-                    }
-                }
-            }
-        }
-    }
+    RuleDialog(
+        title = "Edit Rule (${rule.appName})",
+        initialRule = rule,
+        isEditMode = true,
+        onDismiss = onDismiss,
+        onSave = { newRule ->
+            onUpdateRule(rule, newRule)
+            Log.d("RuleEvent", "Rule Updated: $newRule")
+        },
+        onDelete = { onDeleteRule(rule) }
+    )
 }
