@@ -40,25 +40,27 @@ class AppInfoStorage(context: Context) {
 
     private val dbHelper = AppInfoDatabaseHelper(context)
 
-    fun isAppInfoSaved(packageName: String): Boolean {
+    fun isAppInfoSaved(packageName: String): String? {
         val db = dbHelper.readableDatabase
         val cursor = db.query(
             AppInfoDatabaseHelper.TABLE_NAME,
-            arrayOf(AppInfoDatabaseHelper.COLUMN_PACKAGE_NAME),
+            arrayOf(AppInfoDatabaseHelper.COLUMN_APP_NAME),
             "${AppInfoDatabaseHelper.COLUMN_PACKAGE_NAME} = ?",
             arrayOf(packageName),
             null,
             null,
             null
         )
-        val exists = cursor.count > 0
+
+        var appName: String? = null
+        if (cursor.moveToFirst()) {
+            appName = cursor.getString(cursor.getColumnIndexOrThrow(AppInfoDatabaseHelper.COLUMN_APP_NAME))
+        }
         cursor.close()
-        return exists
+        return appName
     }
 
     fun saveAppInfo(packageName: String, appName: String, icon: Drawable) {
-        if (isAppInfoSaved(packageName)) return
-
         val db = dbHelper.writableDatabase
         val bitmap = drawableToBitmap(icon)
         val stream = ByteArrayOutputStream()
@@ -71,7 +73,7 @@ class AppInfoStorage(context: Context) {
             put(AppInfoDatabaseHelper.COLUMN_APP_ICON, iconBytes)
         }
 
-        db.insert(AppInfoDatabaseHelper.TABLE_NAME, null, values)
+        db.insertWithOnConflict(AppInfoDatabaseHelper.TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_REPLACE)
     }
 
     fun getAppIcon(packageName: String): Bitmap? {

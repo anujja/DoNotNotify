@@ -50,10 +50,11 @@ class NotificationBlockerService : NotificationListenerService() {
             return
         }
 
-        val appLabel = resolveAppName(this, sbn).toString()
+        var appLabel = resolveAppName(this, sbn).toString()
+        val savedAppName = appInfoStorage.isAppInfoSaved(packageName)
 
         // Save App Info if not exists
-        if (!appInfoStorage.isAppInfoSaved(packageName)) {
+        if (savedAppName == null || savedAppName == packageName) {
             try {
                 // Extract app name from notification extras or fallback to package name
                 val appName = appLabel
@@ -69,6 +70,10 @@ class NotificationBlockerService : NotificationListenerService() {
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to save app info for $packageName", e)
             }
+        } else {
+             if (savedAppName != packageName) {
+                  appLabel = savedAppName
+             }
         }
 
         Log.i(TAG, "Notification Received: App='${appLabel}', Title='${title}', Text='${text}'")
