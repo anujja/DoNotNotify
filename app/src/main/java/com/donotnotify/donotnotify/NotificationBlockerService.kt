@@ -1,6 +1,7 @@
 package com.donotnotify.donotnotify
 
 import android.app.Notification
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.service.notification.NotificationListenerService
@@ -20,7 +21,6 @@ class NotificationBlockerService : NotificationListenerService() {
     companion object {
         const val ACTION_HISTORY_UPDATED = "com.donotnotify.donotnotify.HISTORY_UPDATED"
         private const val DEBOUNCE_PERIOD_MS = 5000L
-        private const val EXTRA_SUBSTITUTE_APP_NAME = "android.substName"
     }
 
     private val recentlyBlocked = mutableMapOf<String, Long>()
@@ -50,16 +50,7 @@ class NotificationBlockerService : NotificationListenerService() {
             return
         }
 
-        var appLabel = try {
-            packageManager.getApplicationLabel(packageManager.getApplicationInfo(packageName, 0)).toString()
-        } catch (e: PackageManager.NameNotFoundException) {
-            notification.extras.getString(EXTRA_SUBSTITUTE_APP_NAME)?: packageName
-        }
-
-        if (appLabel.isNullOrBlank() || appLabel == packageName) {
-            appLabel = notification.extras.getString(EXTRA_SUBSTITUTE_APP_NAME)
-                ?: packageName
-        }
+        val appLabel = resolveAppName(this, sbn).toString()
 
         // Save App Info if not exists
         if (!appInfoStorage.isAppInfoSaved(packageName)) {
@@ -176,4 +167,23 @@ class NotificationBlockerService : NotificationListenerService() {
         // Clean up old entries from the debounce map
         recentlyBlocked.entries.removeIf { (_, timestamp) -> currentTime - timestamp > DEBOUNCE_PERIOD_MS }
     }
+
+    fun resolveAppName(context: Context, sbn: StatusBarNotification): CharSequence {
+        val extras = sbn.notification.extras
+
+        // 1. System-resolved app label (best)
+        extras.getCharSequence("android.appInfo")?.let { return it }
+        extras.getCharSequence("android.substituteAppName")?.let { return it }
+
+        // 2. Same-profile PackageManager fallback
+        val pkg = sbn.opPkg ?: sbn.packageName
+        return try {
+            val ai = context.packageManager.getApplicationInfo(pkg, 0)
+            context.packageManager.getApplicationLabel(ai)
+        } catch (_: Exception) {
+            // 3. Honest last resort
+            pkg
+        }
+    }
+
 }
