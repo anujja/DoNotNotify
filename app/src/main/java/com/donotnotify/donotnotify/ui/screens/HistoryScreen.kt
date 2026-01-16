@@ -66,7 +66,7 @@ fun HistoryScreen(
     var showClearHistoryDialog by remember { mutableStateOf(false) }
     val groupedNotifications = remember(notifications) {
         notifications
-            .groupBy { it.packageName.orEmpty() }
+            .groupBy { it.appLabel ?: it.packageName.orEmpty() }
             .entries
             .sortedByDescending { (_, notifs) -> notifs.maxOf { it.timestamp } }
     }

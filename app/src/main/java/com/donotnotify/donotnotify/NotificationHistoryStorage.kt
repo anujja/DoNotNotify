@@ -60,6 +60,19 @@ class NotificationHistoryStorage(private val context: Context) {
         historyFile.writeText(json)
     }
 
+    fun updateAppLabelForPackage(packageName: String, newAppLabel: String) {
+        val history = getHistory()
+        val updatedHistory = history.map {
+            if (it.packageName == packageName) {
+                it.copy(appLabel = newAppLabel)
+            } else {
+                it
+            }
+        }
+        val json = gson.toJson(updatedHistory)
+        historyFile.writeText(json)
+    }
+
     fun clearHistory() {
         if (historyFile.exists()) {
             historyFile.delete()

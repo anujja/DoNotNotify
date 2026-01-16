@@ -67,13 +67,15 @@ class NotificationBlockerService : NotificationListenerService() {
                 } else {
                     Log.w(TAG, "Could not load icon for $packageName")
                 }
+
+                if (savedAppName == packageName) {
+                    notificationHistoryStorage.updateAppLabelForPackage(packageName, appLabel)
+                }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to save app info for $packageName", e)
             }
         } else {
-             if (savedAppName != packageName) {
-                  appLabel = savedAppName
-             }
+            appLabel = savedAppName
         }
 
         Log.i(TAG, "Notification Received: App='${appLabel}', Title='${title}', Text='${text}'")
@@ -177,11 +179,10 @@ class NotificationBlockerService : NotificationListenerService() {
         val extras = sbn.notification.extras
 
         // 1. System-resolved app label (best)
-        extras.getCharSequence("android.appInfo")?.let { return it }
         extras.getCharSequence("android.substituteAppName")?.let { return it }
 
         // 2. Same-profile PackageManager fallback
-        val pkg = sbn.opPkg ?: sbn.packageName
+        val pkg = sbn.opPkg
         return try {
             val ai = context.packageManager.getApplicationInfo(pkg, 0)
             context.packageManager.getApplicationLabel(ai)
