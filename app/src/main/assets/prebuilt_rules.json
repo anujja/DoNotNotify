@@ -336,5 +336,15 @@
     "hitCount": 0,
     "ruleType": "BLACKLIST",
     "isEnabled": true
+  },
+  {
+    "appName": "GPay",
+    "packageName": "com.google.android.apps.nbu.paisa.user",
+    "titleFilter": "You earned a reward!",
+    "titleMatchType": "CONTAINS",
+    "textFilter": "Tap to reveal",
+    "textMatchType": "CONTAINS",
+    "ruleType": "BLACKLIST",
+    "isEnabled": true
   }
 ]
