@@ -17,6 +17,16 @@ enum class RuleType {
 
 @Keep
 @Parcelize
+data class AdvancedRuleConfig(
+    val isTimeLimitEnabled: Boolean = false,
+    val startTimeHour: Int = 9,
+    val startTimeMinute: Int = 0,
+    val endTimeHour: Int = 17,
+    val endTimeMinute: Int = 0
+) : Parcelable
+
+@Keep
+@Parcelize
 data class BlockerRule(
     val appName: String? = null,
     val packageName: String? = null,
@@ -26,5 +36,6 @@ data class BlockerRule(
     val textMatchType: MatchType = MatchType.CONTAINS,
     val hitCount: Int = 0,
     val ruleType: RuleType = RuleType.BLACKLIST,
-    val isEnabled: Boolean = true
+    val isEnabled: Boolean = true,
+    val advancedConfig: AdvancedRuleConfig? = null
 ) : Parcelable

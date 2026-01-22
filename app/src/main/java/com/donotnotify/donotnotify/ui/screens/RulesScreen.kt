@@ -69,7 +69,10 @@ fun RulesScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp)
-                        .clickable { onRuleClick(rule) }
+                        .clickable { onRuleClick(rule) },
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (rule.isEnabled) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    )
                 ) {
                     Row(
                         modifier = Modifier.padding(start = 16.dp),

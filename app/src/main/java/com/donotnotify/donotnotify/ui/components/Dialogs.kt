@@ -1,6 +1,7 @@
 package com.donotnotify.donotnotify.ui.components
 
-import android.util.Log // Import Log
+import android.app.TimePickerDialog
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
@@ -22,6 +24,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,10 +37,121 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.donotnotify.donotnotify.AdvancedRuleConfig
 import com.donotnotify.donotnotify.BlockerRule
 import com.donotnotify.donotnotify.MatchType
 import com.donotnotify.donotnotify.RuleType
 import com.donotnotify.donotnotify.SimpleNotification
+import java.util.Locale
+
+@Composable
+fun TimeSelector(
+    label: String,
+    hour: Int,
+    minute: Int,
+    onTimeSelected: (Int, Int) -> Unit
+) {
+    val context = LocalContext.current
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(vertical = 4.dp)
+    ) {
+        Text(text = label, modifier = Modifier.weight(1f))
+        TextButton(onClick = {
+            TimePickerDialog(
+                context,
+                { _, h, m -> onTimeSelected(h, m) },
+                hour,
+                minute,
+                true // 24 hour view
+            ).show()
+        }) {
+            Text(text = String.format(Locale.getDefault(), "%02d:%02d", hour, minute))
+        }
+    }
+}
+
+@Composable
+fun AdvancedRuleConfigDialog(
+    initialConfig: AdvancedRuleConfig,
+    initialIsEnabled: Boolean,
+    onDismiss: () -> Unit,
+    onSave: (AdvancedRuleConfig, Boolean) -> Unit
+) {
+    var config by remember { mutableStateOf(initialConfig) }
+    var isEnabled by remember { mutableStateOf(initialIsEnabled) }
+    
+    Dialog(onDismissRequest = onDismiss) {
+        Card {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    "Advanced Configuration",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Checkbox(
+                        checked = isEnabled,
+                        onCheckedChange = { isEnabled = it }
+                    )
+                    Text("Enable Rule")
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Checkbox(
+                        checked = config.isTimeLimitEnabled,
+                        onCheckedChange = {
+                            config = config.copy(isTimeLimitEnabled = it)
+                        }
+                    )
+                    Text("Enable Time Limit")
+                }
+
+                if (config.isTimeLimitEnabled) {
+                    TimeSelector(
+                        label = "Start Time:",
+                        hour = config.startTimeHour,
+                        minute = config.startTimeMinute,
+                        onTimeSelected = { h, m ->
+                            config = config.copy(startTimeHour = h, startTimeMinute = m)
+                        }
+                    )
+                    TimeSelector(
+                        label = "End Time:",
+                        hour = config.endTimeHour,
+                        minute = config.endTimeMinute,
+                        onTimeSelected = { h, m ->
+                            config = config.copy(endTimeHour = h, endTimeMinute = m)
+                        }
+                    )
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Button(onClick = onDismiss) {
+                        Text("Cancel")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(onClick = { onSave(config, isEnabled) }) {
+                        Text("Save")
+                    }
+                }
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,7 +169,22 @@ private fun RuleDialog(
     var textMatchType by remember { mutableStateOf(initialRule.textMatchType) }
     var ruleType by remember { mutableStateOf(initialRule.ruleType) }
     var isEnabled by remember { mutableStateOf(initialRule.isEnabled) }
+    var advancedConfig by remember { mutableStateOf(initialRule.advancedConfig ?: AdvancedRuleConfig()) }
+    var showAdvancedDialog by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
+
+    if (showAdvancedDialog) {
+        AdvancedRuleConfigDialog(
+            initialConfig = advancedConfig,
+            initialIsEnabled = isEnabled,
+            onDismiss = { showAdvancedDialog = false },
+            onSave = { config, enabled ->
+                advancedConfig = config
+                isEnabled = enabled
+                showAdvancedDialog = false
+            }
+        )
+    }
 
     Dialog(onDismissRequest = onDismiss) {
         Card {
@@ -131,20 +260,13 @@ private fun RuleDialog(
                     }
                 }
 
-                if (isEditMode) {
-                    Spacer(modifier = Modifier.padding(vertical = 16.dp))
+                Spacer(modifier = Modifier.padding(vertical = 16.dp))
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("Enabled")
-                        Switch(
-                            checked = isEnabled,
-                            onCheckedChange = { isEnabled = it }
-                        )
-                    }
+                Button(
+                    onClick = { showAdvancedDialog = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Advanced Configuration")
                 }
 
                 Row(
@@ -170,7 +292,8 @@ private fun RuleDialog(
                                 textFilter = textFilter.ifBlank { null },
                                 textMatchType = textMatchType,
                                 ruleType = ruleType,
-                                isEnabled = isEnabled
+                                isEnabled = isEnabled,
+                                advancedConfig = advancedConfig
                             )
                             onSave(newRule)
                         }) {

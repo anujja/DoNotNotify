@@ -1,5 +1,6 @@
 package com.donotnotify.donotnotify
 
+import java.util.Calendar
 import java.util.regex.PatternSyntaxException
 
 object RuleMatcher {
@@ -9,6 +10,27 @@ object RuleMatcher {
         title: String?,
         text: String?
     ): Boolean {
+        // Check if the rule is active based on time settings
+        if (rule.advancedConfig?.isTimeLimitEnabled == true) {
+            val config = rule.advancedConfig
+            val now = Calendar.getInstance()
+            val currentHour = now.get(Calendar.HOUR_OF_DAY)
+            val currentMinute = now.get(Calendar.MINUTE)
+            val currentTotalMinutes = currentHour * 60 + currentMinute
+
+            val startTotalMinutes = config.startTimeHour * 60 + config.startTimeMinute
+            val endTotalMinutes = config.endTimeHour * 60 + config.endTimeMinute
+
+            val isActive = if (startTotalMinutes <= endTotalMinutes) {
+                currentTotalMinutes in startTotalMinutes..endTotalMinutes
+            } else {
+                // Spans midnight
+                currentTotalMinutes >= startTotalMinutes || currentTotalMinutes <= endTotalMinutes
+            }
+
+            if (!isActive) return false
+        }
+
         // If the rule has a package name, it must match.
         // Note: The caller usually filters by package name, but we check here to be safe.
         if (!rule.packageName.isNullOrEmpty() && rule.packageName != packageName) return false
