@@ -288,9 +288,34 @@ class MainActivity : ComponentActivity() {
         }
 
         notificationToShowDetailsDialog?.let { notification ->
+            val rulesForPackage = rules.filter { it.packageName == notification.packageName && it.isEnabled }
+            val whitelistRules = rulesForPackage.filter { it.ruleType == RuleType.WHITELIST }
+            val blacklistRules = rulesForPackage.filter { it.ruleType == RuleType.BLACKLIST }
+
+            var actualBlockingRule: BlockerRule? = null
+
+            // Check if blocked by a blacklist rule
+            for (rule in blacklistRules) {
+                if (RuleMatcher.matches(rule, notification.packageName, notification.title, notification.text)) {
+                    actualBlockingRule = rule
+                    break
+                }
+            }
+
+            // If not blocked by a blacklist rule, and there are whitelist rules, show the first whitelist rule.
+            if (actualBlockingRule == null && whitelistRules.isNotEmpty()) {
+                actualBlockingRule = whitelistRules.firstOrNull()
+            }
+
             NotificationDetailsDialog(
                 notification = notification,
-                onDismiss = { notificationToShowDetailsDialog = null }
+                onDismiss = { notificationToShowDetailsDialog = null },
+                onViewRule = actualBlockingRule?.let { rule ->
+                    {
+                        notificationToShowDetailsDialog = null
+                        ruleToEdit = rule
+                    }
+                }
             )
         }
         

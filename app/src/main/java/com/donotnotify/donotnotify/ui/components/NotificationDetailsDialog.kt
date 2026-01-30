@@ -1,11 +1,13 @@
 package com.donotnotify.donotnotify.ui.components
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -22,7 +24,8 @@ import java.util.Locale
 @Composable
 fun NotificationDetailsDialog(
     notification: SimpleNotification,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onViewRule: (() -> Unit)? = null
 ) {
     val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()) }
 
@@ -34,8 +37,16 @@ fun NotificationDetailsDialog(
                 DetailRow("Title:", notification.title.orEmpty())
                 DetailRow("Text:", notification.text.orEmpty())
                 DetailRow("Time:", dateFormat.format(Date(notification.timestamp)))
-                Row(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
-                    Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (onViewRule != null) {
+                        OutlinedButton(onClick = onViewRule, modifier = Modifier.weight(1f)) {
+                            Text("View Rule")
+                        }
+                    }
+                    Button(onClick = onDismiss, modifier = Modifier.weight(1f)) {
                         Text("Close")
                     }
                 }
