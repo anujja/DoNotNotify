@@ -13,3 +13,16 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Signing
+*.jks
+*.keystore
+signing.properties
+keystore.properties
+
+# IDE
+/.idea/
+
+# APK/AAB outputs
+*.apk
+*.aab
