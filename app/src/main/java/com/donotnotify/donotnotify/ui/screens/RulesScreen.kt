@@ -12,12 +12,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.AccessAlarms // Import the timer icon
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,7 +35,7 @@ import com.donotnotify.donotnotify.RuleType
 fun RulesScreen(
     rules: List<BlockerRule>,
     onRuleClick: (BlockerRule) -> Unit,
-    onDeleteRuleClick: (BlockerRule) -> Unit,
+    onDeleteRuleClick: (BlockerRule) -> Unit, // This lambda is no longer directly used for UI, but kept for consistency if needed elsewhere.
     onBrowsePrebuiltRulesClick: () -> Unit
 ) {
     LazyColumn(modifier = Modifier
@@ -103,6 +102,13 @@ fun RulesScreen(
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
+                        if (rule.advancedConfig?.isTimeLimitEnabled == true) {
+                            Icon(
+                                imageVector = Icons.Filled.AccessAlarms,
+                                contentDescription = "Time limited rule",
+                                modifier = Modifier.padding(start = 8.dp, end = 8.dp)
+                            )
+                        }
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center,
@@ -127,9 +133,7 @@ fun RulesScreen(
                                 )
                             }
                         }
-                        IconButton(onClick = { onDeleteRuleClick(rule) }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete Rule")
-                        }
+                        // Removed the IconButton for deleting rules directly from the list
                     }
                 }
             }

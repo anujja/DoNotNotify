@@ -161,7 +161,7 @@ private fun RuleDialog(
     isEditMode: Boolean,
     onDismiss: () -> Unit,
     onSave: (BlockerRule) -> Unit,
-    onDelete: (() -> Unit)? = null
+    onDelete: (() -> Unit)? = null // This lambda now triggers the confirmation dialog
 ) {
     var titleFilter by remember { mutableStateOf(initialRule.titleFilter.orEmpty()) }
     var titleMatchType by remember { mutableStateOf(initialRule.titleMatchType) }
@@ -171,6 +171,7 @@ private fun RuleDialog(
     var isEnabled by remember { mutableStateOf(initialRule.isEnabled) }
     var advancedConfig by remember { mutableStateOf(initialRule.advancedConfig ?: AdvancedRuleConfig()) }
     var showAdvancedDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirmationDialog by remember { mutableStateOf(false) } // State for delete confirmation
     val scrollState = rememberScrollState()
 
     if (showAdvancedDialog) {
@@ -182,6 +183,18 @@ private fun RuleDialog(
                 advancedConfig = config
                 isEnabled = enabled
                 showAdvancedDialog = false
+            }
+        )
+    }
+
+    if (showDeleteConfirmationDialog) {
+        DeleteConfirmationDialog(
+            itemName = "Rule for ${initialRule.appName}",
+            onDismiss = { showDeleteConfirmationDialog = false },
+            onConfirm = {
+                onDelete?.invoke() // Call the actual delete lambda passed from EditRuleDialog
+                showDeleteConfirmationDialog = false
+                onDismiss() // Dismiss the EditRuleDialog after deletion
             }
         )
     }
@@ -276,7 +289,7 @@ private fun RuleDialog(
                     horizontalArrangement = if (isEditMode) Arrangement.SpaceBetween else Arrangement.End
                 ) {
                     if (isEditMode && onDelete != null) {
-                        Button(onClick = onDelete) {
+                        Button(onClick = { showDeleteConfirmationDialog = true }) { // Changed to show confirmation dialog
                             Text("Delete")
                         }
                     }
@@ -355,6 +368,6 @@ fun EditRuleDialog(
             onUpdateRule(rule, newRule)
             Log.d("RuleEvent", "Rule Updated: $newRule")
         },
-        onDelete = { onDeleteRule(rule) }
+        onDelete = { onDeleteRule(rule) } // This onDelete now sets the state to show the confirmation dialog in RuleDialog
     )
 }
