@@ -41,6 +41,14 @@ An Android app that filters and blocks unwanted notifications using customizable
 4. Blocked notifications appear in the **Blocked** tab
 5. Tap any blocked notification to view details or edit the rule that blocked it
 
+## Documentation
+
+Detailed documentation for developers and contributors is available in the [`docs/`](docs/) directory:
+
+- **[Architecture & Codebase Overview](docs/ARCHITECTURE.md)** - Project structure, data models, core services, storage layer, UI layer, data flow diagrams, navigation map, and class dependencies
+- **[API Reference](docs/API_REFERENCE.md)** - Method-level reference for every class and composable
+- **[Developer Guide](docs/DEVELOPER_GUIDE.md)** - Practical guide for adding features, screens, rules, storage, and running tests
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.
