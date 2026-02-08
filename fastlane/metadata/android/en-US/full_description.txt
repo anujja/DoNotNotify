@@ -1,0 +1,24 @@
+DoNotNotify lets you filter and block unwanted notifications using customizable rules.
+
+<b>Features:</b>
+
+• <b>Notification Blocking</b> - Block notifications in real-time
+• <b>Flexible Rules</b> - Create blacklist (block matching) or whitelist (allow only matching) rules
+• <b>Pattern Matching</b> - Match notification title/text using simple contains or regex patterns
+• <b>Time-Based Rules</b> - Schedule rules to activate only during specific time windows
+• <b>Prebuilt Rules</b> - 40+ pre-configured rules for popular apps (e-commerce promos, social media, etc.)
+• <b>Auto-Install Rules</b> - Automatically adds relevant prebuilt rules when you install supported apps
+• <b>Notification History</b> - View all received notifications with configurable retention
+• <b>Blocked History</b> - Track which notifications were blocked and by which rules
+• <b>Import/Export</b> - Backup and restore your rules as JSON files
+• <b>Fully Offline</b> - No network permissions, no data collection
+
+<b>How It Works:</b>
+
+1. Grant notification listener permission when prompted
+2. View incoming notifications in the History tab
+3. Long-press a notification to create a blocking rule, or browse prebuilt rules
+4. Blocked notifications appear in the Blocked tab
+5. Tap any blocked notification to view details or edit the rule that blocked it
+
+This app requires notification listener permission to function. It does not collect or transmit any data.

@@ -1,0 +1,1 @@
+Block unwanted notifications with customizable rules

@@ -1,0 +1,4 @@
+• Added time-based filtering to rules
+• New prebuilt rule for Google Pay
+• Fixed app name display for multi-user scenarios
+• Improved app name storage and resolution
