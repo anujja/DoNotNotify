@@ -13,7 +13,9 @@
 - [9. Prebuilt Rules](#9-prebuilt-rules)
 - [10. Testing](#10-testing)
 - [11. Data Flow Diagrams](#11-data-flow-diagrams)
-- [12. Android Manifest & Permissions](#12-android-manifest--permissions)
+- [12. UI Navigation Map](#12-ui-navigation-map)
+- [13. Class Dependency Diagram](#13-class-dependency-diagram)
+- [14. Android Manifest & Permissions](#14-android-manifest--permissions)
 
 ---
 
@@ -847,7 +849,225 @@ For a notification from package P:
 
 ---
 
-## 12. Android Manifest & Permissions
+## 12. UI Navigation Map
+
+The app uses boolean flags in `MainActivity` for screen navigation (no Jetpack Navigation component).
+Nullable state variables control dialog visibility.
+
+### Screen Navigation
+
+```
+                        ┌──────────────────────┐
+                        │     App Launch        │
+                        └──────────┬───────────┘
+                                   │
+                                   ▼
+                      ┌──────────────────────┐
+                      │ isServiceEnabled?     │
+                      └───┬──────────────┬───┘
+                       no │              │ yes
+                          ▼              ▼
+           ┌─────────────────────┐   ┌──────────────────────┐
+           │ EnableNotification  │   │ showSettingsScreen?   │
+           │ ListenerScreen      │   └───┬──────────────┬───┘
+           │                     │    yes │              │ no
+           │ [Enable] → System   │       ▼              ▼
+           │   Settings          │   ┌──────────┐  ┌───────────────────────┐
+           └─────────────────────┘   │ Settings │  │ showPrebuiltRules?    │
+                                     │ Screen   │  └───┬───────────────┬───┘
+                                     │          │   yes │               │ no
+                                     │ [Back] ──┤      ▼               ▼
+                                     └──────────┘  ┌──────────┐  ┌─────────────┐
+                                                   │ Prebuilt │  │ TabbedScreen│
+                                                   │ Rules    │  │             │
+                                                   │ Screen   │  │ Tab 0: History
+                                                   │          │  │ Tab 1: Rules
+                                                   │ [Back] ──┤  │ Tab 2: Blocked
+                                                   └──────────┘  └─────────────┘
+```
+
+### Dialog Triggers
+
+Each dialog is controlled by a nullable state variable in `MainScreen()`. Setting it to non-null shows the dialog; setting it to null dismisses it.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        MainScreen()                              │
+│                                                                  │
+│  State Variable                    Dialog                        │
+│  ─────────────                    ──────                         │
+│                                                                  │
+│  notificationToShowHistoryDetails  HistoryNotificationDetails    │
+│       ▲                            Dialog                        │
+│       │                                │                         │
+│       │                                │ [Create Rule]           │
+│       │                                ▼                         │
+│  notificationToShowAddDialog ────► AddRuleDialog                 │
+│       ▲                                │                         │
+│       │                                │ [Save] → pager to      │
+│   HistoryScreen                        │   Rules tab             │
+│   (tap notification)                   │                         │
+│                                        │ opens                   │
+│                                        ▼                         │
+│                                   AdvancedRuleConfigDialog       │
+│                                   (from [Advanced Configuration])│
+│                                                                  │
+│  notificationToShowDetailsDialog ──► NotificationDetailsDialog   │
+│       ▲                                │                         │
+│       │                                │ [View Rule]             │
+│   BlockedScreen                        ▼                         │
+│   (tap notification)              ruleToEdit                     │
+│                                        │                         │
+│  ruleToEdit ─────────────────────► EditRuleDialog                │
+│       ▲                                │                         │
+│       │                                ├─ [Save]                 │
+│   RulesScreen                          ├─ [Delete] ──►           │
+│   (tap rule)                           │   DeleteConfirmation    │
+│                                        │   Dialog (nested)       │
+│                                                                  │
+│  ruleToDelete ───────────────────► DeleteConfirmationDialog      │
+│  notificationToDelete ───────────► DeleteConfirmationDialog      │
+│                                                                  │
+│  showAutoAddedDialog ────────────► AutoAddedRulesDialog          │
+│  (on launch, if new rules added,   (shown only on Rules tab)    │
+│   and preference enabled)                                        │
+│                                                                  │
+│  showAboutDialog ────────────────► AboutDialog                   │
+│  (from SettingsScreen)              (inside SettingsScreen)       │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### User Journey: From Notification to Rule
+
+```
+Notification arrives
+    │
+    ▼
+HistoryScreen (Tab 0)
+  shows notification in app group
+    │
+    │ tap notification
+    ▼
+HistoryNotificationDetailsDialog
+  shows: App, Title, Text, Time
+    │
+    ├── [Open] → triggers cached PendingIntent (opens source app)
+    │
+    └── [Create Rule]
+            │
+            ▼
+        AddRuleDialog
+          pre-filled with notification data
+          user configures: type, filters, match mode
+            │
+            ├── [Advanced Configuration]
+            │       │
+            │       ▼
+            │   AdvancedRuleConfigDialog
+            │     enable/disable, time scheduling
+            │       │
+            │       └── [Save] → returns to AddRuleDialog
+            │
+            └── [Save Rule]
+                    │
+                    ▼
+                Rule saved, pager scrolls to Rules tab (Tab 1)
+                Rule appears in RulesScreen
+```
+
+---
+
+## 13. Class Dependency Diagram
+
+Shows which classes each component depends on at the source level.
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                         MainActivity                              │
+│                    (state holder & coordinator)                    │
+│                                                                   │
+│  Depends on:                                                      │
+│  ├── RuleStorage                                                  │
+│  ├── NotificationHistoryStorage                                   │
+│  ├── BlockedNotificationHistoryStorage                            │
+│  ├── UnmonitoredAppsStorage                                       │
+│  ├── PrebuiltRulesRepository                                      │
+│  ├── AppInfoStorage                                               │
+│  ├── NotificationActionRepository                                 │
+│  ├── RuleMatcher                                                  │
+│  ├── All Screens (HistoryScreen, RulesScreen, BlockedScreen, ...) │
+│  ├── All Dialogs (AddRuleDialog, EditRuleDialog, ...)             │
+│  └── DoNotNotifyTheme                                             │
+└──────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────┐
+│                  NotificationBlockerService                       │
+│               (runs in background, no UI dependency)              │
+│                                                                   │
+│  Depends on:                                                      │
+│  ├── RuleStorage              ──── reads/writes rules             │
+│  ├── RuleMatcher              ──── evaluates rules                │
+│  ├── NotificationHistoryStorage ── saves allowed notifications    │
+│  ├── BlockedNotificationHistoryStorage ── saves blocked notifs    │
+│  ├── StatsStorage             ──── increments block counter       │
+│  ├── UnmonitoredAppsStorage   ──── checks exclusion list          │
+│  ├── AppInfoStorage           ──── caches app icons/names         │
+│  └── NotificationActionRepository ─ caches PendingIntents         │
+└──────────────────────────────────────────────────────────────────┘
+
+┌───────────────────────────────────────────┐
+│              RuleMatcher                   │
+│           (zero dependencies)              │
+│                                            │
+│  Depends on:                               │
+│  └── BlockerRule (data model only)         │
+└───────────────────────────────────────────┘
+
+┌───────────────────────────────────────────┐
+│         Storage Classes                    │
+│                                            │
+│  RuleStorage ──────────────► rules.json    │
+│  NotificationHistoryStorage ► notif.json   │
+│  BlockedNotifHistoryStorage ► blocked.json │
+│  PrebuiltRulesRepository ──► assets/       │
+│       │                      prebuilt.json │
+│       │                                    │
+│       └── All use Gson for serialization   │
+│                                            │
+│  AppInfoStorage ──────────► app_info.db    │
+│       └── Uses SQLiteOpenHelper            │
+│                                            │
+│  UnmonitoredAppsStorage ──► SharedPrefs    │
+│  StatsStorage ────────────► SharedPrefs    │
+│       └── Both use SharedPreferences       │
+│                                            │
+│  NotificationActionRepository              │
+│       └── In-memory ConcurrentHashMap      │
+└───────────────────────────────────────────┘
+
+Communication between Service and Activity:
+
+┌───────────────────┐   Broadcast Intent    ┌──────────────┐
+│ NotificationBlocker│ ──────────────────► │ MainActivity  │
+│ Service            │  ACTION_HISTORY_     │ (Broadcast    │
+│                    │  UPDATED             │  Receiver)    │
+│ Writes to:         │                      │               │
+│ • RuleStorage      │                      │ Reads from:   │
+│ • HistoryStorage   │◄── shared files ───►│ • RuleStorage │
+│ • BlockedStorage   │                      │ • HistoryStore│
+│ • StatsStorage     │                      │ • BlockedStore│
+│ • AppInfoStorage   │                      │ • AppInfoStore│
+│ • NotifActionRepo  │                      │ • NotifAction │
+└───────────────────┘                      └──────────────┘
+
+Note: The Service and Activity run in the same process, so they
+share storage file handles. The broadcast is the synchronization
+signal that tells the Activity to re-read storage.
+```
+
+---
+
+## 14. Android Manifest & Permissions
 
 ### Permission
 
