@@ -18,7 +18,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -28,6 +30,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -64,8 +70,24 @@ fun HistoryScreen(
     var expandedApps by remember { mutableStateOf(setOf<String>()) }
     var isUnmonitoredAppsExpanded by remember { mutableStateOf(false) }
     var showClearHistoryDialog by remember { mutableStateOf(false) }
-    val groupedNotifications = remember(notifications) {
-        notifications
+    var searchQuery by remember { mutableStateOf("") }
+
+    val filteredNotifications = remember(notifications, searchQuery) {
+        if (searchQuery.isBlank()) {
+            notifications
+        } else {
+            val query = searchQuery.lowercase()
+            notifications.filter { notification ->
+                val appName = (notification.appLabel ?: notification.packageName.orEmpty()).lowercase()
+                val title = notification.title.orEmpty().lowercase()
+                val text = notification.text.orEmpty().lowercase()
+                appName.contains(query) || title.contains(query) || text.contains(query)
+            }
+        }
+    }
+
+    val groupedNotifications = remember(filteredNotifications) {
+        filteredNotifications
             .groupBy { it.appLabel ?: it.packageName.orEmpty() }
             .entries
             .sortedByDescending { (_, notifs) -> notifs.maxOf { it.timestamp } }
@@ -75,11 +97,11 @@ fun HistoryScreen(
     val packageManager = context.packageManager
     val listState = rememberLazyListState()
 
-    val unmonitoredAppsHeaderIndex = remember(notifications, expandedApps) {
-        if (notifications.isEmpty()) {
-            1
+    val unmonitoredAppsHeaderIndex = remember(filteredNotifications, expandedApps) {
+        var count = 1 // Search bar
+        if (filteredNotifications.isEmpty()) {
+            count += 1 // Empty message
         } else {
-            var count = 1 // Intro text
             groupedNotifications.forEach { (appName, notifs) ->
                 count += 1 // Header
                 if (expandedApps.contains(appName)) {
@@ -87,8 +109,9 @@ fun HistoryScreen(
                     count += 1 // Stop monitoring
                 }
             }
-            count + 1 // Clear History
+            count += 1 // Clear History
         }
+        count
     }
 
     LaunchedEffect(isUnmonitoredAppsExpanded) {
@@ -134,10 +157,53 @@ fun HistoryScreen(
         state = listState,
         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)
     ) {
+        item {
+            TextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                placeholder = { Text("Search notifications...") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search"
+                    )
+                },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { searchQuery = "" }) {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = "Clear search"
+                            )
+                        }
+                    }
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(28.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent
+                )
+            )
+        }
+
         if (notifications.isEmpty()) {
             item {
                 Text(
                     text = "Waiting to receive new notifications...",
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(top = 32.dp)
+                )
+            }
+        } else if (filteredNotifications.isEmpty()) {
+            item {
+                Text(
+                    text = "No notifications match your search",
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth().padding(top = 32.dp)
