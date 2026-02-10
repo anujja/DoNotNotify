@@ -1,9 +1,15 @@
 package com.donotnotify.donotnotify
 
 import java.util.Calendar
+import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.PatternSyntaxException
 
 object RuleMatcher {
+    private val regexCache = ConcurrentHashMap<String, Regex>()
+
+    private fun getCachedRegex(pattern: String): Regex =
+        regexCache.getOrPut(pattern) { pattern.toRegex() }
+
     fun matches(
         rule: BlockerRule,
         packageName: String?,
@@ -37,12 +43,12 @@ object RuleMatcher {
 
         try {
             val titleMatch = when (rule.titleMatchType) {
-                MatchType.REGEX -> rule.titleFilter.isNullOrBlank() || (title?.matches(rule.titleFilter.toRegex()) ?: false)
+                MatchType.REGEX -> rule.titleFilter.isNullOrBlank() || (title?.matches(getCachedRegex(rule.titleFilter)) ?: false)
                 MatchType.CONTAINS -> rule.titleFilter.isNullOrBlank() || (title?.contains(rule.titleFilter, ignoreCase = true) ?: false)
             }
 
             val textMatch = when (rule.textMatchType) {
-                MatchType.REGEX -> rule.textFilter.isNullOrBlank() || (text?.matches(rule.textFilter.toRegex()) ?: false)
+                MatchType.REGEX -> rule.textFilter.isNullOrBlank() || (text?.matches(getCachedRegex(rule.textFilter)) ?: false)
                 MatchType.CONTAINS -> rule.textFilter.isNullOrBlank() || (text?.contains(rule.textFilter, ignoreCase = true) ?: false)
             }
 
