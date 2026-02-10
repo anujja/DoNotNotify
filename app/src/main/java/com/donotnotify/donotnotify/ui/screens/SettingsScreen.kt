@@ -19,7 +19,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -228,7 +227,7 @@ fun SettingsScreen(
                     modifier = Modifier.weight(0.5f)
                 )
             }
-            Divider()
+            HorizontalDivider()
 
             Row(
                 modifier = Modifier
@@ -238,7 +237,7 @@ fun SettingsScreen(
             ) {
                 Text("Export/Import Rules", style = MaterialTheme.typography.bodyLarge)
             }
-            Divider()
+            HorizontalDivider()
 
             Row(
                 modifier = Modifier
@@ -252,7 +251,7 @@ fun SettingsScreen(
             ) {
                 Text("Buy me a coffee!", style = MaterialTheme.typography.bodyLarge)
             }
-            Divider()
+            HorizontalDivider()
 
             Row(
                 modifier = Modifier
@@ -266,7 +265,7 @@ fun SettingsScreen(
             ) {
                 Text("Visit Website", style = MaterialTheme.typography.bodyLarge)
             }
-            Divider()
+            HorizontalDivider()
 
             val packageInfo = try {
                 context.packageManager.getPackageInfo(context.packageName, 0)

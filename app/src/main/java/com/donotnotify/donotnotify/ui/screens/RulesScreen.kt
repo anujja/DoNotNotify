@@ -13,13 +13,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.AccessAlarms // Import the timer icon
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,6 +45,31 @@ fun RulesScreen(
     onDeleteRuleClick: (BlockerRule) -> Unit, // This lambda is no longer directly used for UI, but kept for consistency if needed elsewhere.
     onBrowsePrebuiltRulesClick: () -> Unit
 ) {
+    var showAddRuleDialog by remember { mutableStateOf(false) }
+
+    if (showAddRuleDialog) {
+        AlertDialog(
+            onDismissRequest = { showAddRuleDialog = false },
+            title = { Text("How to Add a New Rule") },
+            text = {
+                Text(
+                    "To create a new rule:\n\n" +
+                    "1. Switch to the \"History\" tab\n" +
+                    "2. Find a notification you want to block\n" +
+                    "3. Tap on the notification\n" +
+                    "4. Select \"Create Rule\" from the options\n" +
+                    "5. Customize the rule settings as needed\n\n" +
+                    "The rule will then appear here and automatically block matching notifications."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showAddRuleDialog = false }) {
+                    Text("Got it")
+                }
+            }
+        )
+    }
+
     LazyColumn(modifier = Modifier
         .fillMaxSize()
         .padding(horizontal = 16.dp)) {
@@ -140,10 +172,18 @@ fun RulesScreen(
         }
         item {
             Button(
+                onClick = { showAddRuleDialog = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp)
+            ) {
+                Text("Add a New Rule")
+            }
+            Button(
                 onClick = onBrowsePrebuiltRulesClick,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp)
+                    .padding(top = 8.dp, bottom = 16.dp)
             ) {
                 Text("Browse Pre-built Rules")
             }
