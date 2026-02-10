@@ -7,6 +7,9 @@ on:
       - 'app/build.gradle.kts'
   workflow_dispatch:  # Allow manual trigger
 
+permissions:
+  contents: write
+
 jobs:
   check-version:
     runs-on: ubuntu-latest
