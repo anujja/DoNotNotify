@@ -367,10 +367,12 @@ fun HistoryScreen(
             }
             if (isUnmonitoredAppsExpanded) {
                 items(unmonitoredApps.toList(), key = { it }, contentType = { "unmonitoredApp" }) { packageName ->
-                    val appLabel = try {
-                        packageManager.getApplicationLabel(packageManager.getApplicationInfo(packageName, 0)).toString()
-                    } catch (e: Exception) {
-                        packageName
+                    val appLabel = remember(packageName) {
+                        try {
+                            packageManager.getApplicationLabel(packageManager.getApplicationInfo(packageName, 0)).toString()
+                        } catch (e: Exception) {
+                            packageName
+                        }
                     }
                     Row(
                         modifier = Modifier
