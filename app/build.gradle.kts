@@ -1,8 +1,21 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("kotlin-parcelize")
+}
+
+// Load keystore properties from local.properties or environment variables
+val keystoreProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    keystoreProperties.load(localPropertiesFile.inputStream())
+}
+
+fun getKeystoreProperty(key: String): String? {
+    return keystoreProperties.getProperty(key) ?: System.getenv(key)
 }
 
 android {
@@ -13,10 +26,22 @@ android {
         applicationId = "com.donotnotify.donotnotify"
         minSdk = 24
         targetSdk = 36
-        versionCode = 28
-        versionName = "2.7"
+        versionCode = 29
+        versionName = "2.71"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("release") {
+            val storeFilePath = getKeystoreProperty("KEYSTORE_FILE")
+            if (storeFilePath != null) {
+                storeFile = file(storeFilePath)
+                storePassword = getKeystoreProperty("KEYSTORE_PASSWORD")
+                keyAlias = getKeystoreProperty("KEY_ALIAS")
+                keyPassword = getKeystoreProperty("KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
@@ -26,6 +51,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            val releaseSigningConfig = signingConfigs.findByName("release")
+            if (releaseSigningConfig?.storeFile != null) {
+                signingConfig = releaseSigningConfig
+            }
         }
     }
     compileOptions {
