@@ -211,7 +211,7 @@ fun HistoryScreen(
             }
         } else {
             groupedNotifications.forEach { (appName, notifs) ->
-                item {
+                item(key = "header_$appName") {
                     val packageName = notifs.firstOrNull()?.packageName
                     val appIcon by produceState<Bitmap?>(initialValue = null, key1 = packageName) {
                         if (packageName != null) {
@@ -269,7 +269,7 @@ fun HistoryScreen(
                 }
 
                 if (expandedApps.contains(appName)) {
-                    items(notifs) { notification ->
+                    items(notifs, key = { it.id ?: it.timestamp }) { notification ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -317,7 +317,7 @@ fun HistoryScreen(
                             }
                         }
                     }
-                    item {
+                    item(key = "stopMonitoring_$appName") {
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(8.dp),
                             horizontalArrangement = Arrangement.Center
@@ -366,7 +366,7 @@ fun HistoryScreen(
                 }
             }
             if (isUnmonitoredAppsExpanded) {
-                items(unmonitoredApps.toList()) { packageName ->
+                items(unmonitoredApps.toList(), key = { it }) { packageName ->
                     val appLabel = try {
                         packageManager.getApplicationLabel(packageManager.getApplicationInfo(packageName, 0)).toString()
                     } catch (e: Exception) {
