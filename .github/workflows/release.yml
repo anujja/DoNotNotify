@@ -23,8 +23,10 @@ jobs:
         run: chmod +x gradlew
 
       - name: Decode keystore
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > ${{ github.workspace }}/keystore.jks
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        if: env.KEYSTORE_BASE64 != ''
+        run: echo "$KEYSTORE_BASE64" | base64 -d > ${{ github.workspace }}/keystore.jks
 
       - name: Build Release APK
         env:
