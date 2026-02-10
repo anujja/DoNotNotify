@@ -157,7 +157,7 @@ fun HistoryScreen(
         state = listState,
         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)
     ) {
-        item {
+        item(contentType = "search") {
             TextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -192,7 +192,7 @@ fun HistoryScreen(
         }
 
         if (notifications.isEmpty()) {
-            item {
+            item(contentType = "emptyMessage") {
                 Text(
                     text = "Waiting to receive new notifications...",
                     style = MaterialTheme.typography.bodyLarge,
@@ -201,7 +201,7 @@ fun HistoryScreen(
                 )
             }
         } else if (filteredNotifications.isEmpty()) {
-            item {
+            item(contentType = "emptyMessage") {
                 Text(
                     text = "No notifications match your search",
                     style = MaterialTheme.typography.bodyLarge,
@@ -211,7 +211,7 @@ fun HistoryScreen(
             }
         } else {
             groupedNotifications.forEach { (appName, notifs) ->
-                item(key = "header_$appName") {
+                item(key = "header_$appName", contentType = "appHeader") {
                     val packageName = notifs.firstOrNull()?.packageName
                     val appIcon by produceState<Bitmap?>(initialValue = null, key1 = packageName) {
                         if (packageName != null) {
@@ -269,7 +269,7 @@ fun HistoryScreen(
                 }
 
                 if (expandedApps.contains(appName)) {
-                    items(notifs, key = { it.id ?: it.timestamp }) { notification ->
+                    items(notifs, key = { it.id ?: it.timestamp }, contentType = { "notification" }) { notification ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -317,7 +317,7 @@ fun HistoryScreen(
                             }
                         }
                     }
-                    item(key = "stopMonitoring_$appName") {
+                    item(key = "stopMonitoring_$appName", contentType = "stopMonitoring") {
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(8.dp),
                             horizontalArrangement = Arrangement.Center
@@ -335,7 +335,7 @@ fun HistoryScreen(
                 }
             }
 
-            item {
+            item(contentType = "clearHistory") {
                 Row(modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp), horizontalArrangement = Arrangement.Center) {
                     Button(onClick = { showClearHistoryDialog = true }) { Text("Clear History") }
                 }
@@ -343,7 +343,7 @@ fun HistoryScreen(
         }
         
         if (unmonitoredApps.isNotEmpty()) {
-            item {
+            item(contentType = "unmonitoredHeader") {
                 HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
                 Row(
                     modifier = Modifier
@@ -366,7 +366,7 @@ fun HistoryScreen(
                 }
             }
             if (isUnmonitoredAppsExpanded) {
-                items(unmonitoredApps.toList(), key = { it }) { packageName ->
+                items(unmonitoredApps.toList(), key = { it }, contentType = { "unmonitoredApp" }) { packageName ->
                     val appLabel = try {
                         packageManager.getApplicationLabel(packageManager.getApplicationInfo(packageName, 0)).toString()
                     } catch (e: Exception) {
