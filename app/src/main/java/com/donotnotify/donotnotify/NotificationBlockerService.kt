@@ -7,6 +7,8 @@ import android.content.pm.PackageManager
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class NotificationBlockerService : NotificationListenerService() {
 
@@ -24,6 +26,9 @@ class NotificationBlockerService : NotificationListenerService() {
     }
 
     private val recentlyBlocked = mutableMapOf<String, Long>()
+    private val historyExecutor: ExecutorService = Executors.newSingleThreadExecutor { r ->
+        Thread(r, "history-writer").apply { isDaemon = true }
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -108,16 +113,6 @@ class NotificationBlockerService : NotificationListenerService() {
             }
         }
 
-        // Update hitCounts only if rules matched (deferred toMutableList)
-        if (matchedRuleIndices.isNotEmpty()) {
-            val allRules = rules.toMutableList()
-            for (idx in matchedRuleIndices) {
-                val r = allRules[idx]
-                allRules[idx] = r.copy(hitCount = r.hitCount + 1)
-            }
-            ruleStorage.saveRules(allRules)
-        }
-
         val isBlocked = (hasWhitelistRules && !matchesWhitelist) || matchesBlacklist
         val matchedRule: BlockerRule? = if (matchesBlacklist) matchedBlacklistRule else null
 
@@ -135,15 +130,29 @@ class NotificationBlockerService : NotificationListenerService() {
             cancelNotification(sbn.key)
         }
 
-        // 3. Now, handle history and stats, using debounce logic ONLY for recording
+        // Prepare hitCount updates (deferred toMutableList only when needed)
+        val updatedRules = if (matchedRuleIndices.isNotEmpty()) {
+            val mutableRules = rules.toMutableList()
+            for (idx in matchedRuleIndices) {
+                val r = mutableRules[idx]
+                mutableRules[idx] = r.copy(hitCount = r.hitCount + 1)
+            }
+            mutableRules as List<BlockerRule>
+        } else null
+
+        // Debounce check on binder thread
         val notificationKey = "$packageName:$title:$text"
         val isDuplicate = recentlyBlocked.containsKey(notificationKey) && currentTime - (recentlyBlocked[notificationKey] ?: 0) < DEBOUNCE_PERIOD_MS
 
         if (isDuplicate) {
             Log.i(TAG, "Ignoring duplicate for history/stats: $notificationKey")
+            // Still persist hitCount updates asynchronously
+            if (updatedRules != null) {
+                historyExecutor.execute { ruleStorage.saveRules(updatedRules) }
+            }
         } else {
             val simpleNotification = SimpleNotification(appLabel, packageName, title, text, currentTime, wasOngoing = wasOngoing)
-            
+
             sbn.notification.contentIntent?.let { intent ->
                 simpleNotification.id?.let { id ->
                     NotificationActionRepository.saveAction(id, intent)
@@ -152,20 +161,32 @@ class NotificationBlockerService : NotificationListenerService() {
 
             if (isBlocked) {
                 recentlyBlocked[notificationKey] = currentTime
-                val isNew = blockedNotificationHistoryStorage.saveNotification(simpleNotification)
-                if (isNew) {
-                    statsStorage.incrementBlockedNotificationsCount()
-                }
-            } else {
-                if (!unmonitoredAppsStorage.isAppUnmonitored(packageName)) {
-                    notificationHistoryStorage.saveNotification(simpleNotification)
-                }
             }
-            sendBroadcast(Intent(ACTION_HISTORY_UPDATED))
+
+            // Move all I/O to background executor
+            historyExecutor.execute {
+                updatedRules?.let { ruleStorage.saveRules(it) }
+                if (isBlocked) {
+                    val isNew = blockedNotificationHistoryStorage.saveNotification(simpleNotification)
+                    if (isNew) {
+                        statsStorage.incrementBlockedNotificationsCount()
+                    }
+                } else {
+                    if (!unmonitoredAppsStorage.isAppUnmonitored(packageName)) {
+                        notificationHistoryStorage.saveNotification(simpleNotification)
+                    }
+                }
+                sendBroadcast(Intent(ACTION_HISTORY_UPDATED))
+            }
         }
 
         // Clean up old entries from the debounce map
         recentlyBlocked.entries.removeIf { (_, timestamp) -> currentTime - timestamp > DEBOUNCE_PERIOD_MS }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        historyExecutor.shutdown()
     }
 
     fun resolveAppName(context: Context, sbn: StatusBarNotification): CharSequence {
