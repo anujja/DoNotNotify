@@ -80,59 +80,52 @@ class NotificationBlockerService : NotificationListenerService() {
 
         Log.i(TAG, "Notification Received: App='${appLabel}', Title='${title}', Text='${text}'")
 
-        val allRules = ruleStorage.getRules().toMutableList()
-        val rulesForPackage = allRules.filter { it.packageName == packageName && it.isEnabled }
-
-        val whitelistRules = rulesForPackage.filter { it.ruleType == RuleType.WHITELIST }
-        val blacklistRules = rulesForPackage.filter { it.ruleType == RuleType.BLACKLIST }
-
-        val hasWhitelistRules = whitelistRules.isNotEmpty()
-
-        var rulesModified = false
+        // Single-loop rule evaluation — eliminates intermediate list allocations
+        val rules = ruleStorage.getRules()
+        var hasWhitelistRules = false
         var matchesWhitelist = false
-        for (rule in whitelistRules) {
-            if (RuleMatcher.matches(rule, packageName, title, text)) {
-                matchesWhitelist = true
-                val ruleIndex = allRules.indexOf(rule)
-                if (ruleIndex != -1) {
-                    val updatedRule = rule.copy(hitCount = rule.hitCount + 1)
-                    allRules[ruleIndex] = updatedRule
-                    rulesModified = true
-                }
-                break
-            }
-        }
-
         var matchesBlacklist = false
         var matchedBlacklistRule: BlockerRule? = null
-        for (rule in blacklistRules) {
-            if (RuleMatcher.matches(rule, packageName, title, text)) {
-                matchesBlacklist = true
-                matchedBlacklistRule = rule
-                val ruleIndex = allRules.indexOf(rule)
-                if (ruleIndex != -1) {
-                    val updatedRule = rule.copy(hitCount = rule.hitCount + 1)
-                    allRules[ruleIndex] = updatedRule
-                    rulesModified = true
+        val matchedRuleIndices = mutableListOf<Int>()
+
+        for ((index, rule) in rules.withIndex()) {
+            if (rule.packageName != packageName || !rule.isEnabled) continue
+            when (rule.ruleType) {
+                RuleType.WHITELIST -> {
+                    hasWhitelistRules = true
+                    if (!matchesWhitelist && RuleMatcher.matches(rule, packageName, title, text)) {
+                        matchesWhitelist = true
+                        matchedRuleIndices.add(index)
+                    }
                 }
-                break
+                RuleType.BLACKLIST -> {
+                    if (!matchesBlacklist && RuleMatcher.matches(rule, packageName, title, text)) {
+                        matchesBlacklist = true
+                        matchedBlacklistRule = rule
+                        matchedRuleIndices.add(index)
+                    }
+                }
             }
         }
 
-        if (rulesModified) {
+        // Update hitCounts only if rules matched (deferred toMutableList)
+        if (matchedRuleIndices.isNotEmpty()) {
+            val allRules = rules.toMutableList()
+            for (idx in matchedRuleIndices) {
+                val r = allRules[idx]
+                allRules[idx] = r.copy(hitCount = r.hitCount + 1)
+            }
             ruleStorage.saveRules(allRules)
         }
 
         val isBlocked = (hasWhitelistRules && !matchesWhitelist) || matchesBlacklist
         val matchedRule: BlockerRule? = if (matchesBlacklist) matchedBlacklistRule else null
 
-        if (isBlocked) {
-            if (!matchesBlacklist) {
-                Log.i(TAG, "Blocking notification from $packageName because it did not match any whitelist rule.")
-            }
+        if (isBlocked && !matchesBlacklist) {
+            Log.i(TAG, "Blocking notification from $packageName because it did not match any whitelist rule.")
         }
 
-        // 2. If it's a blockable notification, cancel it immediately
+        // Cancel immediately on binder thread
         val wasOngoing = (sbn.notification.flags and Notification.FLAG_ONGOING_EVENT) != 0
         if (isBlocked) {
             if (wasOngoing) {
