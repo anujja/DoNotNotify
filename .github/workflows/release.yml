@@ -69,7 +69,10 @@ jobs:
       - name: Rename APK with version
         run: |
           VERSION=${{ needs.check-version.outputs.version }}
-          mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/DoNotNotify-v${VERSION}.apk
+          cd app/build/outputs/apk/release/
+          # Find the APK (could be app-release.apk or app-release-unsigned.apk)
+          APK_FILE=$(ls *.apk | head -1)
+          mv "$APK_FILE" "DoNotNotify-v${VERSION}.apk"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
