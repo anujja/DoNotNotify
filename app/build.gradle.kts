@@ -33,7 +33,15 @@ android {
     }
 
     signingConfigs {
-        create("release") {
+        // Public key for GitHub/community releases - credentials are not secret
+        create("github") {
+            storeFile = file("github-release.jks")
+            storePassword = "public-key-not-secret"
+            keyAlias = "github-release"
+            keyPassword = "public-key-not-secret"
+        }
+        // Private key for Play Store releases - credentials from local.properties or env vars
+        create("playStore") {
             val storeFilePath = getKeystoreProperty("KEYSTORE_FILE")
             if (storeFilePath != null && file(storeFilePath).exists()) {
                 storeFile = file(storeFilePath)
@@ -51,9 +59,12 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            val releaseSigningConfig = signingConfigs.findByName("release")
-            if (releaseSigningConfig?.storeFile != null) {
-                signingConfig = releaseSigningConfig
+            // Use Play Store key if available, otherwise fall back to public GitHub key
+            val playStoreConfig = signingConfigs.findByName("playStore")
+            signingConfig = if (playStoreConfig?.storeFile != null) {
+                playStoreConfig
+            } else {
+                signingConfigs.getByName("github")
             }
         }
     }

@@ -19,6 +19,8 @@ local.properties
 *.keystore
 signing.properties
 keystore.properties
+# Exception: public signing key for GitHub releases
+!app/github-release.jks
 
 # IDE
 /.idea/
