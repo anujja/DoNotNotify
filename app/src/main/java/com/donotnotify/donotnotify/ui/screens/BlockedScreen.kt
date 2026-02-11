@@ -93,7 +93,7 @@ fun BlockedScreen(
                 )
             }
         } else {
-            items(notifications) { notification ->
+            items(notifications, key = { it.id ?: it.timestamp }) { notification ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()

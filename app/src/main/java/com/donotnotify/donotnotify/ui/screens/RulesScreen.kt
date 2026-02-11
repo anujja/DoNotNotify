@@ -95,7 +95,7 @@ fun RulesScreen(
                         .padding(vertical = 16.dp)
                 )
             }
-            items(rules) { rule ->
+            items(rules, key = { "${it.packageName}|${it.titleFilter}|${it.textFilter}|${it.ruleType}" }) { rule ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
