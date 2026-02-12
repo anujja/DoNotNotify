@@ -38,4 +38,10 @@ class RuleStorage(private val context: Context) {
             cachedRules = rules
         }
     }
+
+    fun invalidateCache() {
+        synchronized(lock) {
+            cachedRules = null
+        }
+    }
 }
