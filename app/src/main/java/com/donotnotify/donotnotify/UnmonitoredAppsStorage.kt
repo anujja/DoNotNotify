@@ -8,6 +8,7 @@ import com.google.gson.reflect.TypeToken
 class UnmonitoredAppsStorage(context: Context) {
 
     companion object {
+        private val lock = Any()
         @Volatile
         private var cachedApps: Set<String>? = null
     }
@@ -18,11 +19,14 @@ class UnmonitoredAppsStorage(context: Context) {
 
     fun getUnmonitoredApps(): Set<String> {
         cachedApps?.let { return it }
-        val json = prefs.getString(key, null) ?: return emptySet<String>().also { cachedApps = it }
-        val type = object : TypeToken<Set<String>>() {}.type
-        val apps: Set<String> = gson.fromJson(json, type)
-        cachedApps = apps
-        return apps
+        synchronized(lock) {
+            cachedApps?.let { return it }
+            val json = prefs.getString(key, null) ?: return emptySet<String>().also { cachedApps = it }
+            val type = object : TypeToken<Set<String>>() {}.type
+            val apps: Set<String> = gson.fromJson(json, type)
+            cachedApps = apps
+            return apps
+        }
     }
 
     fun addApp(packageName: String) {
@@ -42,8 +46,10 @@ class UnmonitoredAppsStorage(context: Context) {
     }
 
     private fun saveApps(apps: Set<String>) {
-        val json = gson.toJson(apps)
-        prefs.edit().putString(key, json).apply()
-        cachedApps = apps
+        synchronized(lock) {
+            val json = gson.toJson(apps)
+            prefs.edit().putString(key, json).apply()
+            cachedApps = apps
+        }
     }
 }

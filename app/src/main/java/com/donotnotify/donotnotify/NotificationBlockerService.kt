@@ -9,6 +9,7 @@ import android.service.notification.StatusBarNotification
 import android.util.Log
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class NotificationBlockerService : NotificationListenerService() {
 
@@ -148,7 +149,13 @@ class NotificationBlockerService : NotificationListenerService() {
             Log.i(TAG, "Ignoring duplicate for history/stats: $notificationKey")
             // Still persist hitCount updates asynchronously
             if (updatedRules != null) {
-                historyExecutor.execute { ruleStorage.saveRules(updatedRules) }
+                historyExecutor.execute {
+                    try {
+                        ruleStorage.saveRules(updatedRules)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to save rules", e)
+                    }
+                }
             }
         } else {
             val simpleNotification = SimpleNotification(appLabel, packageName, title, text, currentTime, wasOngoing = wasOngoing)
@@ -165,18 +172,22 @@ class NotificationBlockerService : NotificationListenerService() {
 
             // Move all I/O to background executor
             historyExecutor.execute {
-                updatedRules?.let { ruleStorage.saveRules(it) }
-                if (isBlocked) {
-                    val isNew = blockedNotificationHistoryStorage.saveNotification(simpleNotification)
-                    if (isNew) {
-                        statsStorage.incrementBlockedNotificationsCount()
+                try {
+                    updatedRules?.let { ruleStorage.saveRules(it) }
+                    if (isBlocked) {
+                        val isNew = blockedNotificationHistoryStorage.saveNotification(simpleNotification)
+                        if (isNew) {
+                            statsStorage.incrementBlockedNotificationsCount()
+                        }
+                    } else {
+                        if (!unmonitoredAppsStorage.isAppUnmonitored(packageName)) {
+                            notificationHistoryStorage.saveNotification(simpleNotification)
+                        }
                     }
-                } else {
-                    if (!unmonitoredAppsStorage.isAppUnmonitored(packageName)) {
-                        notificationHistoryStorage.saveNotification(simpleNotification)
-                    }
+                    sendBroadcast(Intent(ACTION_HISTORY_UPDATED))
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to save notification data", e)
                 }
-                sendBroadcast(Intent(ACTION_HISTORY_UPDATED))
             }
         }
 
@@ -187,6 +198,13 @@ class NotificationBlockerService : NotificationListenerService() {
     override fun onDestroy() {
         super.onDestroy()
         historyExecutor.shutdown()
+        try {
+            if (!historyExecutor.awaitTermination(2, TimeUnit.SECONDS)) {
+                historyExecutor.shutdownNow()
+            }
+        } catch (e: InterruptedException) {
+            historyExecutor.shutdownNow()
+        }
     }
 
     fun resolveAppName(context: Context, sbn: StatusBarNotification): CharSequence {
