@@ -1,12 +1,17 @@
 package com.donotnotify.donotnotify
 
 import java.util.Calendar
-import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.PatternSyntaxException
 
 object RuleMatcher {
-    private val regexCache = ConcurrentHashMap<String, Regex>()
+    private const val MAX_CACHE_SIZE = 64
 
+    private val regexCache = object : LinkedHashMap<String, Regex>(MAX_CACHE_SIZE, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Regex>?): Boolean =
+            size > MAX_CACHE_SIZE
+    }
+
+    @Synchronized
     private fun getCachedRegex(pattern: String): Regex =
         regexCache.getOrPut(pattern) { pattern.toRegex() }
 
