@@ -4,7 +4,7 @@ import java.util.Calendar
 import java.util.regex.PatternSyntaxException
 
 object RuleMatcher {
-    private const val MAX_CACHE_SIZE = 64
+    private const val MAX_CACHE_SIZE = 512
 
     private val regexCache = object : LinkedHashMap<String, Regex>(MAX_CACHE_SIZE, 0.75f, true) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Regex>?): Boolean =
