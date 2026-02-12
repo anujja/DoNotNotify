@@ -76,25 +76,24 @@ object RuleMatcher {
         text: String?,
         rules: List<BlockerRule>
     ): Boolean {
-        val rulesForPackage = rules.filter { it.packageName == packageName && it.isEnabled }
-        val whitelistRules = rulesForPackage.filter { it.ruleType == RuleType.WHITELIST }
-        val blacklistRules = rulesForPackage.filter { it.ruleType == RuleType.BLACKLIST }
-
-        val hasWhitelistRules = whitelistRules.isNotEmpty()
-
+        var hasWhitelistRules = false
         var matchesWhitelist = false
-        for (rule in whitelistRules) {
-            if (matches(rule, packageName, title, text)) {
-                matchesWhitelist = true
-                break
-            }
-        }
-
         var matchesBlacklist = false
-        for (rule in blacklistRules) {
-            if (matches(rule, packageName, title, text)) {
-                matchesBlacklist = true
-                break
+
+        for (rule in rules) {
+            if (rule.packageName != packageName || !rule.isEnabled) continue
+            when (rule.ruleType) {
+                RuleType.WHITELIST -> {
+                    hasWhitelistRules = true
+                    if (!matchesWhitelist && matches(rule, packageName, title, text)) {
+                        matchesWhitelist = true
+                    }
+                }
+                RuleType.BLACKLIST -> {
+                    if (!matchesBlacklist && matches(rule, packageName, title, text)) {
+                        matchesBlacklist = true
+                    }
+                }
             }
         }
 
