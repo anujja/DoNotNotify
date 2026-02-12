@@ -4,6 +4,17 @@ import java.util.Calendar
 import java.util.regex.PatternSyntaxException
 
 object RuleMatcher {
+    private const val MAX_CACHE_SIZE = 512
+
+    private val regexCache = object : LinkedHashMap<String, Regex>(MAX_CACHE_SIZE, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Regex>?): Boolean =
+            size > MAX_CACHE_SIZE
+    }
+
+    @Synchronized
+    private fun getCachedRegex(pattern: String): Regex =
+        regexCache.getOrPut(pattern) { pattern.toRegex() }
+
     fun matches(
         rule: BlockerRule,
         packageName: String?,
@@ -37,12 +48,12 @@ object RuleMatcher {
 
         try {
             val titleMatch = when (rule.titleMatchType) {
-                MatchType.REGEX -> rule.titleFilter.isNullOrBlank() || (title?.matches(rule.titleFilter.toRegex()) ?: false)
+                MatchType.REGEX -> rule.titleFilter.isNullOrBlank() || (title?.matches(getCachedRegex(rule.titleFilter)) ?: false)
                 MatchType.CONTAINS -> rule.titleFilter.isNullOrBlank() || (title?.contains(rule.titleFilter, ignoreCase = true) ?: false)
             }
 
             val textMatch = when (rule.textMatchType) {
-                MatchType.REGEX -> rule.textFilter.isNullOrBlank() || (text?.matches(rule.textFilter.toRegex()) ?: false)
+                MatchType.REGEX -> rule.textFilter.isNullOrBlank() || (text?.matches(getCachedRegex(rule.textFilter)) ?: false)
                 MatchType.CONTAINS -> rule.textFilter.isNullOrBlank() || (text?.contains(rule.textFilter, ignoreCase = true) ?: false)
             }
 
@@ -65,25 +76,24 @@ object RuleMatcher {
         text: String?,
         rules: List<BlockerRule>
     ): Boolean {
-        val rulesForPackage = rules.filter { it.packageName == packageName && it.isEnabled }
-        val whitelistRules = rulesForPackage.filter { it.ruleType == RuleType.WHITELIST }
-        val blacklistRules = rulesForPackage.filter { it.ruleType == RuleType.BLACKLIST }
-
-        val hasWhitelistRules = whitelistRules.isNotEmpty()
-
+        var hasWhitelistRules = false
         var matchesWhitelist = false
-        for (rule in whitelistRules) {
-            if (matches(rule, packageName, title, text)) {
-                matchesWhitelist = true
-                break
-            }
-        }
-
         var matchesBlacklist = false
-        for (rule in blacklistRules) {
-            if (matches(rule, packageName, title, text)) {
-                matchesBlacklist = true
-                break
+
+        for (rule in rules) {
+            if (rule.packageName != packageName || !rule.isEnabled) continue
+            when (rule.ruleType) {
+                RuleType.WHITELIST -> {
+                    hasWhitelistRules = true
+                    if (!matchesWhitelist && matches(rule, packageName, title, text)) {
+                        matchesWhitelist = true
+                    }
+                }
+                RuleType.BLACKLIST -> {
+                    if (!matchesBlacklist && matches(rule, packageName, title, text)) {
+                        matchesBlacklist = true
+                    }
+                }
             }
         }
 

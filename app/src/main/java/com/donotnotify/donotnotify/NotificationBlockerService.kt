@@ -7,6 +7,9 @@ import android.content.pm.PackageManager
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class NotificationBlockerService : NotificationListenerService() {
 
@@ -24,6 +27,9 @@ class NotificationBlockerService : NotificationListenerService() {
     }
 
     private val recentlyBlocked = mutableMapOf<String, Long>()
+    private val historyExecutor: ExecutorService = Executors.newSingleThreadExecutor { r ->
+        Thread(r, "history-writer").apply { isDaemon = true }
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -80,59 +86,42 @@ class NotificationBlockerService : NotificationListenerService() {
 
         Log.i(TAG, "Notification Received: App='${appLabel}', Title='${title}', Text='${text}'")
 
-        val allRules = ruleStorage.getRules().toMutableList()
-        val rulesForPackage = allRules.filter { it.packageName == packageName && it.isEnabled }
-
-        val whitelistRules = rulesForPackage.filter { it.ruleType == RuleType.WHITELIST }
-        val blacklistRules = rulesForPackage.filter { it.ruleType == RuleType.BLACKLIST }
-
-        val hasWhitelistRules = whitelistRules.isNotEmpty()
-
-        var rulesModified = false
+        // Single-loop rule evaluation — eliminates intermediate list allocations
+        val rules = ruleStorage.getRules()
+        var hasWhitelistRules = false
         var matchesWhitelist = false
-        for (rule in whitelistRules) {
-            if (RuleMatcher.matches(rule, packageName, title, text)) {
-                matchesWhitelist = true
-                val ruleIndex = allRules.indexOf(rule)
-                if (ruleIndex != -1) {
-                    val updatedRule = rule.copy(hitCount = rule.hitCount + 1)
-                    allRules[ruleIndex] = updatedRule
-                    rulesModified = true
-                }
-                break
-            }
-        }
-
         var matchesBlacklist = false
         var matchedBlacklistRule: BlockerRule? = null
-        for (rule in blacklistRules) {
-            if (RuleMatcher.matches(rule, packageName, title, text)) {
-                matchesBlacklist = true
-                matchedBlacklistRule = rule
-                val ruleIndex = allRules.indexOf(rule)
-                if (ruleIndex != -1) {
-                    val updatedRule = rule.copy(hitCount = rule.hitCount + 1)
-                    allRules[ruleIndex] = updatedRule
-                    rulesModified = true
-                }
-                break
-            }
-        }
+        val matchedRuleIndices = mutableListOf<Int>()
 
-        if (rulesModified) {
-            ruleStorage.saveRules(allRules)
+        for ((index, rule) in rules.withIndex()) {
+            if (rule.packageName != packageName || !rule.isEnabled) continue
+            when (rule.ruleType) {
+                RuleType.WHITELIST -> {
+                    hasWhitelistRules = true
+                    if (!matchesWhitelist && RuleMatcher.matches(rule, packageName, title, text)) {
+                        matchesWhitelist = true
+                        matchedRuleIndices.add(index)
+                    }
+                }
+                RuleType.BLACKLIST -> {
+                    if (!matchesBlacklist && RuleMatcher.matches(rule, packageName, title, text)) {
+                        matchesBlacklist = true
+                        matchedBlacklistRule = rule
+                        matchedRuleIndices.add(index)
+                    }
+                }
+            }
         }
 
         val isBlocked = (hasWhitelistRules && !matchesWhitelist) || matchesBlacklist
         val matchedRule: BlockerRule? = if (matchesBlacklist) matchedBlacklistRule else null
 
-        if (isBlocked) {
-            if (!matchesBlacklist) {
-                Log.i(TAG, "Blocking notification from $packageName because it did not match any whitelist rule.")
-            }
+        if (isBlocked && !matchesBlacklist) {
+            Log.i(TAG, "Blocking notification from $packageName because it did not match any whitelist rule.")
         }
 
-        // 2. If it's a blockable notification, cancel it immediately
+        // Cancel immediately on binder thread
         val wasOngoing = (sbn.notification.flags and Notification.FLAG_ONGOING_EVENT) != 0
         if (isBlocked) {
             if (wasOngoing) {
@@ -142,15 +131,35 @@ class NotificationBlockerService : NotificationListenerService() {
             cancelNotification(sbn.key)
         }
 
-        // 3. Now, handle history and stats, using debounce logic ONLY for recording
+        // Prepare hitCount updates (deferred toMutableList only when needed)
+        val updatedRules = if (matchedRuleIndices.isNotEmpty()) {
+            val mutableRules = rules.toMutableList()
+            for (idx in matchedRuleIndices) {
+                val r = mutableRules[idx]
+                mutableRules[idx] = r.copy(hitCount = r.hitCount + 1)
+            }
+            mutableRules as List<BlockerRule>
+        } else null
+
+        // Debounce check on binder thread
         val notificationKey = "$packageName:$title:$text"
         val isDuplicate = recentlyBlocked.containsKey(notificationKey) && currentTime - (recentlyBlocked[notificationKey] ?: 0) < DEBOUNCE_PERIOD_MS
 
         if (isDuplicate) {
             Log.i(TAG, "Ignoring duplicate for history/stats: $notificationKey")
+            // Still persist hitCount updates asynchronously
+            if (updatedRules != null) {
+                historyExecutor.execute {
+                    try {
+                        ruleStorage.saveRules(updatedRules)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to save rules", e)
+                    }
+                }
+            }
         } else {
             val simpleNotification = SimpleNotification(appLabel, packageName, title, text, currentTime, wasOngoing = wasOngoing)
-            
+
             sbn.notification.contentIntent?.let { intent ->
                 simpleNotification.id?.let { id ->
                     NotificationActionRepository.saveAction(id, intent)
@@ -159,20 +168,43 @@ class NotificationBlockerService : NotificationListenerService() {
 
             if (isBlocked) {
                 recentlyBlocked[notificationKey] = currentTime
-                val isNew = blockedNotificationHistoryStorage.saveNotification(simpleNotification)
-                if (isNew) {
-                    statsStorage.incrementBlockedNotificationsCount()
-                }
-            } else {
-                if (!unmonitoredAppsStorage.isAppUnmonitored(packageName)) {
-                    notificationHistoryStorage.saveNotification(simpleNotification)
+            }
+
+            // Move all I/O to background executor
+            historyExecutor.execute {
+                try {
+                    updatedRules?.let { ruleStorage.saveRules(it) }
+                    if (isBlocked) {
+                        val isNew = blockedNotificationHistoryStorage.saveNotification(simpleNotification)
+                        if (isNew) {
+                            statsStorage.incrementBlockedNotificationsCount()
+                        }
+                    } else {
+                        if (!unmonitoredAppsStorage.isAppUnmonitored(packageName)) {
+                            notificationHistoryStorage.saveNotification(simpleNotification)
+                        }
+                    }
+                    sendBroadcast(Intent(ACTION_HISTORY_UPDATED))
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to save notification data", e)
                 }
             }
-            sendBroadcast(Intent(ACTION_HISTORY_UPDATED))
         }
 
         // Clean up old entries from the debounce map
         recentlyBlocked.entries.removeIf { (_, timestamp) -> currentTime - timestamp > DEBOUNCE_PERIOD_MS }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        historyExecutor.shutdown()
+        try {
+            if (!historyExecutor.awaitTermination(2, TimeUnit.SECONDS)) {
+                historyExecutor.shutdownNow()
+            }
+        } catch (e: InterruptedException) {
+            historyExecutor.shutdownNow()
+        }
     }
 
     fun resolveAppName(context: Context, sbn: StatusBarNotification): CharSequence {
