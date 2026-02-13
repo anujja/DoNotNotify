@@ -18,7 +18,7 @@ class RuleMatcherTest {
         val rule = BlockerRule(
             packageName = "com.example.app",
             titleFilter = "Promo",
-            ruleType = RuleType.BLACKLIST
+            ruleType = RuleType.DENYLIST
         )
         val rules = listOf(rule)
         
@@ -31,7 +31,7 @@ class RuleMatcherTest {
         val rule = BlockerRule(
             packageName = "com.example.app",
             titleFilter = "Promo",
-            ruleType = RuleType.BLACKLIST
+            ruleType = RuleType.DENYLIST
         )
         val rules = listOf(rule)
         
@@ -44,7 +44,7 @@ class RuleMatcherTest {
         val rule = BlockerRule(
             packageName = "com.example.app",
             titleFilter = "OTP",
-            ruleType = RuleType.WHITELIST
+            ruleType = RuleType.ALLOWLIST
         )
         val rules = listOf(rule)
         
@@ -57,7 +57,7 @@ class RuleMatcherTest {
         val rule = BlockerRule(
             packageName = "com.example.app",
             titleFilter = "OTP",
-            ruleType = RuleType.WHITELIST
+            ruleType = RuleType.ALLOWLIST
         )
         val rules = listOf(rule)
         
@@ -68,17 +68,17 @@ class RuleMatcherTest {
 
     @Test
     fun `should block when both whitelist and blacklist match (Blacklist Priority)`() {
-        val whitelistRule = BlockerRule(
+        val allowListRules = BlockerRule(
             packageName = "com.example.app",
             titleFilter = "Offer",
-            ruleType = RuleType.WHITELIST
+            ruleType = RuleType.ALLOWLIST
         )
-        val blacklistRule = BlockerRule(
+        val denyListRule = BlockerRule(
             packageName = "com.example.app",
             textFilter = "Expired",
-            ruleType = RuleType.BLACKLIST
+            ruleType = RuleType.DENYLIST
         )
-        val rules = listOf(whitelistRule, blacklistRule)
+        val rules = listOf(allowListRules, denyListRule)
         
         // Matches Whitelist ("Offer") AND Blacklist ("Expired")
         val shouldBlock = RuleMatcher.shouldBlock("com.example.app", "Special Offer", "This offer has Expired", rules)
@@ -91,7 +91,7 @@ class RuleMatcherTest {
             packageName = "com.example.app",
             titleFilter = "^[0-9]+$", // Regex for only numbers
             titleMatchType = MatchType.REGEX,
-            ruleType = RuleType.BLACKLIST
+            ruleType = RuleType.DENYLIST
         )
         val rules = listOf(rule)
         
@@ -104,7 +104,7 @@ class RuleMatcherTest {
         val rule = BlockerRule(
             packageName = "com.example.app",
             titleFilter = "Promo",
-            ruleType = RuleType.BLACKLIST,
+            ruleType = RuleType.DENYLIST,
             isEnabled = false
         )
         val rules = listOf(rule)
@@ -118,7 +118,7 @@ class RuleMatcherTest {
             packageName = "com.mygate.app",
             textFilter = ".*(checked|approval).*",
             textMatchType = MatchType.REGEX,
-            ruleType = RuleType.WHITELIST,
+            ruleType = RuleType.ALLOWLIST,
         )
         val rules = listOf(rule)
 

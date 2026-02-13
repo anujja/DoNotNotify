@@ -3,10 +3,11 @@ package com.donotnotify.donotnotify
 import android.app.Notification
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
+import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import androidx.annotation.RequiresApi
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -97,14 +98,14 @@ class NotificationBlockerService : NotificationListenerService() {
         for ((index, rule) in rules.withIndex()) {
             if (rule.packageName != packageName || !rule.isEnabled) continue
             when (rule.ruleType) {
-                RuleType.WHITELIST -> {
+                RuleType.ALLOWLIST -> {
                     hasWhitelistRules = true
                     if (!matchesWhitelist && RuleMatcher.matches(rule, packageName, title, text)) {
                         matchesWhitelist = true
                         matchedRuleIndices.add(index)
                     }
                 }
-                RuleType.BLACKLIST -> {
+                RuleType.DENYLIST -> {
                     if (!matchesBlacklist && RuleMatcher.matches(rule, packageName, title, text)) {
                         matchesBlacklist = true
                         matchedBlacklistRule = rule

@@ -1,7 +1,6 @@
 package com.donotnotify.donotnotify
 
 import java.util.Calendar
-import java.util.regex.PatternSyntaxException
 
 object RuleMatcher {
     private const val MAX_CACHE_SIZE = 512
@@ -83,13 +82,13 @@ object RuleMatcher {
         for (rule in rules) {
             if (rule.packageName != packageName || !rule.isEnabled) continue
             when (rule.ruleType) {
-                RuleType.WHITELIST -> {
+                RuleType.ALLOWLIST -> {
                     hasWhitelistRules = true
                     if (!matchesWhitelist && matches(rule, packageName, title, text)) {
                         matchesWhitelist = true
                     }
                 }
-                RuleType.BLACKLIST -> {
+                RuleType.DENYLIST -> {
                     if (!matchesBlacklist && matches(rule, packageName, title, text)) {
                         matchesBlacklist = true
                     }

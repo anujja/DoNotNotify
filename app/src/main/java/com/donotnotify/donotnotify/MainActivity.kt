@@ -1,6 +1,5 @@
 package com.donotnotify.donotnotify
 
-import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -290,13 +289,13 @@ class MainActivity : ComponentActivity() {
         notificationToShowDetailsDialog?.let { notification ->
             val actualBlockingRule = remember(notification, rules) {
                 val rulesForPackage = rules.filter { it.packageName == notification.packageName && it.isEnabled }
-                val whitelistRules = rulesForPackage.filter { it.ruleType == RuleType.WHITELIST }
-                val blacklistRules = rulesForPackage.filter { it.ruleType == RuleType.BLACKLIST }
+                val allowListRules = rulesForPackage.filter { it.ruleType == RuleType.ALLOWLIST }
+                val denyListRule = rulesForPackage.filter { it.ruleType == RuleType.DENYLIST }
 
                 var result: BlockerRule? = null
 
                 // Check if blocked by a blacklist rule
-                for (rule in blacklistRules) {
+                for (rule in denyListRule) {
                     if (RuleMatcher.matches(rule, notification.packageName, notification.title, notification.text)) {
                         result = rule
                         break
@@ -304,8 +303,8 @@ class MainActivity : ComponentActivity() {
                 }
 
                 // If not blocked by a blacklist rule, and there are whitelist rules, show the first whitelist rule.
-                if (result == null && whitelistRules.isNotEmpty()) {
-                    result = whitelistRules.firstOrNull()
+                if (result == null && allowListRules.isNotEmpty()) {
+                    result = allowListRules.firstOrNull()
                 }
                 result
             }

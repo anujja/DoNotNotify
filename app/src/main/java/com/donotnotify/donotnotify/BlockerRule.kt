@@ -11,8 +11,8 @@ enum class MatchType {
 
 @Keep
 enum class RuleType {
-    BLACKLIST,
-    WHITELIST
+    DENYLIST,
+    ALLOWLIST
 }
 
 @Keep
@@ -35,7 +35,7 @@ data class BlockerRule(
     val textFilter: String? = null,
     val textMatchType: MatchType = MatchType.CONTAINS,
     val hitCount: Int = 0,
-    val ruleType: RuleType = RuleType.BLACKLIST,
+    val ruleType: RuleType = RuleType.DENYLIST,
     val isEnabled: Boolean = true,
     val advancedConfig: AdvancedRuleConfig? = null
 ) : Parcelable

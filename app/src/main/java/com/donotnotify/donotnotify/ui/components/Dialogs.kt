@@ -2,8 +2,6 @@ package com.donotnotify.donotnotify.ui.components
 
 import android.app.TimePickerDialog
 import android.util.Log
-import android.widget.Toast
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,11 +15,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextButton
@@ -334,7 +330,7 @@ fun AddRuleDialog(
             titleMatchType = MatchType.CONTAINS,
             textFilter = notification.text,
             textMatchType = MatchType.CONTAINS,
-            ruleType = RuleType.BLACKLIST,
+            ruleType = RuleType.DENYLIST,
             isEnabled = true
         )
     }
