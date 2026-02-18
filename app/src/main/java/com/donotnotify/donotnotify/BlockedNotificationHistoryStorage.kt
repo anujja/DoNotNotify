@@ -1,11 +1,17 @@
 package com.donotnotify.donotnotify
 
 import android.content.Context
+import android.util.Log
 import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
 import java.io.File
 
 class BlockedNotificationHistoryStorage(private val context: Context) {
+
+    companion object {
+        private const val TAG = "BlockedNotificationHistoryStorage"
+    }
 
     private val gson = Gson()
     private val historyFile = File(context.filesDir, "blocked_notification_history.json")
@@ -15,9 +21,18 @@ class BlockedNotificationHistoryStorage(private val context: Context) {
         if (!historyFile.exists()) {
             return emptyList()
         }
-        val json = historyFile.readText()
-        val type = object : TypeToken<List<SimpleNotification>>() {}.type
-        return gson.fromJson(json, type) ?: emptyList()
+        return try {
+            val json = historyFile.readText()
+            val type = object : TypeToken<List<SimpleNotification>>() {}.type
+            gson.fromJson(json, type) ?: emptyList()
+        } catch (e: JsonSyntaxException) {
+            Log.e(TAG, "Corrupted blocked notification history file, deleting", e)
+            historyFile.delete()
+            emptyList()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error reading blocked notification history", e)
+            emptyList()
+        }
     }
 
     // Returns true if a new notification was added, false if it was a duplicate
