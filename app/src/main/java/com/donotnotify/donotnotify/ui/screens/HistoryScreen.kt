@@ -269,7 +269,7 @@ fun HistoryScreen(
                 }
 
                 if (expandedApps.contains(appName)) {
-                    items(notifs, key = { it.id ?: it.timestamp }, contentType = { "notification" }) { notification ->
+                    items(notifs, key = { it.id ?: "${it.packageName}_${it.timestamp}_${it.title}_${it.text}" }, contentType = { "notification" }) { notification ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
