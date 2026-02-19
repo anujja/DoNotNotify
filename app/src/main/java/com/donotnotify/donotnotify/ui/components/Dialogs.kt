@@ -334,7 +334,7 @@ fun AddRuleDialog(
             titleMatchType = MatchType.CONTAINS,
             textFilter = notification.text,
             textMatchType = MatchType.CONTAINS,
-            ruleType = RuleType.BLACKLIST,
+            ruleType = RuleType.DENYLIST,
             isEnabled = true
         )
     }

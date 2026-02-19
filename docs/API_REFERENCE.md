@@ -31,7 +31,7 @@ Parcelable data class representing a notification filtering rule.
 | `textFilter` | `String?` | `null` | Pattern for matching notification text body. Null/blank = match all. |
 | `textMatchType` | `MatchType` | `CONTAINS` | How to evaluate `textFilter` |
 | `hitCount` | `Int` | `0` | Number of times this rule has matched a notification |
-| `ruleType` | `RuleType` | `BLACKLIST` | Whether this rule blocks or whitelists |
+| `ruleType` | `RuleType` | `DENYLIST` | Whether this rule blocks or allowlists |
 | `isEnabled` | `Boolean` | `true` | Whether the rule is currently active |
 | `advancedConfig` | `AdvancedRuleConfig?` | `null` | Optional time-window scheduling |
 
@@ -46,8 +46,8 @@ Parcelable data class representing a notification filtering rule.
 
 | Value | Behavior |
 |---|---|
-| `BLACKLIST` | Block notifications that match this rule |
-| `WHITELIST` | Allow only matching notifications; implicitly block non-matching ones for this package |
+| `DENYLIST` | Block notifications that match this rule |
+| `ALLOWLIST` | Allow only matching notifications; implicitly block non-matching ones for this package |
 
 ### `AdvancedRuleConfig` (`BlockerRule.kt`)
 
@@ -125,7 +125,7 @@ Stateless rule evaluation engine.
 | Method | Parameters | Returns | Description |
 |---|---|---|---|
 | `matches(rule, packageName, title, text)` | `BlockerRule`, `String?`, `String?`, `String?` | `Boolean` | Evaluates a single rule against notification data. Checks time window, package match, title match, and text match. Returns `false` on regex errors. |
-| `shouldBlock(packageName, title, text, rules)` | `String`, `String?`, `String?`, `List<BlockerRule>` | `Boolean` | Evaluates all rules for a package. Returns `true` if notification should be blocked. Logic: `(hasWhitelist && !matchesWhitelist) \|\| matchesBlacklist`. |
+| `shouldBlock(packageName, title, text, rules)` | `String`, `String?`, `String?`, `List<BlockerRule>` | `Boolean` | Evaluates all rules for a package. Returns `true` if notification should be blocked. Logic: `(hasAllowlist && !matchesAllowlist) \|\| matchesDenylist`. |
 
 ---
 

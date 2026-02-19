@@ -28,13 +28,13 @@ DoNotNotify is an Android app that filters and blocks unwanted notifications usi
 
 1. **NotificationBlockerService** (extends `NotificationListenerService`) intercepts all system notifications
 2. **RuleMatcher** evaluates each notification against stored **BlockerRule**s
-3. Rules are either **BLACKLIST** (block matching notifications) or **WHITELIST** (allow only matching, block rest)
+3. Rules are either **DENYLIST** (block matching notifications) or **ALLOWLIST** (allow only matching, block rest)
 4. Matching supports both simple `CONTAINS` and `REGEX` on title/text fields, with optional time-window scheduling via `AdvancedRuleConfig`
 
 ### Key Source Files
 
 - `NotificationBlockerService.kt` — Service that receives and processes all notifications
-- `RuleMatcher.kt` — Rule evaluation logic (time checks, regex/contains matching, whitelist/blacklist resolution)
+- `RuleMatcher.kt` — Rule evaluation logic (time checks, regex/contains matching, allowlist/denylist resolution)
 - `BlockerRule.kt` — Data models: `BlockerRule`, `AdvancedRuleConfig`, `MatchType`, `RuleType`
 - `SimpleNotification.kt` — Notification data model with Parcelable support
 - `MainActivity.kt` — Compose entry point with tabbed UI (History, Rules, Blocked)

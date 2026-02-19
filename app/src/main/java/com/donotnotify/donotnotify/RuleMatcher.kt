@@ -67,8 +67,8 @@ object RuleMatcher {
     /**
      * Determines if a notification should be blocked based on the provided rules.
      * Logic:
-     * 1. If there are whitelist rules for the package, the notification MUST match at least one of them.
-     * 2. If the notification matches any blacklist rule, it IS blocked (even if it matched a whitelist rule).
+     * 1. If there are allowlist rules for the package, the notification MUST match at least one of them.
+     * 2. If the notification matches any denylist rule, it IS blocked (even if it matched an allowlist rule).
      */
     fun shouldBlock(
         packageName: String,
@@ -76,29 +76,29 @@ object RuleMatcher {
         text: String?,
         rules: List<BlockerRule>
     ): Boolean {
-        var hasWhitelistRules = false
-        var matchesWhitelist = false
-        var matchesBlacklist = false
+        var hasAllowlistRules = false
+        var matchesAllowlist = false
+        var matchesDenylist = false
 
         for (rule in rules) {
             if (rule.packageName != packageName || !rule.isEnabled) continue
             when (rule.ruleType) {
-                RuleType.WHITELIST -> {
-                    hasWhitelistRules = true
-                    if (!matchesWhitelist && matches(rule, packageName, title, text)) {
-                        matchesWhitelist = true
+                RuleType.ALLOWLIST -> {
+                    hasAllowlistRules = true
+                    if (!matchesAllowlist && matches(rule, packageName, title, text)) {
+                        matchesAllowlist = true
                     }
                 }
-                RuleType.BLACKLIST -> {
-                    if (!matchesBlacklist && matches(rule, packageName, title, text)) {
-                        matchesBlacklist = true
+                RuleType.DENYLIST -> {
+                    if (!matchesDenylist && matches(rule, packageName, title, text)) {
+                        matchesDenylist = true
                     }
                 }
             }
         }
 
         // Block if:
-        // (It has whitelist rules AND it didn't match any) OR (It matched a blacklist rule)
-        return (hasWhitelistRules && !matchesWhitelist) || matchesBlacklist
+        // (It has allowlist rules AND it didn't match any) OR (It matched a denylist rule)
+        return (hasAllowlistRules && !matchesAllowlist) || matchesDenylist
     }
 }

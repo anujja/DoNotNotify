@@ -2,9 +2,9 @@
   {
     "appName": "Mygate",
     "packageName": "com.mygate.user",
-    "textFilter": ".*(checked|approv|declined).*",
+    "textFilter": ".*(checked|approv|declined|invite).*",
     "textMatchType": "REGEX",
-    "ruleType": "WHITELIST",
+    "ruleType": "ALLOWLIST",
     "isEnabled": true
   },
   {
@@ -15,7 +15,7 @@
     "textFilter": "(?i).*(offer|discount|sale|deal|coupon|cashback|limited time|flash sale).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -26,7 +26,7 @@
     "textFilter": "(?i).*(deal|offer|discount|sale|coupon|cashback|today's deal|limited time).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -37,7 +37,7 @@
     "textFilter": "(?i).*(sale|flat [0-9]+%|deal|discount|offer|flash sale|coupon|limited).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -48,7 +48,7 @@
     "textFilter": "(?i).*(offer|discount|free delivery|cashback|use code|save).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -59,7 +59,7 @@
     "textFilter": "(?i).*(offer|discount|cashback|limited time|save|deal).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -70,7 +70,7 @@
     "textFilter": "(?i).*(story|posted|new post|reel|trending|recommended|we miss you|come back).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -81,7 +81,7 @@
     "textFilter": "(?i).*(story|new post|suggested for you|people you may know|trending|live now).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -92,7 +92,7 @@
     "textFilter": "(?i).*(new video|trending|recommended|shorts you may like|live now).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -103,7 +103,7 @@
     "textFilter": "(?i).*(streak|practice now|keep your streak|come back|haven't practiced).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -114,7 +114,7 @@
     "textFilter": "(?i).*(new episode|just dropped|now streaming|watch now|premiere).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -125,7 +125,7 @@
     "textFilter": "(?i).*(watch now|trending|new episode|stream now|just released).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -136,7 +136,7 @@
     "textFilter": "(?i).*(energy|lives are full|bonus|daily reward|challenge|event starting).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -147,7 +147,7 @@
     "textFilter": "(?i).*(promotion|upgrade|premium|offer|limited time|exclusive).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -158,7 +158,7 @@
     "textFilter": "(?i).*(trending|new tweet|recommended for you|space starting|who to follow|for you).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -169,7 +169,7 @@
     "textFilter": "(?i).*(recommended|for you|new video|trending|live now|just posted).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -180,7 +180,7 @@
     "textFilter": "(?i).*(streak|snap|story|new story|they sent a snap|discover|memories).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -191,7 +191,7 @@
     "textFilter": "(?i).*(new comment|new post|trending|recommended|mention|reply|mod notice).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -202,7 +202,7 @@
     "textFilter": "(?i).*(recommended for you|new idea|trending|shop this|sale|coupon).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -213,7 +213,7 @@
     "textFilter": "(?i).*(new release|recommended playlist|your mix|podcast you may like|concert near you|new episode).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -224,7 +224,7 @@
     "textFilter": "(?i).*(offer|discount|free delivery|cashback|use code|save|deal).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -235,7 +235,7 @@
     "textFilter": "(?i).*(offer|discount|free delivery|cashback|use code|limited time|save).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -246,7 +246,7 @@
     "textFilter": "(?i).*(offer|discount|free delivery|coupon|cashback|save|deal).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -257,7 +257,7 @@
     "textFilter": "(?i).*(sale|offer|auction ending|you were outbid|price drop|coupon|deal).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -268,7 +268,7 @@
     "textFilter": "(?i).*(sale|coupon|deal|flash sale|limited time|discount|price drop).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -279,7 +279,7 @@
     "textFilter": "(?i).*(sale|coupon|discount|deal|limited time|price drop).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -290,7 +290,7 @@
     "textFilter": "(?i).*(new match|someone likes you|message from|you got a match|top picks).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -301,7 +301,7 @@
     "textFilter": "(?i).*(live now|stream starting|recommended for you|new clip|go live|channel).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -312,7 +312,7 @@
     "textFilter": "(?i).*(new episode|just added|premiere|watch now|season now streaming).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -323,7 +323,7 @@
     "textFilter": "(?i).*(new episode|watch now|premiere|just dropped|recommended).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -334,7 +334,7 @@
     "textFilter": "(?i).*(job recommended|people you may know|someone viewed your profile|we found a job|new message|recommended).*",
     "textMatchType": "REGEX",
     "hitCount": 0,
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   },
   {
@@ -344,7 +344,7 @@
     "titleMatchType": "CONTAINS",
     "textFilter": "Tap to reveal",
     "textMatchType": "CONTAINS",
-    "ruleType": "BLACKLIST",
+    "ruleType": "DENYLIST",
     "isEnabled": true
   }
 ]

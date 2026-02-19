@@ -88,37 +88,37 @@ class NotificationBlockerService : NotificationListenerService() {
 
         // Single-loop rule evaluation — eliminates intermediate list allocations
         val rules = ruleStorage.getRules()
-        var hasWhitelistRules = false
-        var matchesWhitelist = false
-        var matchesBlacklist = false
-        var matchedBlacklistRule: BlockerRule? = null
+        var hasAllowlistRules = false
+        var matchesAllowlist = false
+        var matchesDenylist = false
+        var matchedDenylistRule: BlockerRule? = null
         val matchedRuleIndices = mutableListOf<Int>()
 
         for ((index, rule) in rules.withIndex()) {
             if (rule.packageName != packageName || !rule.isEnabled) continue
             when (rule.ruleType) {
-                RuleType.WHITELIST -> {
-                    hasWhitelistRules = true
-                    if (!matchesWhitelist && RuleMatcher.matches(rule, packageName, title, text)) {
-                        matchesWhitelist = true
+                RuleType.ALLOWLIST -> {
+                    hasAllowlistRules = true
+                    if (!matchesAllowlist && RuleMatcher.matches(rule, packageName, title, text)) {
+                        matchesAllowlist = true
                         matchedRuleIndices.add(index)
                     }
                 }
-                RuleType.BLACKLIST -> {
-                    if (!matchesBlacklist && RuleMatcher.matches(rule, packageName, title, text)) {
-                        matchesBlacklist = true
-                        matchedBlacklistRule = rule
+                RuleType.DENYLIST -> {
+                    if (!matchesDenylist && RuleMatcher.matches(rule, packageName, title, text)) {
+                        matchesDenylist = true
+                        matchedDenylistRule = rule
                         matchedRuleIndices.add(index)
                     }
                 }
             }
         }
 
-        val isBlocked = (hasWhitelistRules && !matchesWhitelist) || matchesBlacklist
-        val matchedRule: BlockerRule? = if (matchesBlacklist) matchedBlacklistRule else null
+        val isBlocked = (hasAllowlistRules && !matchesAllowlist) || matchesDenylist
+        val matchedRule: BlockerRule? = if (matchesDenylist) matchedDenylistRule else null
 
-        if (isBlocked && !matchesBlacklist) {
-            Log.i(TAG, "Blocking notification from $packageName because it did not match any whitelist rule.")
+        if (isBlocked && !matchesDenylist) {
+            Log.i(TAG, "Blocking notification from $packageName because it did not match any allowlist rule.")
         }
 
         // Cancel immediately on binder thread

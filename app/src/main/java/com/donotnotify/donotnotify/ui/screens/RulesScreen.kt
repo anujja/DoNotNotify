@@ -146,7 +146,7 @@ fun RulesScreen(
                             verticalArrangement = Arrangement.Center,
                             modifier = Modifier.padding(horizontal = 8.dp)
                         ) {
-                            val icon = if (rule.ruleType == RuleType.BLACKLIST) Icons.Filled.Block else Icons.Filled.CheckCircle
+                            val icon = if (rule.ruleType == RuleType.DENYLIST) Icons.Filled.Block else Icons.Filled.CheckCircle
                             Icon(
                                 imageVector = icon,
                                 contentDescription = rule.ruleType.name

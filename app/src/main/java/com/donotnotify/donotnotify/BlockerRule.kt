@@ -2,6 +2,7 @@ package com.donotnotify.donotnotify
 
 import android.os.Parcelable
 import androidx.annotation.Keep
+import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 @Keep
 enum class MatchType {
@@ -11,8 +12,10 @@ enum class MatchType {
 
 @Keep
 enum class RuleType {
-    BLACKLIST,
-    WHITELIST
+    @SerializedName(value = "DENYLIST", alternate = ["BLACKLIST"])
+    DENYLIST,
+    @SerializedName(value = "ALLOWLIST", alternate = ["WHITELIST"])
+    ALLOWLIST
 }
 
 @Keep
@@ -35,7 +38,7 @@ data class BlockerRule(
     val textFilter: String? = null,
     val textMatchType: MatchType = MatchType.CONTAINS,
     val hitCount: Int = 0,
-    val ruleType: RuleType = RuleType.BLACKLIST,
+    val ruleType: RuleType = RuleType.DENYLIST,
     val isEnabled: Boolean = true,
     val advancedConfig: AdvancedRuleConfig? = null
 ) : Parcelable

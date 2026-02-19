@@ -113,7 +113,7 @@ For most features, the modification order is:
      "textFilter": "(?i).*(spam|promo|offer).*",
      "textMatchType": "REGEX",
      "hitCount": 0,
-     "ruleType": "BLACKLIST",
+     "ruleType": "DENYLIST",
      "isEnabled": true
    }
    ```
@@ -279,12 +279,12 @@ The pattern uses nullable state variables: setting to non-null shows the dialog,
 
 1. Rules are scoped per package (`packageName`)
 2. Only enabled rules are evaluated
-3. Within a package, whitelist rules are checked first
-4. Then blacklist rules are checked
+3. Within a package, allowlist rules are checked first
+4. Then denylist rules are checked
 5. A notification is blocked if:
-   - There are whitelist rules for the package AND none matched, OR
-   - Any blacklist rule matched
-6. **Blacklist wins over whitelist** - if both match, the notification is blocked
+   - There are allowlist rules for the package AND none matched, OR
+   - Any denylist rule matched
+6. **Denylist wins over allowlist** - if both match, the notification is blocked
 
 ### Filter Behavior
 
@@ -364,9 +364,9 @@ Run: `./gradlew test`
 
 The primary test class is `RuleMatcherTest` which covers:
 - Empty rule sets
-- Blacklist matching and non-matching
-- Whitelist matching and implicit blocking
-- Blacklist priority over whitelist
+- Denylist matching and non-matching
+- Allowlist matching and implicit blocking
+- Denylist priority over allowlist
 - Regex matching
 - Disabled rule handling
 - Real-world regex patterns (Mygate)
@@ -380,7 +380,7 @@ fun `descriptive test name`() {
     val rule = BlockerRule(
         packageName = "com.example.app",
         titleFilter = "pattern",
-        ruleType = RuleType.BLACKLIST
+        ruleType = RuleType.DENYLIST
     )
     val result = RuleMatcher.shouldBlock("com.example.app", "title", "text", listOf(rule))
     assertTrue(result)  // or assertFalse

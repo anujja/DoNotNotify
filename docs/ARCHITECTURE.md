@@ -160,7 +160,7 @@ data class BlockerRule(
     val textFilter: String? = null,        // Pattern to match notification text
     val textMatchType: MatchType = MatchType.CONTAINS,
     val hitCount: Int = 0,                 // Number of times this rule matched
-    val ruleType: RuleType = RuleType.BLACKLIST,
+    val ruleType: RuleType = RuleType.DENYLIST,
     val isEnabled: Boolean = true,         // Whether the rule is active
     val advancedConfig: AdvancedRuleConfig? = null  // Optional time scheduling
 ) : Parcelable
@@ -173,8 +173,8 @@ data class BlockerRule(
 
 ### `RuleType` (enum)
 
-- `BLACKLIST` - Block notifications that match this rule
-- `WHITELIST` - Allow only notifications that match; block everything else for this package
+- `DENYLIST` - Block notifications that match this rule
+- `ALLOWLIST` - Allow only notifications that match; block everything else for this package
 
 ### `AdvancedRuleConfig`
 
@@ -245,13 +245,13 @@ Notification received (StatusBarNotification)
     ├── Save/update app info (icon + name) in SQLite if not cached
     │
     ├── Load all rules for this package
-    │   ├── Evaluate WHITELIST rules (first match wins)
-    │   └── Evaluate BLACKLIST rules (first match wins)
+    │   ├── Evaluate ALLOWLIST rules (first match wins)
+    │   └── Evaluate DENYLIST rules (first match wins)
     │
     ├── Update hitCount on matched rules
     │
     ├── Determine block decision:
-    │   blocked = (hasWhitelist && !matchesWhitelist) || matchesBlacklist
+    │   blocked = (hasAllowlist && !matchesAllowlist) || matchesDenylist
     │
     ├── If blocked: cancelNotification(sbn.key)
     │   └── Logs warning if notification has FLAG_ONGOING_EVENT
@@ -301,12 +301,12 @@ Invalid regex patterns are caught and treated as non-matches.
 Higher-level method that evaluates all rules for a package:
 
 1. Filters to enabled rules for the given package
-2. Separates into whitelist and blacklist groups
-3. Checks whitelist rules (first match = whitelisted)
-4. Checks blacklist rules (first match = blacklisted)
-5. **Blocking logic:** `(hasWhitelistRules && !matchesWhitelist) || matchesBlacklist`
+2. Separates into allowlist and denylist groups
+3. Checks allowlist rules (first match = allowlisted)
+4. Checks denylist rules (first match = denylisted)
+5. **Blocking logic:** `(hasAllowlistRules && !matchesAllowlist) || matchesDenylist`
 
-This means blacklist rules take priority over whitelist rules when both match.
+This means denylist rules take priority over allowlist rules when both match.
 
 ---
 
@@ -516,7 +516,7 @@ Entry point and root state holder for the application. Manages:
 
 **Features:**
 - Each rule card shows: app name, title filter, text filter
-- Rule type icon: Block icon for BLACKLIST, checkmark for WHITELIST
+- Rule type icon: Block icon for DENYLIST, checkmark for ALLOWLIST
 - Clock icon if time-limited via `AdvancedRuleConfig`
 - Hit count display
 - Disabled rules shown with strikethrough and reduced opacity
@@ -578,7 +578,7 @@ Displays an informational card with a button that opens Android's `ACTION_NOTIFI
 `RuleDialog` is a shared private composable used by both `AddRuleDialog` and `EditRuleDialog`:
 
 **Fields:**
-- Rule type selector: `BLACKLIST` / `WHITELIST` (segmented button)
+- Rule type selector: `DENYLIST` / `ALLOWLIST` (segmented button)
 - Title filter text field with match type selector (`CONTAINS` / `REGEX`)
 - Text filter text field with match type selector (`CONTAINS` / `REGEX`)
 - "Advanced Configuration" button → opens `AdvancedRuleConfigDialog`
@@ -665,20 +665,20 @@ Contains 32 pre-configured rules for popular apps:
 
 | Category | Apps | Rule Type |
 |---|---|---|
-| E-commerce | Flipkart, Amazon, Myntra, eBay, AliExpress, Etsy | BLACKLIST (promotional) |
-| Food Delivery | Swiggy, Zomato, Uber Eats, DoorDash, Grubhub | BLACKLIST (promotional) |
-| Social Media | Instagram, Facebook, YouTube, TikTok, Snapchat, Reddit, Pinterest, X (Twitter), LinkedIn | BLACKLIST (engagement bait) |
-| Entertainment | Netflix, Prime Video, Disney+, Hulu, Twitch, Spotify, Candy Crush | BLACKLIST (engagement) |
-| Dating | Tinder | BLACKLIST (engagement) |
-| Utility | Truecaller, GPay | BLACKLIST (promotional/rewards) |
-| Security | Mygate | WHITELIST (allow check-in/approval only) |
+| E-commerce | Flipkart, Amazon, Myntra, eBay, AliExpress, Etsy | DENYLIST (promotional) |
+| Food Delivery | Swiggy, Zomato, Uber Eats, DoorDash, Grubhub | DENYLIST (promotional) |
+| Social Media | Instagram, Facebook, YouTube, TikTok, Snapchat, Reddit, Pinterest, X (Twitter), LinkedIn | DENYLIST (engagement bait) |
+| Entertainment | Netflix, Prime Video, Disney+, Hulu, Twitch, Spotify, Candy Crush | DENYLIST (engagement) |
+| Dating | Tinder | DENYLIST (engagement) |
+| Utility | Truecaller, GPay | DENYLIST (promotional/rewards) |
+| Security | Mygate | ALLOWLIST (allow check-in/approval only) |
 
 Most rules use `REGEX` matching on text content with case-insensitive patterns like:
 ```regex
 (?i).*(offer|discount|sale|deal|coupon|cashback).*
 ```
 
-The Mygate rule is notable as the only WHITELIST rule - it allows only check-in and approval notifications, blocking all others from that app.
+The Mygate rule is notable as the only ALLOWLIST rule - it allows only check-in and approval notifications, blocking all others from that app.
 
 ### Auto-Installation Logic (`MainActivity.checkForNewRules()`)
 
@@ -707,14 +707,14 @@ On each app launch:
 | Test | Scenario | Expected |
 |---|---|---|
 | No rules exist | Empty rule list | Not blocked |
-| Blacklist title match | "Promo" matches "This is a Promo" | Blocked |
-| Blacklist no match | "Promo" vs "Important Update" | Not blocked |
-| Whitelist match | "OTP" matches "Your OTP is 1234" | Not blocked |
-| Whitelist exists, no match | "OTP" vs "Promotional Content" | Blocked (implicit) |
-| Both match (priority) | Whitelist "Offer" + Blacklist "Expired" | Blocked (blacklist wins) |
+| Denylist title match | "Promo" matches "This is a Promo" | Blocked |
+| Denylist no match | "Promo" vs "Important Update" | Not blocked |
+| Allowlist match | "OTP" matches "Your OTP is 1234" | Not blocked |
+| Allowlist exists, no match | "OTP" vs "Promotional Content" | Blocked (implicit) |
+| Both match (priority) | Allowlist "Offer" + Denylist "Expired" | Blocked (denylist wins) |
 | Regex matching | `^[0-9]+$` matches "123456" but not "123abc456" | Correct |
-| Disabled rules | Disabled blacklist rule | Not blocked |
-| Mygate regex | WHITELIST `.*(checked\|approval).*` | Not blocked for check-in |
+| Disabled rules | Disabled denylist rule | Not blocked |
+| Mygate regex | ALLOWLIST `.*(checked\|approval).*` | Not blocked for check-in |
 
 Uses Mockito inline mock maker (configured via `test/resources/mockito-extensions/org.mockito.plugins.MockMaker`).
 
@@ -773,14 +773,14 @@ For a notification from package P:
 2. Split into WHITELIST and BLACKLIST groups
 
                     ┌───────────────────┐
-                    │ Any WHITELIST      │
+                    │ Any ALLOWLIST      │
                     │ rules exist?       │
                     └─────┬─────────────┘
                      yes  │          no
                           ▼           │
                 ┌────────────────┐    │
                 │ Matches any    │    │
-                │ WHITELIST rule?│    │
+                │ ALLOWLIST rule?│    │
                 └──┬──────────┬──┘   │
                 yes│          │no    │
                    │          ▼      │
@@ -788,7 +788,7 @@ For a notification from package P:
                    │   BLOCK        │
                    ▼                ▼
             ┌────────────────────────┐
-            │ Matches any BLACKLIST  │
+            │ Matches any DENYLIST   │
             │ rule?                  │
             └───┬──────────────┬────┘
              yes│              │no
