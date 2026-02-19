@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CheckCircle
@@ -95,7 +95,7 @@ fun RulesScreen(
                         .padding(vertical = 16.dp)
                 )
             }
-            items(rules, key = { "${it.packageName}|${it.titleFilter}|${it.textFilter}|${it.ruleType}" }) { rule ->
+            itemsIndexed(rules, key = { index, it -> "rule_${index}_${it.packageName}_${it.ruleType}" }) { _, rule ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()

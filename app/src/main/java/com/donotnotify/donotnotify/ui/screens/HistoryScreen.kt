@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -269,7 +270,7 @@ fun HistoryScreen(
                 }
 
                 if (expandedApps.contains(appName)) {
-                    items(notifs, key = { it.id ?: "${it.packageName}_${it.timestamp}_${it.title}_${it.text}" }, contentType = { "notification" }) { notification ->
+                    itemsIndexed(notifs, key = { index, it -> "${appName}_${index}_${it.id ?: it.timestamp}" }, contentType = { _, _ -> "notification" }) { _, notification ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()

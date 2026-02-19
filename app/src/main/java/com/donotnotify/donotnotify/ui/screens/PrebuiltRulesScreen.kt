@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -82,7 +82,7 @@ fun PrebuiltRulesScreen(
                     Text("No new pre-built rules available for your installed apps.", modifier = Modifier.padding(16.dp))
                 }
             } else {
-                items(filteredRules) { rule ->
+                itemsIndexed(filteredRules, key = { index, it -> "prebuilt_${index}_${it.packageName}" }) { _, rule ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
