@@ -267,6 +267,20 @@ fun SettingsScreen(
             }
             HorizontalDivider()
 
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        val intent =
+                            Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/anujja/DoNotNotify/issues"))
+                        context.startActivity(intent)
+                    }
+                    .padding(16.dp),
+            ) {
+                Text("Report an Issue", style = MaterialTheme.typography.bodyLarge)
+            }
+            HorizontalDivider()
+
             val packageInfo = try {
                 context.packageManager.getPackageInfo(context.packageName, 0)
             } catch (e: Exception) {
