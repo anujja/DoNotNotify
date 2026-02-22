@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -201,7 +202,12 @@ private fun RuleDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Card {
-            Column(modifier = Modifier.padding(16.dp).verticalScroll(scrollState)) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .imePadding()
+                    .verticalScroll(scrollState)
+            ) {
                 Text(
                     title,
                     fontWeight = FontWeight.Bold,

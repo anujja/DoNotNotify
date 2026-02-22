@@ -9,8 +9,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -71,6 +74,7 @@ fun HistoryScreen(
     var expandedApps by remember { mutableStateOf(setOf<String>()) }
     var isUnmonitoredAppsExpanded by remember { mutableStateOf(false) }
     var showClearHistoryDialog by remember { mutableStateOf(false) }
+    var showStopMonitoringDialog by remember { mutableStateOf<Pair<String, String>?>(null) }
     var searchQuery by remember { mutableStateOf("") }
 
     val filteredNotifications = remember(notifications, searchQuery) {
@@ -154,9 +158,43 @@ fun HistoryScreen(
         }
     }
 
+    showStopMonitoringDialog?.let { (packageName, appName) ->
+        Dialog(onDismissRequest = { showStopMonitoringDialog = null }) {
+            Card {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Stop Monitoring?",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Text(
+                        text = "Are you sure you want to stop monitoring $appName? You can resume monitoring later from the Unmonitored Apps section.",
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Button(onClick = { showStopMonitoringDialog = null }, modifier = Modifier.padding(end = 8.dp)) {
+                            Text("Cancel")
+                        }
+                        Button(onClick = {
+                            onStopMonitoring(packageName, appName)
+                            showStopMonitoringDialog = null
+                        }) {
+                            Text("Stop")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     LazyColumn(
         state = listState,
-        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)
+        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+        contentPadding = WindowInsets.navigationBars.asPaddingValues()
     ) {
         item(contentType = "search") {
             TextField(
@@ -270,6 +308,21 @@ fun HistoryScreen(
                 }
 
                 if (expandedApps.contains(appName)) {
+                    item(key = "stopMonitoring_$appName", contentType = "stopMonitoring") {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(8.dp),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            TextButton(onClick = {
+                                val packageName = notifs.firstOrNull()?.packageName
+                                if (packageName != null) {
+                                    showStopMonitoringDialog = packageName to appName
+                                }
+                            }) {
+                                Text("Stop monitoring $appName")
+                            }
+                        }
+                    }
                     itemsIndexed(notifs, key = { index, it -> "${appName}_${index}_${it.id ?: it.timestamp}" }, contentType = { _, _ -> "notification" }) { _, notification ->
                         Card(
                             modifier = Modifier
@@ -315,21 +368,6 @@ fun HistoryScreen(
                                 IconButton(onClick = { onDeleteNotification(notification) }) {
                                     Icon(Icons.Default.Delete, contentDescription = "Delete")
                                 }
-                            }
-                        }
-                    }
-                    item(key = "stopMonitoring_$appName", contentType = "stopMonitoring") {
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(8.dp),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            TextButton(onClick = {
-                                val packageName = notifs.firstOrNull()?.packageName
-                                if (packageName != null) {
-                                    onStopMonitoring(packageName, appName)
-                                }
-                            }) {
-                                Text("Stop monitoring $appName")
                             }
                         }
                     }
