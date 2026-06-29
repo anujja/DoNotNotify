@@ -3,34 +3,49 @@ package com.donotnotify.donotnotify.ui.screens
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.ImportExport
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,8 +53,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.donotnotify.donotnotify.BlockerRule
@@ -83,6 +102,7 @@ fun SettingsScreen(
 
     var showExportImportDialog by remember { mutableStateOf(false) }
     var exportImportMessage by remember { mutableStateOf<String?>(null) }
+    var showResetHitsDialog by remember { mutableStateOf(false) }
 
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
@@ -173,6 +193,32 @@ fun SettingsScreen(
         )
     }
 
+    if (showResetHitsDialog) {
+        AlertDialog(
+            onDismissRequest = { showResetHitsDialog = false },
+            title = { Text(stringResource(R.string.reset_hit_counters_title)) },
+            text = { Text(stringResource(R.string.reset_hit_counters_confirm)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    ruleStorage.resetHitCounts()
+                    showResetHitsDialog = false
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.toast_hit_counters_reset),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }) {
+                    Text(stringResource(R.string.reset))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showResetHitsDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
     if (exportImportMessage != null) {
         AlertDialog(
             onDismissRequest = { exportImportMessage = null },
@@ -186,15 +232,22 @@ fun SettingsScreen(
         )
     }
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
+            LargeTopAppBar(
                 title = { Text(stringResource(R.string.settings)) },
                 navigationIcon = {
                     IconButton(onClick = onClose) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back)
+                        )
                     }
-                }
+                },
+                scrollBehavior = scrollBehavior
             )
         }
     ) { innerPadding ->
@@ -206,72 +259,83 @@ fun SettingsScreen(
                 .imePadding()
                 .verticalScroll(rememberScrollState())
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = stringResource(R.string.history_retention_days),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.weight(1f)
-                )
-                TextField(
-                    value = historyDays,
-                    onValueChange = { newText ->
-                        historyDays = newText
-                        newText.toIntOrNull()?.let { newDays ->
-                            with(sharedPreferences.edit()) {
-                                putInt("historyDays", newDays)
-                                apply()
-                            }
-                        }
-                    },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(0.5f)
+            SettingsSection(title = stringResource(R.string.settings_section_general)) {
+                SettingsRow(
+                    icon = Icons.Filled.History,
+                    title = stringResource(R.string.history_retention),
+                    subtitle = stringResource(R.string.history_retention_desc),
+                    trailing = {
+                        OutlinedTextField(
+                            value = historyDays,
+                            onValueChange = { newText ->
+                                historyDays = newText
+                                newText.toIntOrNull()?.let { newDays ->
+                                    with(sharedPreferences.edit()) {
+                                        putInt("historyDays", newDays)
+                                        apply()
+                                    }
+                                }
+                            },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            suffix = { Text(stringResource(R.string.days_unit)) },
+                            modifier = Modifier.width(112.dp)
+                        )
+                    }
                 )
             }
-            HorizontalDivider()
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showExportImportDialog = true }
-                    .padding(16.dp),
-            ) {
-                Text(stringResource(R.string.export_import_rules), style = MaterialTheme.typography.bodyLarge)
+            SettingsSection(title = stringResource(R.string.settings_section_rules)) {
+                SettingsRow(
+                    icon = Icons.Filled.ImportExport,
+                    title = stringResource(R.string.export_import_rules),
+                    subtitle = stringResource(R.string.export_import_rules_desc),
+                    onClick = { showExportImportDialog = true },
+                    trailing = { NavChevron() }
+                )
+                RowDivider()
+                SettingsRow(
+                    icon = Icons.Filled.RestartAlt,
+                    title = stringResource(R.string.reset_hit_counters),
+                    subtitle = stringResource(R.string.reset_hit_counters_desc),
+                    onClick = { showResetHitsDialog = true },
+                    trailing = { NavChevron() }
+                )
             }
-            HorizontalDivider()
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        val intent =
+            SettingsSection(title = stringResource(R.string.settings_section_about)) {
+                SettingsRow(
+                    icon = Icons.Filled.Favorite,
+                    title = stringResource(R.string.support_this_app),
+                    subtitle = stringResource(R.string.support_this_app_desc),
+                    onClick = {
+                        context.startActivity(
                             Intent(Intent.ACTION_VIEW, Uri.parse("https://buymeacoffee.com/jainanuj"))
-                        context.startActivity(intent)
-                    }
-                    .padding(16.dp),
-            ) {
-                Text(stringResource(R.string.support_this_app), style = MaterialTheme.typography.bodyLarge)
-            }
-            HorizontalDivider()
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        val intent =
+                        )
+                    },
+                    trailing = { NavChevron() }
+                )
+                RowDivider()
+                SettingsRow(
+                    icon = Icons.Filled.BugReport,
+                    title = stringResource(R.string.report_an_issue),
+                    subtitle = stringResource(R.string.report_an_issue_desc),
+                    onClick = {
+                        context.startActivity(
                             Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/anujja/DoNotNotify/issues"))
-                        context.startActivity(intent)
-                    }
-                    .padding(16.dp),
-            ) {
-                Text(stringResource(R.string.report_an_issue), style = MaterialTheme.typography.bodyLarge)
+                        )
+                    },
+                    trailing = { NavChevron() }
+                )
+                RowDivider()
+                SettingsRow(
+                    icon = Icons.Filled.Info,
+                    title = stringResource(R.string.about),
+                    subtitle = stringResource(R.string.about_desc),
+                    onClick = { showAboutDialog = true },
+                    trailing = { NavChevron() }
+                )
             }
-            HorizontalDivider()
 
             val packageInfo = try {
                 context.packageManager.getPackageInfo(context.packageName, 0)
@@ -280,18 +344,104 @@ fun SettingsScreen(
             }
             val versionName = packageInfo?.versionName ?: "Unknown"
 
-            Row(
+            Text(
+                text = stringResource(R.string.app_version, versionName),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 32.dp),
-                horizontalArrangement = Arrangement.Center
-            ) {
+                    .padding(vertical = 28.dp),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+private fun SettingsSection(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.padding(start = 28.dp, end = 16.dp, top = 20.dp, bottom = 8.dp)
+    )
+    ElevatedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
+        Column(content = content)
+    }
+}
+
+@Composable
+private fun SettingsRow(
+    icon: ImageVector,
+    title: String,
+    subtitle: String? = null,
+    onClick: (() -> Unit)? = null,
+    trailing: @Composable (() -> Unit)? = null
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.size(22.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium
+            )
+            if (subtitle != null) {
                 Text(
-                    text = stringResource(R.string.app_version, versionName),
-                    style = MaterialTheme.typography.bodySmall,
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
+        if (trailing != null) {
+            Spacer(modifier = Modifier.width(12.dp))
+            trailing()
+        }
     }
+}
+
+@Composable
+private fun RowDivider() {
+    HorizontalDivider(
+        modifier = Modifier.padding(start = 72.dp),
+        color = MaterialTheme.colorScheme.outlineVariant
+    )
+}
+
+@Composable
+private fun NavChevron() {
+    Icon(
+        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.onSurfaceVariant
+    )
 }

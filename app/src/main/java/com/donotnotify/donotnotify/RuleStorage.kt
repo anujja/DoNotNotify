@@ -51,6 +51,13 @@ class RuleStorage(private val context: Context) {
         }
     }
 
+    fun resetHitCounts() {
+        synchronized(lock) {
+            val reset = getRules().map { it.copy(hitCount = 0) }
+            saveRules(reset)
+        }
+    }
+
     fun invalidateCache() {
         synchronized(lock) {
             cachedRules = null
