@@ -1,0 +1,247 @@
+<resources>
+    <string name="app_name">DoNotNotify</string>
+
+    <!-- Tabs -->
+    <string name="tab_history">历史 (%d)</string>
+    <string name="tab_rules">规则 (%d)</string>
+    <string name="tab_blocked">已拦截 (%d)</string>
+
+    <!-- Common actions -->
+    <string name="cancel">取消</string>
+    <string name="clear">清除</string>
+    <string name="close">关闭</string>
+    <string name="save">保存</string>
+    <string name="delete">删除</string>
+    <string name="add">添加</string>
+    <string name="ok">确定</string>
+    <string name="open">打开</string>
+    <string name="resume">恢复</string>
+    <string name="stop">停止</string>
+    <string name="got_it">知道了</string>
+    <string name="back">返回</string>
+    <string name="export">导出</string>
+    <string name="import_rules">导入</string>
+    <string name="settings">设置</string>
+    <string name="about">关于</string>
+
+    <!-- Search -->
+    <string name="search">搜索</string>
+    <string name="clear_search">清除搜索</string>
+    <string name="search_notifications">搜索通知…</string>
+    <string name="search_apps">搜索应用…</string>
+
+    <!-- History screen -->
+    <string name="no_notifications_yet">暂无通知</string>
+    <string name="no_notifications_yet_desc">来自您应用的通知将显示在此处。</string>
+    <string name="no_results_found">未找到结果</string>
+    <string name="no_results_found_desc">没有与您的搜索查询匹配的通知。请尝试其他搜索词。</string>
+    <string name="clear_history">清除历史</string>
+    <string name="clear_history_title">清除历史？</string>
+    <string name="clear_history_confirm">确定要清除所有通知历史吗？</string>
+    <string name="reset">重置</string>
+    <string name="reset_hit_counters">重置命中计数</string>
+    <string name="reset_hit_counters_title">重置命中计数？</string>
+    <string name="reset_hit_counters_confirm">确定要将所有规则的命中计数重置为零吗？</string>
+    <string name="toast_hit_counters_reset">命中计数已重置</string>
+    <string name="stop_monitoring_title">停止监控？</string>
+    <string name="stop_monitoring_confirm">确定要停止监控 %s 吗？您稍后可在“未监控应用”部分恢复监控。</string>
+    <string name="stop_monitoring_app">停止监控 %s</string>
+    <string name="unmonitored_apps">未监控应用 (%d)</string>
+    <string name="ongoing_notification_cannot_block">这是一条常驻通知，可能无法拦截。</string>
+    <string name="collapse">收起</string>
+    <string name="expand">展开</string>
+
+    <!-- Notification labels in list cards -->
+    <string name="notification_title_prefix">标题：%s</string>
+    <string name="notification_text_prefix">内容：%s</string>
+
+    <!-- Ongoing notification icon -->
+    <string name="ongoing_notification">常驻通知</string>
+    <string name="time_limited_rule">限时规则</string>
+
+    <!-- Rules screen -->
+    <string name="no_rules_created">尚未创建规则</string>
+    <string name="no_rules_created_desc">创建规则以自动拦截不需要的通知。在历史标签页中点按通知即可创建规则，或浏览预设规则。</string>
+    <string name="rules_auto_block_desc">符合以下规则的通知将根据每条规则自动处理。</string>
+    <string name="rules_master_switch_label">所有规则均启用</string>
+    <string name="how_to_add_rule">如何添加新规则</string>
+    <string name="how_to_add_rule_desc">创建新规则的方法：\n\n1. 切换到“历史”标签页\n2. 找到您想要创建规则的通知\n3. 点按该通知\n4. 从选项中选择“创建规则”\n5. 根据需要自定义规则设置\n\n规则随后将显示在此处，并自动应用于匹配的通知。</string>
+    <string name="add_new_rule">添加新规则</string>
+    <string name="browse_prebuilt_rules">浏览预设规则</string>
+    <string name="hits_count">命中：%d</string>
+    <string name="no_hits">无命中</string>
+
+    <!-- Blocked screen -->
+    <string name="no_blocked_notifications">没有已拦截的通知</string>
+    <string name="no_blocked_notifications_desc">被您的规则拦截的通知将显示在此处。在规则标签页中创建规则，开始拦截不需要的通知。</string>
+    <string name="clear_blocked_history">清除拦截历史</string>
+    <string name="clear_blocked_history_title">清除拦截历史？</string>
+    <string name="clear_blocked_history_confirm">确定要清除所有已拦截的通知历史吗？</string>
+    <string name="ongoing_notification_partially_blocked">这是一条常驻通知，可能未被完全拦截。</string>
+    <string name="delete_blocked_notification">删除已拦截通知</string>
+
+    <!-- Pre-built rules screen -->
+    <string name="prebuilt_rules">预设规则</string>
+    <string name="prebuilt_rules_desc">为您已安装的应用添加预配置规则。这些规则会拦截常见的推广和促活通知。</string>
+    <string name="no_rules_match_search">没有与搜索匹配的规则</string>
+    <string name="try_different_search">请尝试其他搜索词</string>
+    <string name="no_new_prebuilt_rules">没有可用的新预设规则</string>
+    <string name="all_rules_added">您已为已安装的应用添加了所有可用规则，或未安装受支持的应用。</string>
+    <string name="blocks_notifications_containing">拦截包含以下内容的通知：</string>
+    <string name="allows_only_notifications_containing">仅允许包含以下内容的通知：</string>
+    <string name="stacks_notifications_containing">堆叠包含以下内容的通知：</string>
+    <string name="denylist">拦截名单</string>
+    <string name="allowlist">允许名单</string>
+    <string name="stack">堆叠</string>
+    <string name="rule_type_desc_denylist">拦截所有符合此规则的通知。</string>
+    <string name="rule_type_desc_allowlist">仅允许符合此规则的通知。该应用的所有其他通知都将被拦截。</string>
+    <string name="rule_type_desc_stack">将匹配的通知归并为一条摘要。原始通知将被移除。</string>
+
+    <!-- Stacked notifications -->
+    <string name="stack_channel_name">堆叠通知</string>
+    <string name="stack_channel_description">由您的堆叠规则收集的分组通知。</string>
+    <string name="stack_summary_count">%d 条通知</string>
+    <string name="stack_overflow_more">+%d 条更多</string>
+    <string name="stack_warning_notifications_disabled">堆叠未生效——DoNotNotify 的通知已关闭。点按以启用。</string>
+    <string name="stack_warning_channel_disabled">堆叠未生效——堆叠通知渠道已被停用。点按以启用。</string>
+    <string name="unknown_app">未知</string>
+
+    <!-- Enable notification listener screen -->
+    <string name="notifications_off">通知已关闭</string>
+    <string name="permission_required">需要权限</string>
+    <string name="permission_required_desc">此应用需要访问您的通知才能拦截它们。请在设备设置中启用该访问权限。</string>
+    <string name="enable_notification_access">启用通知访问权限</string>
+
+    <!-- Settings screen -->
+    <string name="history_retention_days">历史保留天数：</string>
+    <string name="export_import_rules">导出/导入规则</string>
+    <string name="choose_action">选择操作</string>
+    <string name="support_this_app">捐赠与支持</string>
+    <string name="report_an_issue">报告问题</string>
+    <string name="app_version">DoNotNotify v%s</string>
+    <!-- Settings sections and descriptions -->
+    <string name="settings_section_general">常规</string>
+    <string name="settings_section_rules">规则与数据</string>
+    <string name="settings_section_about">支持与关于</string>
+    <string name="history_retention">历史保留</string>
+    <string name="history_retention_desc">超过此期限的通知将被自动删除</string>
+    <string name="days_unit">天</string>
+    <string name="export_import_rules_desc">将规则备份到文件或从文件还原</string>
+    <string name="reset_hit_counters_desc">将每条规则的命中计数重置为零</string>
+    <string name="support_this_app_desc">帮助 DoNotNotify 保持免费且无广告</string>
+    <string name="report_an_issue_desc">报告错误或请求新功能</string>
+    <string name="about_desc">应用版本、许可证等</string>
+    <string name="status">状态</string>
+    <string name="rules_exported_successfully">规则已成功导出。</string>
+    <string name="failed_to_export_rules">导出规则失败：%s</string>
+    <string name="successfully_imported_rules">已成功导入 %d 条规则。</string>
+    <string name="invalid_rules_file">无效的规则文件：无法解析规则。</string>
+    <string name="invalid_rules_file_schema">无效的规则文件：架构不匹配。</string>
+    <string name="failed_to_import_rules">导入规则失败：%s</string>
+
+    <!-- Rule dialogs -->
+    <string name="advanced_configuration">高级配置</string>
+    <string name="enable_rule">启用规则</string>
+    <string name="enable_time_limit">启用时间限制</string>
+    <string name="start_time">开始时间：</string>
+    <string name="end_time">结束时间：</string>
+    <string name="title_filter_optional">标题筛选（可选）</string>
+    <string name="text_filter_optional">内容筛选（可选）</string>
+    <string name="save_rule">保存规则</string>
+    <string name="add_rule_title">添加新规则 (%s)</string>
+    <string name="edit_rule_title">编辑规则 (%s)</string>
+    <string name="rule_for">%s 的规则</string>
+    <string name="blocked_notification_from">已拦截来自 %s 的通知</string>
+
+    <!-- Delete confirmation dialog -->
+    <string name="delete_item_title">删除项目？</string>
+    <string name="delete_item_confirm">确定要删除此项目吗？\n\n%s</string>
+
+    <!-- Notification details dialogs -->
+    <string name="notification_details">通知详情</string>
+    <string name="label_app">应用：</string>
+    <string name="label_title">标题：</string>
+    <string name="label_text">内容：</string>
+    <string name="label_time">时间：</string>
+    <string name="create_rule">创建规则</string>
+    <string name="view_rule">查看规则</string>
+
+    <!-- Auto-added rules dialog -->
+    <string name="rules_added_automatically">已自动添加规则</string>
+    <string name="rules_added_automatically_desc">我们在您的设备上发现了以下应用，并为其添加了拦截规则：</string>
+    <string name="and_more">+ %d 条更多</string>
+    <string name="do_not_show_again">不再显示</string>
+
+    <!-- About dialog -->
+    <string name="about_app">应用：%s</string>
+    <string name="about_version">版本：%s</string>
+    <string name="about_developer">开发者：%s</string>
+
+    <!-- Setup wizard -->
+    <string name="setup_skip">跳过</string>
+    <string name="setup_next">下一步</string>
+    <string name="setup_back">返回</string>
+    <string name="setup_finish">完成</string>
+    <string name="setup_done_check">完成</string>
+    <string name="setup_step_indicator">第 %1$d 步，共 %2$d 步</string>
+
+    <string name="setup_welcome_title">让 DoNotNotify 保持运行</string>
+    <string name="setup_welcome_body">某些 Android 手机会主动关闭后台应用以节省电量——这会悄悄停止通知拦截。接下来的步骤可保护此应用不被终止。</string>
+    <string name="setup_welcome_cta">开始</string>
+
+    <string name="setup_listener_title">授予通知访问权限</string>
+    <string name="setup_listener_body">DoNotNotify 需要访问您的通知，才能根据您的规则筛选和拦截它们。</string>
+    <string name="setup_listener_cta">打开设置</string>
+    <string name="setup_listener_granted">已授予</string>
+
+    <string name="setup_battery_title">关闭电池优化</string>
+    <string name="setup_battery_body">Android 会让应用进入休眠以节省电量（Doze）。为了让 DoNotNotify 在后台持续筛选，请允许其不受限制地运行。</string>
+    <string name="setup_battery_cta">允许不受限制的电池使用</string>
+    <string name="setup_battery_granted">已允许</string>
+
+    <string name="setup_oem_title">允许手机上的自启动</string>
+    <string name="setup_oem_body_generic">您手机的制造商额外增加了一层后台应用限制。点按下方打开相关设置界面，并为 DoNotNotify 启用自启动/后台活动。</string>
+    <string name="setup_oem_body_xiaomi">小米 / MIUI 会主动关闭后台应用。点按下方打开自启动设置，然后启用 DoNotNotify。另请检查“省电与电池 → 应用省电 → 无限制”。</string>
+    <string name="setup_oem_body_huawei">华为 / 荣耀通过手机管家限制后台应用。点按下方打开启动管理，然后为 DoNotNotify 开启自动启动。</string>
+    <string name="setup_oem_body_oppo">OPPO / ColorOS 会限制后台应用。点按下方打开启动管理器，然后允许 DoNotNotify 自动启动。</string>
+    <string name="setup_oem_body_oneplus">一加默认限制后台活动。点按下方允许 DoNotNotify 在后台启动。</string>
+    <string name="setup_oem_body_vivo">vivo 会限制后台应用。点按下方打开后台启动管理，然后允许 DoNotNotify。</string>
+    <string name="setup_oem_body_samsung">三星的设备维护可能会让 DoNotNotify 进入休眠。点按下方打开电池设置，然后将 DoNotNotify 设为“无限制”（电池 → 后台使用限制）。</string>
+    <string name="setup_oem_body_asus">华硕移动管理器会限制后台应用。点按下方打开自启动管理器并启用 DoNotNotify。</string>
+    <string name="setup_oem_body_letv">乐视会限制后台应用。点按下方打开自启动管理。</string>
+    <string name="setup_oem_body_meizu">魅族会限制后台应用。点按下方打开安全设置。</string>
+    <string name="setup_oem_body_nokia">诺基亚使用 Evenwell 省电层，可能会终止 DoNotNotify。点按下方将其添加到受保护列表。</string>
+    <string name="setup_oem_cta">打开设置</string>
+    <string name="setup_oem_done">我已完成</string>
+    <string name="setup_oem_failed">无法打开设置界面。请在您的手机上手动找到自启动或后台活动设置，并允许 DoNotNotify。</string>
+
+    <string name="setup_post_notif_title">允许 DoNotNotify 发送通知</string>
+    <string name="setup_post_notif_body">堆叠规则会以 DoNotNotify 的名义重新发送分组通知。Android 13 及以上版本要求您允许此应用发送通知，否则堆叠将无法生效。</string>
+    <string name="setup_post_notif_cta">允许通知</string>
+    <string name="setup_post_notif_granted">已允许</string>
+
+    <string name="setup_done_title">全部完成</string>
+    <string name="setup_done_body">DoNotNotify 将在后台运行并筛选通知。我们会定期检查一切是否正常——如果您的手机关闭了该应用，您将收到一条提醒以便修复。</string>
+
+    <!-- Health check notification -->
+    <string name="health_channel_name">服务运行状况</string>
+    <string name="health_channel_description">当 DoNotNotify 未运行时提醒您。</string>
+    <string name="health_notification_title">DoNotNotify 未在运行</string>
+    <string name="health_notification_body">您的手机关闭了 DoNotNotify。点按以重新启用它并检查省电设置。</string>
+
+    <!-- Main screen -->
+    <string name="service_active">服务运行中</string>
+    <string name="toast_service_enabled">通知服务已启用</string>
+    <string name="toast_service_disabled">通知服务已停用</string>
+    <string name="toast_rule_added">规则已添加</string>
+    <string name="toast_rule_deleted">规则已删除</string>
+    <string name="toast_rule_updated">规则已更新</string>
+    <string name="toast_notification_deleted">通知已删除</string>
+    <string name="toast_history_cleared">历史已清除</string>
+    <string name="toast_blocked_history_cleared">拦截历史已清除</string>
+    <string name="toast_copied_to_clipboard">已复制到剪贴板</string>
+    <string name="toast_failed_to_trigger">操作触发失败</string>
+    <string name="toast_action_unavailable">通知操作已不再可用</string>
+    <string name="toast_stopped_monitoring">已停止监控 %s</string>
+    <string name="toast_resumed_monitoring">已恢复监控 %s</string>
+</resources>
