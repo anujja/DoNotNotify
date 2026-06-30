@@ -128,6 +128,12 @@ class NotificationBlockerService : NotificationListenerService() {
 
         Log.i(TAG, "Notification Received: App='${appLabel}', Title='${title}', Text='${text}'")
 
+        // Authoritative guard: the listener process can survive a device-language change while
+        // staying connected, so reconcile stale fail-closed prebuilt allowlists here, before
+        // rules are read, regardless of whether the UI ever ran. Cheap + idempotent (no-op when
+        // the locale is unchanged).
+        PrebuiltRuleReconciler.reconcileIfLocaleChanged(this)
+
         // Pure precedence resolution (DENYLIST/allowlist-gating wins over STACK;
         // first enabled match wins; STACK never gates like allowlist).
         val rules = ruleStorage.getRules()
@@ -241,9 +247,16 @@ class NotificationBlockerService : NotificationListenerService() {
         recentlyBlocked.entries.removeIf { (_, timestamp) -> currentTime - timestamp > DEBOUNCE_PERIOD_MS }
     }
 
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // A live device-language change: reconcile stale fail-closed prebuilt allowlists promptly.
+        PrebuiltRuleReconciler.reconcileIfLocaleChanged(this)
+    }
+
     override fun onListenerConnected() {
         super.onListenerConnected()
         SetupState.recordListenerConnected(this)
+        PrebuiltRuleReconciler.reconcileIfLocaleChanged(this)
         heartbeatHandler.removeCallbacks(heartbeatRunnable)
         heartbeatHandler.postDelayed(heartbeatRunnable, HEARTBEAT_INTERVAL_MS)
         Log.i(TAG, "Listener connected")

@@ -142,7 +142,11 @@ class MainActivity : ComponentActivity() {
 
         val newRules = prebuiltRules.filter { rule ->
             val packageName = rule.packageName ?: return@filter false
-            packageName in installedPackages &&
+            // ALLOWLIST rules are fail-closed (block everything that doesn't match), so we never
+            // auto-enable them without consent — they remain available via the Prebuilt Rules
+            // screen, where the correctly-localized variant is offered. See PrebuiltRuleReconciler.
+            rule.ruleType != RuleType.ALLOWLIST &&
+                    packageName in installedPackages &&
                     packageName !in processedPackages &&
                     existingRules.none { it.packageName == packageName }
         }
@@ -150,12 +154,15 @@ class MainActivity : ComponentActivity() {
         if (newRules.isNotEmpty()) {
             val updatedRules = existingRules + newRules
             ruleStorage.saveRules(updatedRules)
-            
+
             val newProcessedPackages = processedPackages + newRules.mapNotNull { it.packageName }
             with(sharedPreferences.edit()) {
                 putStringSet("processed_packages", newProcessedPackages)
                 apply()
             }
+            // Record the locale these rules were installed under, so a later language change
+            // can be detected and stale fail-closed allowlists reconciled.
+            PrebuiltRuleReconciler.stampCurrentLocale(this)
             return newRules.mapNotNull { it.appName }
         }
         return emptyList()

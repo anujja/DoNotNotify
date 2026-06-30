@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -61,17 +62,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.donotnotify.donotnotify.BlockerRule
+import androidx.compose.ui.unit.sp
+import com.donotnotify.donotnotify.ImportError
+import com.donotnotify.donotnotify.ImportResult
 import com.donotnotify.donotnotify.R
+import com.donotnotify.donotnotify.RuleExport
+import com.donotnotify.donotnotify.RuleImport
 import com.donotnotify.donotnotify.RuleStorage
 import com.donotnotify.donotnotify.ui.components.AboutDialog
 import com.google.gson.ExclusionStrategy
 import com.google.gson.FieldAttributes
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonSyntaxException
-import com.google.gson.reflect.TypeToken
-import java.io.BufferedReader
-import java.io.InputStreamReader
+import java.io.ByteArrayOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -109,8 +111,9 @@ fun SettingsScreen(
     ) { uri ->
         uri?.let {
             try {
-                val rules = ruleStorage.getRules()
-                val json = gson.toJson(rules)
+                val localeTag = context.resources.configuration.locales[0].toLanguageTag()
+                val export = RuleExport(locale = localeTag, rules = ruleStorage.getRules())
+                val json = gson.toJson(export)
                 context.contentResolver.openOutputStream(it)?.use { outputStream ->
                     outputStream.write(json.toByteArray())
                 }
@@ -126,35 +129,45 @@ fun SettingsScreen(
     ) { uri ->
         uri?.let {
             try {
-                context.contentResolver.openInputStream(it)?.use { inputStream ->
-                    val reader = BufferedReader(InputStreamReader(inputStream))
-                    val json = reader.readText()
-                    val type = object : TypeToken<List<BlockerRule>>() {}.type
-                    try {
-                        val importedRules: List<BlockerRule>? = gson.fromJson(json, type)
-                        if (importedRules != null) {
-                            val currentRules = ruleStorage.getRules().toMutableList()
-                            val newRules = importedRules.filter { imported ->
-                                currentRules.none { current ->
-                                    current.packageName == imported.packageName &&
-                                            current.titleFilter == imported.titleFilter &&
-                                            current.titleMatchType == imported.titleMatchType &&
-                                            current.textFilter == imported.textFilter &&
-                                            current.textMatchType == imported.textMatchType &&
-                                            current.ruleType == imported.ruleType
-                                }
-                            }
-
-                            if (newRules.isNotEmpty()) {
-                                currentRules.addAll(newRules)
-                                ruleStorage.saveRules(currentRules)
-                            }
-                            exportImportMessage = context.getString(R.string.successfully_imported_rules, newRules.size)
-                        } else {
-                            exportImportMessage = context.getString(R.string.invalid_rules_file)
+                val json = readCappedText(context, it, MAX_IMPORT_BYTES)
+                if (json == null) {
+                    exportImportMessage = context.getString(R.string.rules_file_too_large)
+                    return@let
+                }
+                when (val result = RuleImport.parse(json)) {
+                    is ImportResult.Error -> {
+                        exportImportMessage = when (result.reason) {
+                            ImportError.TooLarge -> context.getString(R.string.rules_file_too_large)
+                            ImportError.Malformed -> context.getString(R.string.invalid_rules_file)
+                            ImportError.SchemaMismatch -> context.getString(R.string.invalid_rules_file_schema)
+                            ImportError.Empty -> context.getString(R.string.import_no_rules)
                         }
-                    } catch (e: JsonSyntaxException) {
-                        exportImportMessage = context.getString(R.string.invalid_rules_file_schema)
+                    }
+                    is ImportResult.Success -> {
+                        val currentRules = ruleStorage.getRules().toMutableList()
+                        val newRules = result.rules.filter { imported ->
+                            currentRules.none { current ->
+                                current.packageName == imported.packageName &&
+                                        current.titleFilter == imported.titleFilter &&
+                                        current.titleMatchType == imported.titleMatchType &&
+                                        current.textFilter == imported.textFilter &&
+                                        current.textMatchType == imported.textMatchType &&
+                                        current.ruleType == imported.ruleType
+                            }
+                        }
+                        if (newRules.isNotEmpty()) {
+                            currentRules.addAll(newRules)
+                            ruleStorage.saveRules(currentRules)
+                        }
+                        exportImportMessage = if (result.droppedCount > 0) {
+                            context.getString(
+                                R.string.imported_rules_some_skipped,
+                                newRules.size,
+                                result.droppedCount
+                            )
+                        } else {
+                            context.getString(R.string.successfully_imported_rules, newRules.size)
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -415,9 +428,11 @@ private fun SettingsRow(
                 fontWeight = FontWeight.Medium
             )
             if (subtitle != null) {
+                Spacer(modifier = Modifier.height(3.dp))
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
+                    lineHeight = 18.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -444,4 +459,28 @@ private fun NavChevron() {
         contentDescription = null,
         tint = MaterialTheme.colorScheme.onSurfaceVariant
     )
+}
+
+/** Cap on the size of an imported rules document (defends against OOM from a corrupt file). */
+private const val MAX_IMPORT_BYTES = 5 * 1024 * 1024
+
+/**
+ * Reads the document as UTF-8 text, but never buffers more than [maxBytes]. Returns null if the
+ * document exceeds the cap (so the caller can report "file too large" instead of risking OOM).
+ */
+private fun readCappedText(context: Context, uri: Uri, maxBytes: Int): String? {
+    context.contentResolver.openInputStream(uri)?.use { input ->
+        val out = ByteArrayOutputStream()
+        val buffer = ByteArray(8 * 1024)
+        var total = 0
+        while (true) {
+            val read = input.read(buffer)
+            if (read == -1) break
+            total += read
+            if (total > maxBytes) return null
+            out.write(buffer, 0, read)
+        }
+        return out.toString(Charsets.UTF_8.name())
+    }
+    return null
 }

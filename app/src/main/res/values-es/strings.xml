@@ -1,0 +1,250 @@
+<resources>
+    <string name="app_name">DoNotNotify</string>
+
+    <!-- Tabs -->
+    <string name="tab_history">Historial (%d)</string>
+    <string name="tab_rules">Reglas (%d)</string>
+    <string name="tab_blocked">Bloqueadas (%d)</string>
+
+    <!-- Common actions -->
+    <string name="cancel">Cancelar</string>
+    <string name="clear">Borrar</string>
+    <string name="close">Cerrar</string>
+    <string name="save">Guardar</string>
+    <string name="delete">Eliminar</string>
+    <string name="add">Añadir</string>
+    <string name="ok">Aceptar</string>
+    <string name="open">Abrir</string>
+    <string name="resume">Reanudar</string>
+    <string name="stop">Detener</string>
+    <string name="got_it">Entendido</string>
+    <string name="back">Atrás</string>
+    <string name="export">Exportar</string>
+    <string name="import_rules">Importar</string>
+    <string name="settings">Ajustes</string>
+    <string name="about">Acerca de</string>
+
+    <!-- Search -->
+    <string name="search">Buscar</string>
+    <string name="clear_search">Borrar búsqueda</string>
+    <string name="search_notifications">Buscar notificaciones…</string>
+    <string name="search_apps">Buscar aplicaciones…</string>
+
+    <!-- History screen -->
+    <string name="no_notifications_yet">Aún no hay notificaciones</string>
+    <string name="no_notifications_yet_desc">Las notificaciones de tus aplicaciones aparecerán aquí.</string>
+    <string name="no_results_found">No se encontraron resultados</string>
+    <string name="no_results_found_desc">Ninguna notificación coincide con tu búsqueda. Prueba con otro término.</string>
+    <string name="clear_history">Borrar historial</string>
+    <string name="clear_history_title">¿Borrar historial?</string>
+    <string name="clear_history_confirm">¿Seguro que quieres borrar todo el historial de notificaciones?</string>
+    <string name="reset">Restablecer</string>
+    <string name="reset_hit_counters">Restablecer contadores de coincidencias</string>
+    <string name="reset_hit_counters_title">¿Restablecer contadores de coincidencias?</string>
+    <string name="reset_hit_counters_confirm">¿Seguro que quieres restablecer a cero el contador de coincidencias de todas las reglas?</string>
+    <string name="toast_hit_counters_reset">Contadores de coincidencias restablecidos</string>
+    <string name="stop_monitoring_title">¿Dejar de supervisar?</string>
+    <string name="stop_monitoring_confirm">¿Seguro que quieres dejar de supervisar %s? Puedes reanudar la supervisión más tarde desde la sección Aplicaciones no supervisadas.</string>
+    <string name="stop_monitoring_app">Dejar de supervisar %s</string>
+    <string name="unmonitored_apps">Aplicaciones no supervisadas (%d)</string>
+    <string name="ongoing_notification_cannot_block">Esta era una notificación persistente. Puede que no sea posible bloquearla.</string>
+    <string name="collapse">Contraer</string>
+    <string name="expand">Expandir</string>
+
+    <!-- Notification labels in list cards -->
+    <string name="notification_title_prefix">Título: %s</string>
+    <string name="notification_text_prefix">Texto: %s</string>
+
+    <!-- Ongoing notification icon -->
+    <string name="ongoing_notification">Notificación persistente</string>
+    <string name="time_limited_rule">Regla con límite de tiempo</string>
+
+    <!-- Rules screen -->
+    <string name="no_rules_created">No se han creado reglas</string>
+    <string name="no_rules_created_desc">Crea reglas para bloquear automáticamente las notificaciones no deseadas. Toca una notificación en la pestaña Historial para crear una regla, o explora las reglas predefinidas.</string>
+    <string name="rules_auto_block_desc">Las notificaciones que coinciden con las reglas siguientes se gestionan automáticamente según cada regla.</string>
+    <string name="rules_master_switch_label">Todas las reglas activas</string>
+    <string name="how_to_add_rule">Cómo añadir una nueva regla</string>
+    <string name="how_to_add_rule_desc">Para crear una nueva regla:\n\n1. Cambia a la pestaña «Historial»\n2. Busca una notificación para la que quieras una regla\n3. Toca la notificación\n4. Selecciona «Crear regla» entre las opciones\n5. Personaliza los ajustes de la regla según sea necesario\n\nLa regla aparecerá aquí y se aplicará automáticamente a las notificaciones coincidentes.</string>
+    <string name="add_new_rule">Añadir una nueva regla</string>
+    <string name="browse_prebuilt_rules">Explorar reglas predefinidas</string>
+    <string name="hits_count">Coincidencias: %d</string>
+    <string name="no_hits">Sin coincidencias</string>
+
+    <!-- Blocked screen -->
+    <string name="no_blocked_notifications">No hay notificaciones bloqueadas</string>
+    <string name="no_blocked_notifications_desc">Las notificaciones bloqueadas por tus reglas aparecerán aquí. Crea reglas en la pestaña Reglas para empezar a bloquear notificaciones no deseadas.</string>
+    <string name="clear_blocked_history">Borrar historial de bloqueadas</string>
+    <string name="clear_blocked_history_title">¿Borrar historial de bloqueadas?</string>
+    <string name="clear_blocked_history_confirm">¿Seguro que quieres borrar todo el historial de notificaciones bloqueadas?</string>
+    <string name="ongoing_notification_partially_blocked">Esta era una notificación persistente. Puede que no se haya bloqueado por completo.</string>
+    <string name="delete_blocked_notification">Eliminar notificación bloqueada</string>
+
+    <!-- Pre-built rules screen -->
+    <string name="prebuilt_rules">Reglas predefinidas</string>
+    <string name="prebuilt_rules_desc">Añade reglas preconfiguradas para las aplicaciones que tienes instaladas. Estas reglas bloquean notificaciones promocionales y de interacción habituales.</string>
+    <string name="no_rules_match_search">Ninguna regla coincide con tu búsqueda</string>
+    <string name="try_different_search">Prueba con otro término de búsqueda</string>
+    <string name="no_new_prebuilt_rules">No hay nuevas reglas predefinidas disponibles</string>
+    <string name="all_rules_added">Ya has añadido todas las reglas disponibles para tus aplicaciones instaladas, o no hay aplicaciones compatibles instaladas.</string>
+    <string name="blocks_notifications_containing">Bloquea las notificaciones que contengan:</string>
+    <string name="allows_only_notifications_containing">Solo permite las notificaciones que contengan:</string>
+    <string name="stacks_notifications_containing">Agrupa las notificaciones que contengan:</string>
+    <string name="denylist">Lista de bloqueo</string>
+    <string name="allowlist">Lista de permitidos</string>
+    <string name="stack">Agrupar</string>
+    <string name="rule_type_desc_denylist">Bloquea todas las notificaciones que coincidan con esta regla.</string>
+    <string name="rule_type_desc_allowlist">Solo permite las notificaciones que coincidan con esta regla. Todas las demás de esta aplicación se bloquean.</string>
+    <string name="rule_type_desc_stack">Agrupa las notificaciones coincidentes en un único resumen. Las originales se descartan.</string>
+
+    <!-- Stacked notifications -->
+    <string name="stack_channel_name">Notificaciones agrupadas</string>
+    <string name="stack_channel_description">Notificaciones agrupadas recopiladas por tus reglas de agrupación.</string>
+    <string name="stack_summary_count">%d notificaciones</string>
+    <string name="stack_overflow_more">+%d más</string>
+    <string name="stack_warning_notifications_disabled">Agrupación inactiva: las notificaciones están desactivadas para DoNotNotify. Toca para activarlas.</string>
+    <string name="stack_warning_channel_disabled">Agrupación inactiva: el canal de notificaciones agrupadas está desactivado. Toca para activarlo.</string>
+    <string name="unknown_app">Desconocida</string>
+
+    <!-- Enable notification listener screen -->
+    <string name="notifications_off">Notificaciones desactivadas</string>
+    <string name="permission_required">Permiso necesario</string>
+    <string name="permission_required_desc">Esta aplicación necesita acceso a tus notificaciones para bloquearlas. Activa el acceso en los ajustes de tu dispositivo.</string>
+    <string name="enable_notification_access">Activar acceso a las notificaciones</string>
+
+    <!-- Settings screen -->
+    <string name="history_retention_days">Retención del historial (días):</string>
+    <string name="export_import_rules">Exportar/Importar reglas</string>
+    <string name="choose_action">Elige una acción</string>
+    <string name="support_this_app">Donar y apoyar</string>
+    <string name="report_an_issue">Informar de un problema</string>
+    <string name="app_version">DoNotNotify v%s</string>
+    <!-- Settings sections and descriptions -->
+    <string name="settings_section_general">General</string>
+    <string name="settings_section_rules">Reglas y datos</string>
+    <string name="settings_section_about">Soporte e información</string>
+    <string name="history_retention">Retención del historial</string>
+    <string name="history_retention_desc">Las notificaciones más antiguas que esto se eliminan automáticamente</string>
+    <string name="days_unit">días</string>
+    <string name="export_import_rules_desc">Haz una copia de seguridad de tus reglas en un archivo o restáuralas</string>
+    <string name="reset_hit_counters_desc">Restablece a cero el contador de coincidencias de cada regla</string>
+    <string name="support_this_app_desc">Ayuda a mantener DoNotNotify gratuita y sin anuncios</string>
+    <string name="report_an_issue_desc">Informa de un error o solicita una función</string>
+    <string name="about_desc">Versión de la aplicación, licencias y más</string>
+    <string name="status">Estado</string>
+    <string name="rules_exported_successfully">Reglas exportadas correctamente.</string>
+    <string name="failed_to_export_rules">Error al exportar las reglas: %s</string>
+    <string name="successfully_imported_rules">Se importaron %d reglas correctamente.</string>
+    <string name="invalid_rules_file">Archivo de reglas no válido: no se pudieron analizar las reglas.</string>
+    <string name="invalid_rules_file_schema">Archivo de reglas no válido: el esquema no coincide.</string>
+    <string name="failed_to_import_rules">Error al importar las reglas: %s</string>
+
+    <!-- Rule dialogs -->
+    <string name="advanced_configuration">Configuración avanzada</string>
+    <string name="enable_rule">Activar regla</string>
+    <string name="enable_time_limit">Activar límite de tiempo</string>
+    <string name="start_time">Hora de inicio:</string>
+    <string name="end_time">Hora de fin:</string>
+    <string name="title_filter_optional">Filtro de título (opcional)</string>
+    <string name="text_filter_optional">Filtro de texto (opcional)</string>
+    <string name="save_rule">Guardar regla</string>
+    <string name="add_rule_title">Añadir nueva regla (%s)</string>
+    <string name="edit_rule_title">Editar regla (%s)</string>
+    <string name="rule_for">Regla para %s</string>
+    <string name="blocked_notification_from">Notificación bloqueada de %s</string>
+
+    <!-- Delete confirmation dialog -->
+    <string name="delete_item_title">¿Eliminar elemento?</string>
+    <string name="delete_item_confirm">¿Seguro que quieres eliminar este elemento?\n\n%s</string>
+
+    <!-- Notification details dialogs -->
+    <string name="notification_details">Detalles de la notificación</string>
+    <string name="label_app">Aplicación:</string>
+    <string name="label_title">Título:</string>
+    <string name="label_text">Texto:</string>
+    <string name="label_time">Hora:</string>
+    <string name="create_rule">Crear regla</string>
+    <string name="view_rule">Ver regla</string>
+
+    <!-- Auto-added rules dialog -->
+    <string name="rules_added_automatically">Reglas añadidas automáticamente</string>
+    <string name="rules_added_automatically_desc">Encontramos las siguientes aplicaciones en tu dispositivo y añadimos reglas de bloqueo para ellas:</string>
+    <string name="and_more">+ %d más</string>
+    <string name="do_not_show_again">No volver a mostrar</string>
+
+    <!-- About dialog -->
+    <string name="about_app">Aplicación: %s</string>
+    <string name="about_version">Versión: %s</string>
+    <string name="about_developer">Desarrollador: %s</string>
+
+    <!-- Setup wizard -->
+    <string name="setup_skip">Omitir</string>
+    <string name="setup_next">Siguiente</string>
+    <string name="setup_back">Atrás</string>
+    <string name="setup_finish">Finalizar</string>
+    <string name="setup_done_check">Listo</string>
+    <string name="setup_step_indicator">Paso %1$d de %2$d</string>
+
+    <string name="setup_welcome_title">Mantén DoNotNotify activa</string>
+    <string name="setup_welcome_body">Algunos teléfonos Android cierran de forma agresiva las aplicaciones en segundo plano para ahorrar batería, lo que detendría silenciosamente el bloqueo de notificaciones. Los siguientes pasos protegen esta aplicación para que no se cierre.</string>
+    <string name="setup_welcome_cta">Empezar</string>
+
+    <string name="setup_listener_title">Conceder acceso a las notificaciones</string>
+    <string name="setup_listener_body">DoNotNotify necesita acceso a tus notificaciones para poder filtrarlas y bloquearlas según tus reglas.</string>
+    <string name="setup_listener_cta">Abrir ajustes</string>
+    <string name="setup_listener_granted">Concedido</string>
+
+    <string name="setup_battery_title">Desactivar la optimización de batería</string>
+    <string name="setup_battery_body">Android pone las aplicaciones en suspensión para ahorrar batería (Doze). Para que DoNotNotify siga filtrando en segundo plano, permite que se ejecute sin restricciones.</string>
+    <string name="setup_battery_cta">Permitir batería sin restricciones</string>
+    <string name="setup_battery_granted">Permitido</string>
+
+    <string name="setup_oem_title">Permitir el inicio automático en tu teléfono</string>
+    <string name="setup_oem_body_generic">El fabricante de tu teléfono añade una capa adicional de restricciones para las aplicaciones en segundo plano. Toca abajo para abrir la pantalla de ajustes correspondiente y activar el inicio automático o la actividad en segundo plano de DoNotNotify.</string>
+    <string name="setup_oem_body_xiaomi">Xiaomi / MIUI cierra de forma agresiva las aplicaciones en segundo plano. Toca abajo para abrir los ajustes de Inicio automático y activa DoNotNotify. Comprueba también Batería y rendimiento → ahorro de batería de la aplicación → Sin restricciones.</string>
+    <string name="setup_oem_body_huawei">Huawei / Honor restringe las aplicaciones en segundo plano a través del Administrador del teléfono. Toca abajo para abrir la gestión de inicio y activa el inicio automático de DoNotNotify.</string>
+    <string name="setup_oem_body_oppo">OPPO / ColorOS restringe las aplicaciones en segundo plano. Toca abajo para abrir el administrador de inicio y permite que DoNotNotify se inicie automáticamente.</string>
+    <string name="setup_oem_body_oneplus">OnePlus restringe la actividad en segundo plano de forma predeterminada. Toca abajo para permitir que DoNotNotify se inicie en segundo plano.</string>
+    <string name="setup_oem_body_vivo">Vivo restringe las aplicaciones en segundo plano. Toca abajo para abrir la gestión de inicio en segundo plano y permite DoNotNotify.</string>
+    <string name="setup_oem_body_samsung">El cuidado del dispositivo de Samsung puede poner DoNotNotify en suspensión. Toca abajo para abrir los ajustes de Batería y marca DoNotNotify como Sin restricciones (Batería → Límites de uso en segundo plano).</string>
+    <string name="setup_oem_body_asus">El Administrador móvil de ASUS restringe las aplicaciones en segundo plano. Toca abajo para abrir el administrador de inicio automático y activa DoNotNotify.</string>
+    <string name="setup_oem_body_letv">Letv restringe las aplicaciones en segundo plano. Toca abajo para abrir la gestión de inicio automático.</string>
+    <string name="setup_oem_body_meizu">Meizu restringe las aplicaciones en segundo plano. Toca abajo para abrir los ajustes de seguridad.</string>
+    <string name="setup_oem_body_nokia">Nokia usa una capa de ahorro de energía de Evenwell que puede cerrar DoNotNotify. Toca abajo para añadirla a la lista de protegidas.</string>
+    <string name="setup_oem_cta">Abrir ajustes</string>
+    <string name="setup_oem_done">Ya lo he hecho</string>
+    <string name="setup_oem_failed">No se pudo abrir la pantalla de ajustes. Busca manualmente los ajustes de inicio automático o actividad en segundo plano en tu teléfono y permite DoNotNotify.</string>
+
+    <string name="setup_post_notif_title">Permitir que DoNotNotify envíe notificaciones</string>
+    <string name="setup_post_notif_body">Las reglas de agrupación vuelven a publicar las notificaciones agrupadas con DoNotNotify. Android 13 y versiones posteriores requieren que permitas a esta aplicación enviar notificaciones, o la agrupación no estará activa.</string>
+    <string name="setup_post_notif_cta">Permitir notificaciones</string>
+    <string name="setup_post_notif_granted">Permitido</string>
+
+    <string name="setup_done_title">Todo listo</string>
+    <string name="setup_done_body">DoNotNotify se ejecutará en segundo plano y filtrará las notificaciones. Comprobaremos periódicamente que todo siga funcionando; si tu teléfono cierra la aplicación, recibirás una notificación para solucionarlo.</string>
+
+    <!-- Health check notification -->
+    <string name="health_channel_name">Estado del servicio</string>
+    <string name="health_channel_description">Te avisa cuando DoNotNotify no se está ejecutando.</string>
+    <string name="health_notification_title">DoNotNotify no se está ejecutando</string>
+    <string name="health_notification_body">Tu teléfono cerró DoNotNotify. Toca para volver a activarla y revisar los ajustes de ahorro de energía.</string>
+
+    <!-- Main screen -->
+    <string name="service_active">Servicio activo</string>
+    <string name="toast_service_enabled">El servicio de notificaciones está activado</string>
+    <string name="toast_service_disabled">El servicio de notificaciones está desactivado</string>
+    <string name="toast_rule_added">Regla añadida</string>
+    <string name="toast_rule_deleted">Regla eliminada</string>
+    <string name="toast_rule_updated">Regla actualizada</string>
+    <string name="toast_notification_deleted">Notificación eliminada</string>
+    <string name="toast_history_cleared">Historial borrado</string>
+    <string name="toast_blocked_history_cleared">Historial de bloqueadas borrado</string>
+    <string name="toast_copied_to_clipboard">Copiado al portapapeles</string>
+    <string name="toast_failed_to_trigger">Error al ejecutar la acción</string>
+    <string name="toast_action_unavailable">La acción de la notificación ya no está disponible</string>
+    <string name="toast_stopped_monitoring">Se dejó de supervisar %s</string>
+    <string name="toast_resumed_monitoring">Se reanudó la supervisión de %s</string>
+    <string name="rules_file_too_large">El archivo de reglas es demasiado grande.</string>
+    <string name="import_no_rules">No hay reglas para importar.</string>
+    <string name="imported_rules_some_skipped">Se importaron %1$d reglas (%2$d omitidas).</string>
+</resources>

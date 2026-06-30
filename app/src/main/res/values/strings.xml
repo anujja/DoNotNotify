@@ -138,6 +138,9 @@
     <string name="invalid_rules_file">Invalid rules file: Could not parse rules.</string>
     <string name="invalid_rules_file_schema">Invalid rules file: Schema mismatch.</string>
     <string name="failed_to_import_rules">Failed to import rules: %s</string>
+    <string name="rules_file_too_large">Rules file is too large.</string>
+    <string name="import_no_rules">No rules to import.</string>
+    <string name="imported_rules_some_skipped">Imported %1$d rules (%2$d skipped).</string>
 
     <!-- Rule dialogs -->
     <string name="advanced_configuration">Advanced Configuration</string>

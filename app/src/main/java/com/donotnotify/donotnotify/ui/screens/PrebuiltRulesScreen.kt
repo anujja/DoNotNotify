@@ -437,7 +437,9 @@ private fun extractKeywordsFromPattern(pattern: String): List<String> {
         // Split by | to get individual keywords
         val parts = group.split("|")
             .map { it.trim() }
-            .filter { it.isNotEmpty() && !it.startsWith("?") && it.length > 2 }
+            // Keep non-blank tokens that aren't inline regex flags. No min length: CJK
+            // keywords are often 1–2 characters (e.g. お得, 割引) and must still render.
+            .filter { it.isNotBlank() && !it.startsWith("?") }
         keywords.addAll(parts)
     }
 
@@ -449,7 +451,7 @@ private fun extractKeywordsFromPattern(pattern: String): List<String> {
             .replace(".*", "")
             .replace("\\s+", " ")
             .trim()
-        if (cleaned.isNotEmpty() && cleaned.length > 2) {
+        if (cleaned.isNotEmpty()) {
             keywords.add(cleaned)
         }
     }
