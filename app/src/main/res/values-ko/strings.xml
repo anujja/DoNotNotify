@@ -244,4 +244,7 @@
     <string name="toast_action_unavailable">알림 작업을 더 이상 사용할 수 없습니다</string>
     <string name="toast_stopped_monitoring">%s 모니터링을 중지했습니다</string>
     <string name="toast_resumed_monitoring">%s 모니터링을 재개했습니다</string>
+    <string name="rules_file_too_large">규칙 파일이 너무 큽니다.</string>
+    <string name="import_no_rules">가져올 규칙이 없습니다.</string>
+    <string name="imported_rules_some_skipped">%1$d개의 규칙을 가져왔습니다(%2$d개 건너뜀).</string>
 </resources>

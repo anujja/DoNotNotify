@@ -12,6 +12,9 @@ class DoNotNotifyApp : Application() {
         createHealthChannel()
         createStackChannel()
         HealthCheckWorker.enqueue(this)
+        // Disable any stale fail-closed prebuilt allowlists if the device language changed
+        // since they were installed. Runs at process start for both the UI and the listener.
+        PrebuiltRuleReconciler.reconcileIfLocaleChanged(this)
     }
 
     private fun createStackChannel() {

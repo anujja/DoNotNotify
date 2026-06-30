@@ -248,4 +248,7 @@ The rule will then appear here and apply to matching notifications automatically
     <string name="setup_post_notif_body">Stack rules re-post grouped notifications under DoNotNotify. Android 13+ requires you to allow this app to post notifications, or stacking will be inactive.</string>
     <string name="setup_post_notif_cta">Allow notifications</string>
     <string name="setup_post_notif_granted">Allowed</string>
+    <string name="rules_file_too_large">ルールファイルが大きすぎます。</string>
+    <string name="import_no_rules">インポートするルールがありません。</string>
+    <string name="imported_rules_some_skipped">%1$d 件のルールをインポートしました（%2$d 件をスキップ）。</string>
 </resources>

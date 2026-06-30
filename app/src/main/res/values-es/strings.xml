@@ -244,4 +244,7 @@
     <string name="toast_action_unavailable">La acción de la notificación ya no está disponible</string>
     <string name="toast_stopped_monitoring">Se dejó de supervisar %s</string>
     <string name="toast_resumed_monitoring">Se reanudó la supervisión de %s</string>
+    <string name="rules_file_too_large">El archivo de reglas es demasiado grande.</string>
+    <string name="import_no_rules">No hay reglas para importar.</string>
+    <string name="imported_rules_some_skipped">Se importaron %1$d reglas (%2$d omitidas).</string>
 </resources>

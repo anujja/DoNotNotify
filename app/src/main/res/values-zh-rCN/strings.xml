@@ -244,4 +244,7 @@
     <string name="toast_action_unavailable">通知操作已不再可用</string>
     <string name="toast_stopped_monitoring">已停止监控 %s</string>
     <string name="toast_resumed_monitoring">已恢复监控 %s</string>
+    <string name="rules_file_too_large">规则文件过大。</string>
+    <string name="import_no_rules">没有可导入的规则。</string>
+    <string name="imported_rules_some_skipped">已导入 %1$d 条规则（跳过 %2$d 条）。</string>
 </resources>
