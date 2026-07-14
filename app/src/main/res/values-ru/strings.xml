@@ -232,8 +232,6 @@
     <string name="rule_type_desc_denylist">Блокирует все уведомления, соответствующие этому правилу.</string>
     <string name="rule_type_desc_allowlist">Разрешает только уведомления, соответствующие этому правилу. Все остальные из этого приложения блокируются.</string>
     <string name="rule_type_desc_stack">Группирует подходящие уведомления в одно сводное уведомление. Оригиналы удаляются.</string>
-    <string name="stack_channel_name">Сгруппированные уведомления</string>
-    <string name="stack_channel_description">Сгруппированные уведомления, собранные вашими правилами группировки.</string>
     <string name="stack_summary_count">Уведомлений: %d</string>
     <string name="stack_overflow_more">+%d ещё</string>
     <string name="stack_warning_notifications_disabled">Группировка неактивна — уведомления для DoNotNotify отключены. Нажмите, чтобы включить.</string>
@@ -247,4 +245,7 @@
     <string name="imported_rules_some_skipped">Импортировано %1$d правил (%2$d пропущено).</string>
     <string name="not_applicable">Н/Д</string>
     <string name="unknown">Неизвестно</string>
+    <string name="stack_channel_group_name">Сгруппированные уведомления</string>
+    <string name="stack_channel_name_app_rule">%1$s — правило %2$s</string>
+    <string name="stack_channel_name_unnamed">Правило группировки %1$s</string>
 </resources>

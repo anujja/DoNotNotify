@@ -100,8 +100,6 @@
     <string name="rule_type_desc_stack">Group matching notifications into one summary. The originals are dismissed.</string>
 
     <!-- Stacked notifications -->
-    <string name="stack_channel_name">Stacked notifications</string>
-    <string name="stack_channel_description">Grouped notifications collected by your stack rules.</string>
     <string name="stack_summary_count">%d notifications</string>
     <string name="stack_overflow_more">+%d more</string>
     <string name="stack_warning_notifications_disabled">Stacking inactive — notifications are turned off for DoNotNotify. Tap to enable.</string>
@@ -251,4 +249,7 @@
     <string name="toast_resumed_monitoring">Resumed monitoring %s</string>
     <string name="not_applicable">N/A</string>
     <string name="unknown">Unknown</string>
+    <string name="stack_channel_group_name">Stacked notifications</string>
+    <string name="stack_channel_name_app_rule">%1$s — rule %2$s</string>
+    <string name="stack_channel_name_unnamed">Stack rule %1$s</string>
 </resources>

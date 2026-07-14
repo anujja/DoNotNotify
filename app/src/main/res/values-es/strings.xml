@@ -100,8 +100,6 @@
     <string name="rule_type_desc_stack">Agrupa las notificaciones coincidentes en un único resumen. Las originales se descartan.</string>
 
     <!-- Stacked notifications -->
-    <string name="stack_channel_name">Notificaciones agrupadas</string>
-    <string name="stack_channel_description">Notificaciones agrupadas recopiladas por tus reglas de agrupación.</string>
     <string name="stack_summary_count">%d notificaciones</string>
     <string name="stack_overflow_more">+%d más</string>
     <string name="stack_warning_notifications_disabled">Agrupación inactiva: las notificaciones están desactivadas para DoNotNotify. Toca para activarlas.</string>
@@ -251,4 +249,7 @@
     <string name="imported_rules_some_skipped">Se importaron %1$d reglas (%2$d omitidas).</string>
     <string name="not_applicable">N/D</string>
     <string name="unknown">Desconocido</string>
+    <string name="stack_channel_group_name">Notificaciones agrupadas</string>
+    <string name="stack_channel_name_app_rule">%1$s — regla %2$s</string>
+    <string name="stack_channel_name_unnamed">Regla de agrupación %1$s</string>
 </resources>

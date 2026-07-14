@@ -159,6 +159,10 @@ class NotificationBlockerService : NotificationListenerService() {
             // re-post succeeded (post-then-cancel — never lose a notification).
             val stackRule = decision.matchedStackRule!!
             val groupKey = StackedNotificationManager.groupKeyFor(packageName, stackRule)
+            // Defence in depth: if a channel sync was missed (or the rule arrived from a path we
+            // don't hook), create it now rather than silently dropping the stack.
+            StackChannelsAndroid.ensure(this, stackRule)
+            val channelId = StackChannelsAndroid.channelIdFor(stackRule)
             // Resolve the large-icon bitmap from cached storage before the lock
             // (no PackageManager call on the binder thread).
             val largeIcon = appInfoStorage.getAppIcon(packageName)
@@ -172,7 +176,7 @@ class NotificationBlockerService : NotificationListenerService() {
                 childId = 0
             )
             val posted = StackedNotificationManager.absorbAndPost(
-                stackPoster, groupKey, appLabel, entry, largeIcon
+                stackPoster, groupKey, channelId, appLabel, entry, largeIcon
             )
             if (posted) {
                 cancelNotification(sbn.key)

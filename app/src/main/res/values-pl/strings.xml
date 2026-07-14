@@ -232,8 +232,6 @@
     <string name="rule_type_desc_denylist">Blokuje wszystkie powiadomienia pasujące do tej reguły.</string>
     <string name="rule_type_desc_allowlist">Zezwala tylko na powiadomienia pasujące do tej reguły. Wszystkie inne z tej aplikacji są blokowane.</string>
     <string name="rule_type_desc_stack">Grupuje pasujące powiadomienia w jedno podsumowanie. Oryginały są odrzucane.</string>
-    <string name="stack_channel_name">Zgrupowane powiadomienia</string>
-    <string name="stack_channel_description">Zgrupowane powiadomienia zebrane przez Twoje reguły grupowania.</string>
     <string name="stack_summary_count">Powiadomienia: %d</string>
     <string name="stack_overflow_more">+%d więcej</string>
     <string name="stack_warning_notifications_disabled">Grupowanie nieaktywne — powiadomienia dla DoNotNotify są wyłączone. Dotknij, aby włączyć.</string>
@@ -247,4 +245,7 @@
     <string name="imported_rules_some_skipped">Zaimportowano %1$d reguł (pominięto %2$d).</string>
     <string name="not_applicable">Nie dot.</string>
     <string name="unknown">Nieznana</string>
+    <string name="stack_channel_group_name">Zgrupowane powiadomienia</string>
+    <string name="stack_channel_name_app_rule">%1$s — reguła %2$s</string>
+    <string name="stack_channel_name_unnamed">Reguła grupowania %1$s</string>
 </resources>

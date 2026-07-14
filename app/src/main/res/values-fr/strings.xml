@@ -232,8 +232,6 @@
     <string name="rule_type_desc_denylist">Bloque toutes les notifications correspondant à cette règle.</string>
     <string name="rule_type_desc_allowlist">N\'autorise que les notifications correspondant à cette règle. Toutes les autres de cette application sont bloquées.</string>
     <string name="rule_type_desc_stack">Regroupe les notifications correspondantes en un seul résumé. Les originaux sont supprimés.</string>
-    <string name="stack_channel_name">Notifications groupées</string>
-    <string name="stack_channel_description">Notifications groupées collectées par vos règles de groupement.</string>
     <string name="stack_summary_count">%d notifications</string>
     <string name="stack_overflow_more">+%d de plus</string>
     <string name="stack_warning_notifications_disabled">Groupement inactif — les notifications sont désactivées pour DoNotNotify. Appuyez pour activer.</string>
@@ -247,4 +245,7 @@
     <string name="imported_rules_some_skipped">%1$d règles importées (%2$d ignorées).</string>
     <string name="not_applicable">N/D</string>
     <string name="unknown">Inconnu</string>
+    <string name="stack_channel_group_name">Notifications groupées</string>
+    <string name="stack_channel_name_app_rule">%1$s — règle %2$s</string>
+    <string name="stack_channel_name_unnamed">Règle de groupement %1$s</string>
 </resources>

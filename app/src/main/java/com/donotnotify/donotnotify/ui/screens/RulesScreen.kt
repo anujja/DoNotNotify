@@ -28,10 +28,15 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
@@ -49,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import com.donotnotify.donotnotify.BlockerRule
 import com.donotnotify.donotnotify.R
 import com.donotnotify.donotnotify.RuleType
+import com.donotnotify.donotnotify.StackChannels
 import com.donotnotify.donotnotify.StackedNotificationManager
 import com.donotnotify.donotnotify.ui.components.EmptyState
 import com.donotnotify.donotnotify.ui.components.label
@@ -127,7 +133,7 @@ fun RulesScreen(
             grouped.forEach { (_, appRules) ->
                 if (appRules.size == 1) {
                     // Single rule — show as flat card (unchanged)
-                    item(key = "rule_${appRules[0].packageName}_${appRules[0].ruleType}_0") {
+                    item(key = "rule_${appRules[0].id}") {
                         RuleCard(rule = appRules[0], showAppName = true, onClick = { onRuleClick(appRules[0]) })
                     }
                 } else {
@@ -146,7 +152,9 @@ fun RulesScreen(
                     }
                     itemsIndexed(
                         appRules,
-                        key = { index, rule -> "rule_${rule.packageName}_${rule.ruleType}_$index" }
+                        // Key on the stable id: an index-based key shifts on delete/reorder and
+                        // would strand each row's remembered channel-warning state on a sibling.
+                        key = { _, rule -> "rule_${rule.id}" }
                     ) { _, rule ->
                         RuleCard(
                             rule = rule,
@@ -228,7 +236,20 @@ private fun RuleCard(
                 )
                 if (rule.ruleType == RuleType.STACK) {
                     val context = LocalContext.current
-                    val postBlock = StackedNotificationManager.canPost(context)
+                    // Re-query when the user returns from system settings — otherwise a warning
+                    // they just fixed (or newly caused) would be stale until the screen is rebuilt.
+                    val lifecycleOwner = LocalLifecycleOwner.current
+                    var refreshToken by remember { mutableIntStateOf(0) }
+                    DisposableEffect(lifecycleOwner) {
+                        val observer = LifecycleEventObserver { _, event ->
+                            if (event == Lifecycle.Event.ON_RESUME) refreshToken++
+                        }
+                        lifecycleOwner.lifecycle.addObserver(observer)
+                        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+                    }
+                    val postBlock = remember(rule.id, refreshToken) {
+                        StackedNotificationManager.canPost(context, rule)
+                    }
                     if (postBlock != StackedNotificationManager.PostBlock.OK) {
                         val warning = when (postBlock) {
                             StackedNotificationManager.PostBlock.CHANNEL_DISABLED ->
@@ -251,7 +272,7 @@ private fun RuleCard(
                                                     .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
                                                     .putExtra(
                                                         Settings.EXTRA_CHANNEL_ID,
-                                                        StackedNotificationManager.CHANNEL_ID
+                                                        StackChannels.channelIdFor(rule)
                                                     )
                                             Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ->
                                                 Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)

@@ -232,8 +232,6 @@
     <string name="rule_type_desc_denylist">このルールに一致するすべての通知をブロックします。</string>
     <string name="rule_type_desc_allowlist">このルールに一致する通知のみを許可します。このアプリからの他の通知はすべてブロックされます。</string>
     <string name="rule_type_desc_stack">一致する通知を1つのサマリーにまとめます。元の通知は削除されます。</string>
-    <string name="stack_channel_name">まとめた通知</string>
-    <string name="stack_channel_description">まとめルールによって収集されたグループ通知。</string>
     <string name="stack_summary_count">%d件の通知</string>
     <string name="stack_overflow_more">他%d件</string>
     <string name="stack_warning_notifications_disabled">まとめ機能は無効です — DoNotNotify の通知がオフになっています。タップして有効にしてください。</string>
@@ -247,4 +245,7 @@
     <string name="imported_rules_some_skipped">%1$d 件のルールをインポートしました（%2$d 件をスキップ）。</string>
     <string name="not_applicable">該当なし</string>
     <string name="unknown">不明</string>
+    <string name="stack_channel_group_name">まとめた通知</string>
+    <string name="stack_channel_name_app_rule">%1$s — ルール %2$s</string>
+    <string name="stack_channel_name_unnamed">まとめルール %1$s</string>
 </resources>
