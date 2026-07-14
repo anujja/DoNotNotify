@@ -152,8 +152,7 @@ class MainActivity : ComponentActivity() {
         }
 
         if (newRules.isNotEmpty()) {
-            val updatedRules = existingRules + newRules
-            ruleStorage.saveRules(updatedRules)
+            ruleStorage.addRules(newRules)
 
             val newProcessedPackages = processedPackages + newRules.mapNotNull { it.packageName }
             with(sharedPreferences.edit()) {
@@ -240,9 +239,7 @@ class MainActivity : ComponentActivity() {
                 userRules = rules,
                 onClose = { showPrebuiltRulesScreen = false },
                 onAddRule = { rule ->
-                    val updatedRules = rules + rule
-                    ruleStorage.saveRules(updatedRules)
-                    rules = updatedRules
+                    rules = ruleStorage.addRules(listOf(rule))
                     Toast.makeText(context, context.getString(R.string.toast_rule_added), Toast.LENGTH_SHORT).show()
                 }
             )
@@ -280,9 +277,7 @@ class MainActivity : ComponentActivity() {
                 onSettingsClick = { showSettingsScreen = true },
                 onBrowsePrebuiltRulesClick = { showPrebuiltRulesScreen = true },
                 onToggleAllRules = { enabled ->
-                    val updated = rules.map { it.copy(isEnabled = enabled) }
-                    ruleStorage.saveRules(updated)
-                    rules = updated
+                    rules = ruleStorage.setAllEnabled(enabled)
                 },
                 onStopMonitoring = { packageName, appName ->
                     unmonitoredAppsStorage.addApp(packageName)
@@ -305,9 +300,7 @@ class MainActivity : ComponentActivity() {
                 notification = notification,
                 onDismiss = { notificationToShowAddDialog = null },
                 onAddRule = { rule ->
-                    val updatedRules = rules + rule
-                    ruleStorage.saveRules(updatedRules)
-                    rules = updatedRules
+                    rules = ruleStorage.addRules(listOf(rule))
                     notificationToShowAddDialog = null
                     Toast.makeText(context, context.getString(R.string.toast_rule_added), Toast.LENGTH_SHORT).show()
                     coroutineScope.launch { pagerState.animateScrollToPage(1) }
@@ -395,21 +388,16 @@ class MainActivity : ComponentActivity() {
                 rule = rule,
                 onDismiss = { ruleToEdit = null },
                 onUpdateRule = { oldRule, newRule ->
-                    val updatedRules = rules.toMutableList()
-                    val index = updatedRules.indexOf(oldRule)
-                    if (index != -1) {
-                        updatedRules[index] = newRule
-                    }
-                    ruleStorage.saveRules(updatedRules)
-                    rules = updatedRules
+                    // Id-keyed: storage re-reads current state and forces the committed rule back
+                    // onto oldRule.id. The old indexOf() compared hitCount, so a listener writeback
+                    // racing this dialog returned -1 and the edit was silently dropped.
+                    ruleStorage.updateRuleById(oldRule.id, newRule)?.let { rules = it }
                     ruleToEdit = null
                     Toast.makeText(context, context.getString(R.string.toast_rule_updated), Toast.LENGTH_SHORT).show()
                     coroutineScope.launch { pagerState.animateScrollToPage(1) }
                 },
                 onDeleteRule = {
-                    val updatedRules = rules - it
-                    ruleStorage.saveRules(updatedRules)
-                    rules = updatedRules
+                    rules = ruleStorage.deleteRuleById(it.id)
                     ruleToEdit = null
                     Toast.makeText(context, context.getString(R.string.toast_rule_deleted), Toast.LENGTH_SHORT).show()
                     coroutineScope.launch { pagerState.animateScrollToPage(1) }
@@ -422,9 +410,7 @@ class MainActivity : ComponentActivity() {
                 itemName = context.getString(R.string.rule_for, rule.appName.orEmpty()),
                 onDismiss = { ruleToDelete = null },
                 onConfirm = {
-                    val updatedRules = rules - rule
-                    ruleStorage.saveRules(updatedRules)
-                    rules = updatedRules
+                    rules = ruleStorage.deleteRuleById(rule.id)
                     ruleToDelete = null
                     Toast.makeText(context, context.getString(R.string.toast_rule_deleted), Toast.LENGTH_SHORT).show()
                 }
