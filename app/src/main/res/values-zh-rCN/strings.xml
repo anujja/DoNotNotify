@@ -93,6 +93,8 @@
     <string name="denylist">拦截名单</string>
     <string name="allowlist">允许名单</string>
     <string name="stack">堆叠</string>
+    <string name="match_type_contains">包含</string>
+    <string name="match_type_regex">正则表达式</string>
     <string name="rule_type_desc_denylist">拦截所有符合此规则的通知。</string>
     <string name="rule_type_desc_allowlist">仅允许符合此规则的通知。该应用的所有其他通知都将被拦截。</string>
     <string name="rule_type_desc_stack">将匹配的通知归并为一条摘要。原始通知将被移除。</string>
@@ -247,4 +249,6 @@
     <string name="rules_file_too_large">规则文件过大。</string>
     <string name="import_no_rules">没有可导入的规则。</string>
     <string name="imported_rules_some_skipped">已导入 %1$d 条规则（跳过 %2$d 条）。</string>
+    <string name="not_applicable">不适用</string>
+    <string name="unknown">未知</string>
 </resources>

@@ -23,7 +23,7 @@ fun AboutDialog(onDismiss: () -> Unit) {
     }
 
     val appName = context.getString(context.applicationInfo.labelRes)
-    val appVersion = packageInfo?.versionName ?: "N/A"
+    val appVersion = packageInfo?.versionName ?: stringResource(R.string.not_applicable)
     val developerEmail = "aj@donotnotify.com"
 
     AlertDialog(

@@ -93,6 +93,8 @@
     <string name="denylist">Denylist</string>
     <string name="allowlist">Allowlist</string>
     <string name="stack">Stack</string>
+    <string name="match_type_contains">Contains</string>
+    <string name="match_type_regex">Regex</string>
     <string name="rule_type_desc_denylist">Block all notifications matching this rule.</string>
     <string name="rule_type_desc_allowlist">Only allow notifications matching this rule. All others from this app are blocked.</string>
     <string name="rule_type_desc_stack">Group matching notifications into one summary. The originals are dismissed.</string>
@@ -247,4 +249,6 @@
     <string name="toast_action_unavailable">Notification action is no longer available</string>
     <string name="toast_stopped_monitoring">Stopped monitoring %s</string>
     <string name="toast_resumed_monitoring">Resumed monitoring %s</string>
+    <string name="not_applicable">N/A</string>
+    <string name="unknown">Unknown</string>
 </resources>

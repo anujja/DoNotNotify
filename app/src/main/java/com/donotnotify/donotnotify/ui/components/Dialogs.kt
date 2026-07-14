@@ -295,7 +295,7 @@ private fun RuleDialog(
                             onClick = { titleMatchType = matchType },
                             shape = SegmentedButtonDefaults.itemShape(index = index, count = MatchType.entries.size),
                         ) {
-                            Text(matchType.name)
+                            Text(matchType.label())
                         }
                     }
                 }
@@ -319,7 +319,7 @@ private fun RuleDialog(
                             onClick = { textMatchType = matchType },
                             shape = SegmentedButtonDefaults.itemShape(index = index, count = MatchType.entries.size),
                         ) {
-                            Text(matchType.name)
+                            Text(matchType.label())
                         }
                     }
                 }

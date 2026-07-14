@@ -51,6 +51,7 @@ import com.donotnotify.donotnotify.R
 import com.donotnotify.donotnotify.RuleType
 import com.donotnotify.donotnotify.StackedNotificationManager
 import com.donotnotify.donotnotify.ui.components.EmptyState
+import com.donotnotify.donotnotify.ui.components.label
 
 @Composable
 fun RulesScreen(
@@ -210,14 +211,15 @@ private fun RuleCard(
                         textDecoration = if (rule.isEnabled) null else TextDecoration.LineThrough
                     )
                 }
-                val titleFilterText = if (rule.titleFilter.isNullOrBlank()) "N/A" else rule.titleFilter.orEmpty()
+                val notApplicable = stringResource(R.string.not_applicable)
+                val titleFilterText = if (rule.titleFilter.isNullOrBlank()) notApplicable else rule.titleFilter.orEmpty()
                 Text(
                     text = stringResource(R.string.notification_title_prefix, titleFilterText),
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                val textFilterText = if (rule.textFilter.isNullOrBlank()) "N/A" else rule.textFilter.orEmpty()
+                val textFilterText = if (rule.textFilter.isNullOrBlank()) notApplicable else rule.textFilter.orEmpty()
                 Text(
                     text = stringResource(R.string.notification_text_prefix, textFilterText),
                     style = MaterialTheme.typography.bodyMedium,
@@ -286,7 +288,7 @@ private fun RuleCard(
                 }
                 Icon(
                     imageVector = icon,
-                    contentDescription = rule.ruleType.name
+                    contentDescription = rule.ruleType.label()
                 )
                 if (rule.hitCount > 0) {
                     Text(

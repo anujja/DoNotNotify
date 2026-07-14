@@ -355,7 +355,7 @@ fun SettingsScreen(
             } catch (e: Exception) {
                 null
             }
-            val versionName = packageInfo?.versionName ?: "Unknown"
+            val versionName = packageInfo?.versionName ?: stringResource(R.string.unknown)
 
             Text(
                 text = stringResource(R.string.app_version, versionName),

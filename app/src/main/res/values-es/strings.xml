@@ -93,6 +93,8 @@
     <string name="denylist">Lista de bloqueo</string>
     <string name="allowlist">Lista de permitidos</string>
     <string name="stack">Agrupar</string>
+    <string name="match_type_contains">Contiene</string>
+    <string name="match_type_regex">Regex</string>
     <string name="rule_type_desc_denylist">Bloquea todas las notificaciones que coincidan con esta regla.</string>
     <string name="rule_type_desc_allowlist">Solo permite las notificaciones que coincidan con esta regla. Todas las demás de esta aplicación se bloquean.</string>
     <string name="rule_type_desc_stack">Agrupa las notificaciones coincidentes en un único resumen. Las originales se descartan.</string>
@@ -247,4 +249,6 @@
     <string name="rules_file_too_large">El archivo de reglas es demasiado grande.</string>
     <string name="import_no_rules">No hay reglas para importar.</string>
     <string name="imported_rules_some_skipped">Se importaron %1$d reglas (%2$d omitidas).</string>
+    <string name="not_applicable">N/D</string>
+    <string name="unknown">Desconocido</string>
 </resources>

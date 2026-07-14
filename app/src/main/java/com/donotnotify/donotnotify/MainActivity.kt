@@ -480,7 +480,7 @@ class MainActivity : ComponentActivity() {
             containerColor = MaterialTheme.colorScheme.background,
             topBar = {
                 TopAppBar(
-                    title = { Text("DoNotNotify") },
+                    title = { Text(stringResource(R.string.app_name)) },
                     actions = {
                         IconButton(onClick = {
                             val status = if (isServiceEnabled)
