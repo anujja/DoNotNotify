@@ -24,8 +24,17 @@ object StackChannelsAndroid {
     @RequiresApi(Build.VERSION_CODES.O)
     private class Host(private val nm: NotificationManager) : StackChannels.ChannelHost {
 
-        override fun existingChannelIds(): Set<String> =
-            nm.notificationChannels.mapNotNull { it.id }.toSet()
+        override fun existingChannels(): Map<String, String> =
+            nm.notificationChannels.associate { it.id to (it.name?.toString() ?: "") }
+
+        override fun rename(channelId: String, name: String) {
+            // Re-issuing createNotificationChannel for an existing id updates the mutable fields
+            // (name/description) and leaves the user-owned ones — importance, sound, vibration —
+            // exactly as they set them. Mutate the live channel so nothing else is disturbed.
+            val existing = nm.getNotificationChannel(channelId) ?: return
+            existing.name = name
+            nm.createNotificationChannel(existing)
+        }
 
         override fun snapshot(channelId: String): StackChannels.ChannelSnapshot? {
             val c = nm.getNotificationChannel(channelId) ?: return null

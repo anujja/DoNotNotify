@@ -70,6 +70,7 @@ import com.donotnotify.donotnotify.RuleExport
 import com.donotnotify.donotnotify.RuleExportSerializer
 import com.donotnotify.donotnotify.RuleImport
 import com.donotnotify.donotnotify.RuleStorage
+import com.donotnotify.donotnotify.StackChannelsAndroid
 import com.donotnotify.donotnotify.ui.components.AboutDialog
 import java.io.ByteArrayOutputStream
 
@@ -144,6 +145,10 @@ fun SettingsScreen(
                         }
                         if (newRules.isNotEmpty()) {
                             ruleStorage.addRules(newRules)
+                            // Imported STACK rules need channels now — otherwise they'd have none
+                            // until the next app start, and the settings deep-link would point at
+                            // a channel that doesn't exist.
+                            StackChannelsAndroid.sync(context)
                         }
                         exportImportMessage = if (result.droppedCount > 0) {
                             context.getString(

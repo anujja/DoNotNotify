@@ -252,4 +252,9 @@
     <string name="stack_channel_group_name">묶은 알림</string>
     <string name="stack_channel_name_app_rule">%1$s — 규칙 %2$s</string>
     <string name="stack_channel_name_unnamed">묶기 규칙 %1$s</string>
+    <string name="rule_name_optional">규칙 이름(선택 사항)</string>
+    <string name="rule_name_supporting">알림 채널 이름으로 사용되어 소리와 진동을 설정할 수 있습니다.</string>
+    <string name="rule_name_use_suggestion">“%1$s” 사용</string>
+    <string name="rule_sound_vibration">소리 및 진동</string>
+    <string name="rule_sound_vibration_desc">시스템 설정에서 구성</string>
 </resources>

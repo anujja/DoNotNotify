@@ -433,6 +433,32 @@ object StackedNotificationManager {
         forgetGroup(groupKey)
     }
 
+    /**
+     * Context-based variant for the UI process, which has no [StackPoster] (that lives in the
+     * listener service). The UI and the listener share one process, so the registry read here is
+     * the same one the service writes.
+     *
+     * Deleting the rule's channel would cancel its notifications anyway, but only on API 26+ —
+     * and it would leave the registry holding entries for a stack that no longer exists.
+     */
+    @Synchronized
+    fun cancelStackForRule(context: Context, packageName: String, rule: BlockerRule) {
+        val groupKey = groupKeyFor(packageName, rule)
+        val nmc = NotificationManagerCompat.from(context)
+        val ids = buildList {
+            summaryIds[groupKey]?.let { add(it) }
+            groups[groupKey]?.forEach { add(it.childId) }
+        }
+        for (id in ids) {
+            try {
+                nmc.cancel(id)
+            } catch (e: Exception) {
+                Log.w(TAG, "cancel($id) failed while tearing down a deleted rule's stack", e)
+            }
+        }
+        forgetGroup(groupKey)
+    }
+
     // ---- removal & reconnect --------------------------------------------------
 
     /**

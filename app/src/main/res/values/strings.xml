@@ -252,4 +252,9 @@
     <string name="stack_channel_group_name">Stacked notifications</string>
     <string name="stack_channel_name_app_rule">%1$s — rule %2$s</string>
     <string name="stack_channel_name_unnamed">Stack rule %1$s</string>
+    <string name="rule_name_optional">Rule name (optional)</string>
+    <string name="rule_name_supporting">Used as the notification channel name, so you can set its sound and vibration.</string>
+    <string name="rule_name_use_suggestion">Use “%1$s”</string>
+    <string name="rule_sound_vibration">Sound and vibration</string>
+    <string name="rule_sound_vibration_desc">Configure in system settings</string>
 </resources>

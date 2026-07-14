@@ -240,6 +240,7 @@ class MainActivity : ComponentActivity() {
                 onClose = { showPrebuiltRulesScreen = false },
                 onAddRule = { rule ->
                     rules = ruleStorage.addRules(listOf(rule))
+                    StackChannelsAndroid.sync(context)
                     Toast.makeText(context, context.getString(R.string.toast_rule_added), Toast.LENGTH_SHORT).show()
                 }
             )
@@ -301,6 +302,7 @@ class MainActivity : ComponentActivity() {
                 onDismiss = { notificationToShowAddDialog = null },
                 onAddRule = { rule ->
                     rules = ruleStorage.addRules(listOf(rule))
+                    StackChannelsAndroid.sync(context)
                     notificationToShowAddDialog = null
                     Toast.makeText(context, context.getString(R.string.toast_rule_added), Toast.LENGTH_SHORT).show()
                     coroutineScope.launch { pagerState.animateScrollToPage(1) }
@@ -392,12 +394,31 @@ class MainActivity : ComponentActivity() {
                     // onto oldRule.id. The old indexOf() compared hitCount, so a listener writeback
                     // racing this dialog returned -1 and the edit was silently dropped.
                     ruleStorage.updateRuleById(oldRule.id, newRule)?.let { rules = it }
+                    // The stack's group key is derived from rule *content*, so an edit that changes
+                    // any matched field strands the old stack under the pre-edit key. Tear it down
+                    // — but only when the key actually moved, so a cosmetic edit (e.g. renaming the
+                    // rule) doesn't needlessly dismiss the user's live stack.
+                    val pkg = oldRule.packageName
+                    if (oldRule.ruleType == RuleType.STACK && pkg != null) {
+                        val oldKey = StackedNotificationManager.groupKeyFor(pkg, oldRule)
+                        val newKey = StackedNotificationManager.groupKeyFor(pkg, newRule)
+                        if (oldKey != newKey || newRule.ruleType != RuleType.STACK) {
+                            StackedNotificationManager.cancelStackForRule(context, pkg, oldRule)
+                        }
+                    }
+                    StackChannelsAndroid.sync(context)
                     ruleToEdit = null
                     Toast.makeText(context, context.getString(R.string.toast_rule_updated), Toast.LENGTH_SHORT).show()
                     coroutineScope.launch { pagerState.animateScrollToPage(1) }
                 },
-                onDeleteRule = {
-                    rules = ruleStorage.deleteRuleById(it.id)
+                onDeleteRule = { deleted ->
+                    rules = ruleStorage.deleteRuleById(deleted.id)
+                    if (deleted.ruleType == RuleType.STACK) {
+                        deleted.packageName?.let {
+                            StackedNotificationManager.cancelStackForRule(context, it, deleted)
+                        }
+                    }
+                    StackChannelsAndroid.sync(context)
                     ruleToEdit = null
                     Toast.makeText(context, context.getString(R.string.toast_rule_deleted), Toast.LENGTH_SHORT).show()
                     coroutineScope.launch { pagerState.animateScrollToPage(1) }
@@ -411,6 +432,12 @@ class MainActivity : ComponentActivity() {
                 onDismiss = { ruleToDelete = null },
                 onConfirm = {
                     rules = ruleStorage.deleteRuleById(rule.id)
+                    if (rule.ruleType == RuleType.STACK) {
+                        rule.packageName?.let {
+                            StackedNotificationManager.cancelStackForRule(context, it, rule)
+                        }
+                    }
+                    StackChannelsAndroid.sync(context)
                     ruleToDelete = null
                     Toast.makeText(context, context.getString(R.string.toast_rule_deleted), Toast.LENGTH_SHORT).show()
                 }

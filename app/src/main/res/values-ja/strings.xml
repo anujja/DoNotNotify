@@ -248,4 +248,9 @@
     <string name="stack_channel_group_name">まとめた通知</string>
     <string name="stack_channel_name_app_rule">%1$s — ルール %2$s</string>
     <string name="stack_channel_name_unnamed">まとめルール %1$s</string>
+    <string name="rule_name_optional">ルール名（任意）</string>
+    <string name="rule_name_supporting">通知チャンネル名として使われ、音とバイブレーションを設定できます。</string>
+    <string name="rule_name_use_suggestion">「%1$s」を使用</string>
+    <string name="rule_sound_vibration">音とバイブレーション</string>
+    <string name="rule_sound_vibration_desc">システム設定で構成</string>
 </resources>

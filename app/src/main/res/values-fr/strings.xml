@@ -248,4 +248,9 @@
     <string name="stack_channel_group_name">Notifications groupées</string>
     <string name="stack_channel_name_app_rule">%1$s — règle %2$s</string>
     <string name="stack_channel_name_unnamed">Règle de groupement %1$s</string>
+    <string name="rule_name_optional">Nom de la règle (facultatif)</string>
+    <string name="rule_name_supporting">Utilisé comme nom du canal de notification, pour en régler le son et la vibration.</string>
+    <string name="rule_name_use_suggestion">Utiliser « %1$s »</string>
+    <string name="rule_sound_vibration">Son et vibration</string>
+    <string name="rule_sound_vibration_desc">Configurer dans les paramètres système</string>
 </resources>

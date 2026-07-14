@@ -12,23 +12,37 @@ import org.junit.Test
  * Fake [StackChannels.ChannelHost] — no Android, mirroring the FakeStackPoster pattern.
  */
 private class FakeChannelHost(
-    existing: Map<String, ChannelSnapshot> = emptyMap()
+    existing: Map<String, ChannelSnapshot> = emptyMap(),
+    names: Map<String, String> = emptyMap()
 ) : StackChannels.ChannelHost {
     val channels = existing.toMutableMap()
+    val channelNames = names.toMutableMap()
     val created = mutableListOf<ChannelSpec>()
+    val renamed = mutableListOf<Pair<String, String>>()
     val deleted = mutableListOf<String>()
     val groups = mutableListOf<String>()
 
-    override fun existingChannelIds(): Set<String> = channels.keys.toSet()
+    init {
+        // Any pre-existing channel without an explicit name gets a placeholder.
+        channels.keys.forEach { channelNames.putIfAbsent(it, "old-$it") }
+    }
+
+    override fun existingChannels(): Map<String, String> = channelNames.toMap()
     override fun snapshot(channelId: String): ChannelSnapshot? = channels[channelId]
     override fun createGroup(groupId: String, name: String) { groups.add(groupId) }
     override fun create(spec: ChannelSpec) {
         created.add(spec)
         channels[spec.id] = spec.settings
+        channelNames[spec.id] = spec.name
+    }
+    override fun rename(channelId: String, name: String) {
+        renamed.add(channelId to name)
+        channelNames[channelId] = name
     }
     override fun delete(channelId: String) {
         deleted.add(channelId)
         channels.remove(channelId)
+        channelNames.remove(channelId)
     }
 }
 
@@ -62,12 +76,12 @@ class StackChannelsTest {
         val orphan = "${StackChannels.STACK_CHANNEL_PREFIX}dead-rule-id"
 
         val plan = StackChannels.planChannelSync(
-            existingIds = setOf(
-                "health",
-                "some_other_app_channel",
-                StackChannels.LEGACY_CHANNEL_ID,
-                orphan,
-                StackChannels.channelIdFor(kept)
+            existing = mapOf(
+                "health" to "Service health",
+                "some_other_app_channel" to "Other",
+                StackChannels.LEGACY_CHANNEL_ID to "Stacked notifications",
+                orphan to "Dead rule",
+                StackChannels.channelIdFor(kept) to StackChannels.channelNameFor(kept, naming)
             ),
             rules = listOf(kept),
             legacySeed = null,
@@ -90,7 +104,9 @@ class StackChannelsTest {
         // stale settings. Only real deletion (or conversion away from STACK) removes a channel.
         val disabled = stackRule(title = "x").copy(isEnabled = false)
         val plan = StackChannels.planChannelSync(
-            existingIds = setOf(StackChannels.channelIdFor(disabled)),
+            existing = mapOf(
+                StackChannels.channelIdFor(disabled) to StackChannels.channelNameFor(disabled, naming)
+            ),
             rules = listOf(disabled),
             legacySeed = null,
             naming = naming
@@ -103,7 +119,7 @@ class StackChannelsTest {
         val wasStack = stackRule(title = "x")
         val nowDeny = wasStack.copy(ruleType = RuleType.DENYLIST)
         val plan = StackChannels.planChannelSync(
-            existingIds = setOf(StackChannels.channelIdFor(wasStack)),
+            existing = mapOf(StackChannels.channelIdFor(wasStack) to "LinkedIn — rule x"),
             rules = listOf(nowDeny),
             legacySeed = null,
             naming = naming
@@ -114,7 +130,7 @@ class StackChannelsTest {
     @Test
     fun `non-stack rules never get channels`() {
         val plan = StackChannels.planChannelSync(
-            existingIds = emptySet(),
+            existing = emptyMap(),
             rules = listOf(
                 BlockerRule(packageName = "p", ruleType = RuleType.DENYLIST),
                 BlockerRule(packageName = "p", ruleType = RuleType.ALLOWLIST)
@@ -139,7 +155,7 @@ class StackChannelsTest {
         val rule = stackRule(title = "x")
 
         val plan = StackChannels.planChannelSync(
-            existingIds = setOf(StackChannels.LEGACY_CHANNEL_ID),
+            existing = mapOf(StackChannels.LEGACY_CHANNEL_ID to "n"),
             rules = listOf(rule),
             legacySeed = silenced,
             naming = naming
@@ -161,7 +177,7 @@ class StackChannelsTest {
             vibrationPattern = longArrayOf(0, 250, 100, 250)
         )
         val plan = StackChannels.planChannelSync(
-            existingIds = setOf(StackChannels.LEGACY_CHANNEL_ID),
+            existing = mapOf(StackChannels.LEGACY_CHANNEL_ID to "n"),
             rules = listOf(stackRule(title = "x")),
             legacySeed = custom,
             naming = naming
@@ -175,7 +191,7 @@ class StackChannelsTest {
     @Test
     fun `a fresh install with no legacy channel gets sensible defaults`() {
         val plan = StackChannels.planChannelSync(
-            existingIds = emptySet(),
+            existing = emptyMap(),
             rules = listOf(stackRule(title = "x")),
             legacySeed = null,
             naming = naming
@@ -264,6 +280,42 @@ class StackChannelsTest {
             naming
         )
         assertTrue(host.created.isEmpty())
+    }
+
+    // ---- renaming an existing channel ------------------------------------------
+
+    @Test
+    fun `naming a rule after its channel exists renames the channel`() {
+        // Caught on-device: the channel is created with the auto-derived name, and the user then
+        // names the rule. Without this, system settings would keep showing the old name forever.
+        // A channel's name IS mutable (unlike importance/sound), so keep it current.
+        val unnamed = stackRule(title = "recommended")
+        val host = FakeChannelHost(
+            existing = mapOf(StackChannels.channelIdFor(unnamed) to ChannelSnapshot.default()),
+            names = mapOf(StackChannels.channelIdFor(unnamed) to
+                StackChannels.channelNameFor(unnamed, naming))
+        )
+
+        val named = unnamed.copy(name = "Recommended posts")
+        StackChannels.sync(host, { listOf(named) }, "Stacked", naming)
+
+        assertEquals(
+            listOf(StackChannels.channelIdFor(named) to "Recommended posts"),
+            host.renamed
+        )
+        assertTrue("rename must not recreate the channel", host.created.isEmpty())
+        assertTrue("nor delete it — that would reset the user's sound", host.deleted.isEmpty())
+    }
+
+    @Test
+    fun `a rule whose name is unchanged is not renamed`() {
+        val rule = stackRule(title = "x", name = "My rule")
+        val host = FakeChannelHost(
+            existing = mapOf(StackChannels.channelIdFor(rule) to ChannelSnapshot.default()),
+            names = mapOf(StackChannels.channelIdFor(rule) to "My rule")
+        )
+        StackChannels.sync(host, { listOf(rule) }, "Stacked", naming)
+        assertTrue(host.renamed.isEmpty())
     }
 
     // ---- naming ----------------------------------------------------------------

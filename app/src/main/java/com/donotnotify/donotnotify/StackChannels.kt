@@ -109,6 +109,8 @@ object StackChannels {
 
     data class ChannelSyncPlan(
         val create: List<ChannelSpec>,
+        /** Existing channels whose display name is stale (id → new name). */
+        val rename: List<Pair<String, String>>,
         val delete: List<String>
     )
 
@@ -137,7 +139,7 @@ object StackChannels {
      *   alerting behaviour they had chosen for the shared channel.
      */
     fun planChannelSync(
-        existingIds: Set<String>,
+        existing: Map<String, String>,
         rules: List<BlockerRule>,
         legacySeed: ChannelSnapshot?,
         naming: ChannelNaming
@@ -145,6 +147,7 @@ object StackChannels {
         // Note: isEnabled is deliberately NOT filtered on — see invariant above.
         val stackRules = rules.filter { it.ruleType == RuleType.STACK }
         val wanted = stackRules.associateBy { channelIdFor(it) }
+        val existingIds = existing.keys
 
         val seed = legacySeed ?: ChannelSnapshot.default()
         val create = wanted
@@ -159,10 +162,24 @@ object StackChannels {
             }
             .sortedBy { it.id }
 
+        // A channel's *name* is mutable (unlike its importance/sound), so keep it current — e.g.
+        // the user names a rule after its channel already exists, or the app label changes.
+        val rename = wanted
+            .filterKeys { it in existingIds }
+            .mapNotNull { (id, rule) ->
+                val desired = channelNameFor(rule, naming)
+                if (existing[id] != desired) id to desired else null
+            }
+            .sortedBy { it.first }
+
         val orphans = existingIds.filter { isStackChannelId(it) && it !in wanted }
         val legacy = if (LEGACY_CHANNEL_ID in existingIds) listOf(LEGACY_CHANNEL_ID) else emptyList()
 
-        return ChannelSyncPlan(create = create, delete = (orphans + legacy).sorted())
+        return ChannelSyncPlan(
+            create = create,
+            rename = rename,
+            delete = (orphans + legacy).sorted()
+        )
     }
 
     /**
@@ -226,10 +243,13 @@ object StackChannels {
 
     /** Android-facing side-effect seam; faked in tests. */
     interface ChannelHost {
-        fun existingChannelIds(): Set<String>
+        /** Existing channel ids → their current display names. */
+        fun existingChannels(): Map<String, String>
         fun snapshot(channelId: String): ChannelSnapshot?
         fun createGroup(groupId: String, name: String)
         fun create(spec: ChannelSpec)
+        /** Rename in place. Must preserve the user's importance/sound/vibration. */
+        fun rename(channelId: String, name: String)
         fun delete(channelId: String)
     }
 
@@ -250,16 +270,18 @@ object StackChannels {
         naming: ChannelNaming
     ) {
         val rules = rulesProvider()
-        val existing = host.existingChannelIds()
+        val existing = host.existingChannels()
 
         // Snapshot the legacy channel *before* planning, since the plan deletes it.
-        val legacySeed = if (LEGACY_CHANNEL_ID in existing) host.snapshot(LEGACY_CHANNEL_ID) else null
+        val legacySeed =
+            if (LEGACY_CHANNEL_ID in existing.keys) host.snapshot(LEGACY_CHANNEL_ID) else null
 
         val plan = planChannelSync(existing, rules, legacySeed, naming)
-        if (plan.create.isEmpty() && plan.delete.isEmpty()) return
+        if (plan.create.isEmpty() && plan.rename.isEmpty() && plan.delete.isEmpty()) return
 
         if (plan.create.isNotEmpty()) host.createGroup(CHANNEL_GROUP_ID, groupName)
         plan.create.forEach(host::create)
+        plan.rename.forEach { (id, name) -> host.rename(id, name) }
         plan.delete.forEach(host::delete)
     }
 
@@ -273,7 +295,7 @@ object StackChannels {
     ) {
         if (rule.ruleType != RuleType.STACK) return
         val id = channelIdFor(rule)
-        val existing = host.existingChannelIds()
+        val existing = host.existingChannels().keys
         if (id in existing) return
 
         val legacySeed = if (LEGACY_CHANNEL_ID in existing) host.snapshot(LEGACY_CHANNEL_ID) else null

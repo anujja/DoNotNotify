@@ -248,4 +248,9 @@
     <string name="stack_channel_group_name">Zgrupowane powiadomienia</string>
     <string name="stack_channel_name_app_rule">%1$s — reguła %2$s</string>
     <string name="stack_channel_name_unnamed">Reguła grupowania %1$s</string>
+    <string name="rule_name_optional">Nazwa reguły (opcjonalnie)</string>
+    <string name="rule_name_supporting">Używana jako nazwa kanału powiadomień, dzięki czemu możesz ustawić jego dźwięk i wibracje.</string>
+    <string name="rule_name_use_suggestion">Użyj „%1$s”</string>
+    <string name="rule_sound_vibration">Dźwięk i wibracje</string>
+    <string name="rule_sound_vibration_desc">Skonfiguruj w ustawieniach systemu</string>
 </resources>

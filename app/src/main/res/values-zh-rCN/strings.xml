@@ -252,4 +252,9 @@
     <string name="stack_channel_group_name">堆叠通知</string>
     <string name="stack_channel_name_app_rule">%1$s — 规则 %2$s</string>
     <string name="stack_channel_name_unnamed">堆叠规则 %1$s</string>
+    <string name="rule_name_optional">规则名称（可选）</string>
+    <string name="rule_name_supporting">用作通知渠道名称，以便您设置其声音和振动。</string>
+    <string name="rule_name_use_suggestion">使用“%1$s”</string>
+    <string name="rule_sound_vibration">声音与振动</string>
+    <string name="rule_sound_vibration_desc">在系统设置中配置</string>
 </resources>

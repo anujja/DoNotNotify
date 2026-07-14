@@ -1,6 +1,9 @@
 package com.donotnotify.donotnotify.ui.components
 
 import android.app.TimePickerDialog
+import android.content.Intent
+import android.os.Build
+import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -15,10 +18,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -50,6 +58,7 @@ import com.donotnotify.donotnotify.MatchType
 import com.donotnotify.donotnotify.R
 import com.donotnotify.donotnotify.RuleType
 import com.donotnotify.donotnotify.SimpleNotification
+import com.donotnotify.donotnotify.StackChannels
 import java.util.Locale
 
 @Composable
@@ -178,9 +187,24 @@ private fun RuleDialog(
     var ruleType by remember { mutableStateOf(initialRule.ruleType) }
     var isEnabled by remember { mutableStateOf(initialRule.isEnabled) }
     var advancedConfig by remember { mutableStateOf(initialRule.advancedConfig ?: AdvancedRuleConfig()) }
+    var ruleName by remember { mutableStateOf(initialRule.name.orEmpty()) }
     var showAdvancedDialog by remember { mutableStateOf(false) }
     var showDeleteConfirmationDialog by remember { mutableStateOf(false) } // State for delete confirmation
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+
+    // A name derived from the rule's filters, offered as a *suggestion* only. It is never
+    // prefilled: the name becomes the notification channel's name, which any notification
+    // listener can read — so filter text must not be published unless the user chooses it.
+    val suggestedName = remember(titleFilter, textFilter, initialRule.appName) {
+        val filter = titleFilter.ifBlank { textFilter }.trim()
+        val app = initialRule.appName.orEmpty()
+        when {
+            filter.isBlank() -> ""
+            app.isBlank() -> filter.take(40)
+            else -> "$app — $filter".take(40)
+        }
+    }
 
     if (showAdvancedDialog) {
         AdvancedRuleConfigDialog(
@@ -324,6 +348,59 @@ private fun RuleDialog(
                     }
                 }
 
+                if (ruleType == RuleType.STACK) {
+                    Spacer(modifier = Modifier.padding(vertical = 8.dp))
+
+                    TextField(
+                        value = ruleName,
+                        onValueChange = { ruleName = it },
+                        label = { Text(stringResource(R.string.rule_name_optional)) },
+                        supportingText = {
+                            Text(stringResource(R.string.rule_name_supporting))
+                        },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    // Explicit opt-in: tapping this is what publishes filter-derived text as the
+                    // channel name. Prefilling the field would mean a user who just taps Save
+                    // silently exposes their filter to any notification listener.
+                    if (suggestedName.isNotBlank() && ruleName != suggestedName) {
+                        TextButton(onClick = { ruleName = suggestedName }) {
+                            Text(stringResource(R.string.rule_name_use_suggestion, suggestedName))
+                        }
+                    }
+
+                    // Sound/vibration are user-owned once the channel exists — Android gives the
+                    // app no way to change them — so link out rather than fake an in-app control.
+                    // Only for a saved rule: the channel must exist before it can be configured.
+                    if (isEditMode && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        ListItem(
+                            headlineContent = { Text(stringResource(R.string.rule_sound_vibration)) },
+                            supportingContent = {
+                                Text(stringResource(R.string.rule_sound_vibration_desc))
+                            },
+                            leadingContent = {
+                                Icon(Icons.Filled.Notifications, contentDescription = null)
+                            },
+                            trailingContent = {
+                                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+                            },
+                            modifier = Modifier.clickable {
+                                runCatching {
+                                    val intent = Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+                                        .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                                        .putExtra(
+                                            Settings.EXTRA_CHANNEL_ID,
+                                            StackChannels.channelIdFor(initialRule)
+                                        )
+                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    context.startActivity(intent)
+                                }
+                            }
+                        )
+                    }
+                }
+
                 Spacer(modifier = Modifier.padding(vertical = 16.dp))
 
                 Button(
@@ -357,7 +434,8 @@ private fun RuleDialog(
                                 textMatchType = textMatchType,
                                 ruleType = ruleType,
                                 isEnabled = isEnabled,
-                                advancedConfig = advancedConfig
+                                advancedConfig = advancedConfig,
+                                name = ruleName.ifBlank { null }
                             )
                             onSave(newRule)
                         }) {
