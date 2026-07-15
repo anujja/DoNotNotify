@@ -35,7 +35,9 @@ object StackedNotificationManager {
 
     private const val TAG = "StackedNotifManager"
 
-    const val CHANNEL_ID = "stacked_notifications"
+    // Channels are per-rule now — see StackChannels.channelIdFor(). The old shared
+    // "stacked_notifications" channel lives on only as StackChannels.LEGACY_CHANNEL_ID, which
+    // migration snapshots (to seed the new channels) and then deletes.
     const val GROUP_KEY_PREFIX = "dnn_stack:"
 
     const val MAX_CHILDREN_PER_STACK = 20
@@ -48,6 +50,10 @@ object StackedNotificationManager {
     private val groups = ConcurrentHashMap<String, MutableList<Entry>>()
     private val summaryIds = ConcurrentHashMap<String, Int>()
     private val lastTouched = ConcurrentHashMap<String, Long>()
+
+    /** Channel each group posts on. Remembered because a summary rebuild after a child is
+     *  dismissed only has the group key to work from — the rule is long out of scope. */
+    private val channelIds = ConcurrentHashMap<String, String>()
 
     /** Distinct sbnKeys ever seen per group — drives the summary count independent
      *  of evicted children. Cleared in every group-deletion path. */
@@ -81,12 +87,20 @@ object StackedNotificationManager {
      */
     interface StackPoster {
         fun areEnabled(): Boolean
-        /** Channel importance, or [NotificationManager.IMPORTANCE_DEFAULT] when channels
-         *  don't apply (API < 26). */
-        fun channelImportance(): Int
+        /** Importance of [channelId], or [NotificationManager.IMPORTANCE_DEFAULT] when channels
+         *  don't apply (API < 26). Per-rule now: each STACK rule has its own channel, so a rule
+         *  the user silenced must not silence the others. */
+        fun channelImportance(channelId: String): Int
         fun activeStackNotifications(): List<ActiveStackNote>
-        fun postChild(plan: AbsorbPlan, groupKey: String, appLabel: String, entry: Entry, largeIcon: Bitmap?)
-        fun postSummary(plan: AbsorbPlan, groupKey: String, appLabel: String)
+        fun postChild(
+            plan: AbsorbPlan,
+            groupKey: String,
+            channelId: String,
+            appLabel: String,
+            entry: Entry,
+            largeIcon: Bitmap?
+        )
+        fun postSummary(plan: AbsorbPlan, groupKey: String, channelId: String, appLabel: String)
         fun cancel(id: Int)
         fun cancelByKey(key: String)
     }
@@ -128,13 +142,13 @@ object StackedNotificationManager {
     /** UI convenience: typed post-capability for a [Context] (used by the Rules
      *  screen warning). The transactional path uses [postBlockVia] instead so it
      *  stays JVM-testable through the poster seam. */
-    fun canPost(context: Context): PostBlock {
+    fun canPost(context: Context, rule: BlockerRule): PostBlock {
         if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) {
             return PostBlock.NOTIFICATIONS_DISABLED
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val nm = context.getSystemService(NotificationManager::class.java)
-            val channel = nm?.getNotificationChannel(CHANNEL_ID)
+            val channel = nm?.getNotificationChannel(StackChannels.channelIdFor(rule))
                 ?: return PostBlock.CHANNEL_DISABLED
             if (channel.importance == NotificationManager.IMPORTANCE_NONE) {
                 return PostBlock.CHANNEL_DISABLED
@@ -144,9 +158,9 @@ object StackedNotificationManager {
     }
 
     /** Typed post-capability derived purely from the poster seam (no Android types). */
-    fun postBlockVia(poster: StackPoster): PostBlock = when {
+    fun postBlockVia(poster: StackPoster, channelId: String): PostBlock = when {
         !poster.areEnabled() -> PostBlock.NOTIFICATIONS_DISABLED
-        poster.channelImportance() == NotificationManager.IMPORTANCE_NONE ->
+        poster.channelImportance(channelId) == NotificationManager.IMPORTANCE_NONE ->
             PostBlock.CHANNEL_DISABLED
         else -> PostBlock.OK
     }
@@ -323,6 +337,7 @@ object StackedNotificationManager {
         summaryIds.remove(groupKey)
         lastTouched.remove(groupKey)
         cumulativeCounts.remove(groupKey)
+        channelIds.remove(groupKey)
     }
 
     // ---- absorb (transactional) ----------------------------------------------
@@ -336,12 +351,14 @@ object StackedNotificationManager {
     fun absorbAndPost(
         poster: StackPoster,
         groupKey: String,
+        channelId: String,
         appLabel: String,
         entry: Entry,
         largeIcon: Bitmap?
     ): Boolean {
-        // 1. Precondition (via the poster seam — keeps this JVM-testable).
-        val block = postBlockVia(poster)
+        // 1. Precondition (via the poster seam — keeps this JVM-testable). Per-rule now: one
+        //    rule's silenced channel must not block a different rule's stack.
+        val block = postBlockVia(poster, channelId)
         if (block != PostBlock.OK) {
             Log.w(TAG, "Skip stack ($block) — source left intact: $groupKey")
             return false
@@ -356,9 +373,11 @@ object StackedNotificationManager {
         //    atomically replaces the prior notification).
         var childPosted = false
         try {
-            poster.postChild(plan, groupKey, appLabel, entry.copy(childId = plan.childId), largeIcon)
+            poster.postChild(
+                plan, groupKey, channelId, appLabel, entry.copy(childId = plan.childId), largeIcon
+            )
             childPosted = true
-            poster.postSummary(plan, groupKey, appLabel)
+            poster.postSummary(plan, groupKey, channelId, appLabel)
         } catch (e: Exception) {
             Log.e(TAG, "absorbAndPost post failed — rolling back", e)
             // 4. Failure → rollback. Never cancel a reused-update child (that would
@@ -374,6 +393,7 @@ object StackedNotificationManager {
         summaryIds[groupKey] = plan.summaryId
         lastTouched[groupKey] = now
         cumulativeCounts[groupKey] = plan.cumulativeCount
+        channelIds[groupKey] = channelId
 
         // 6. Post-commit cleanup.
         for (id in plan.evictChildIds) safeCancel(poster, id)
@@ -391,6 +411,52 @@ object StackedNotificationManager {
         } catch (e: Exception) {
             Log.w(TAG, "cancel($id) failed during cleanup", e)
         }
+    }
+
+    /**
+     * Tears down the live stack belonging to [rule]: cancels its summary and every child, then
+     * drops the registry entry.
+     *
+     * Called when a STACK rule is deleted or converted to another type, *before* its notification
+     * channel is deleted. Deleting a channel cancels its notifications anyway, but doing it in
+     * this order leaves the in-memory registry consistent rather than holding entries that point
+     * at a channel which no longer exists.
+     *
+     * [rule] must be the rule as it was *before* the edit — the group key is derived from rule
+     * content, so a post-edit rule would hash to a different (empty) group.
+     */
+    @Synchronized
+    fun cancelStackForRule(poster: StackPoster, packageName: String, rule: BlockerRule) {
+        val groupKey = groupKeyFor(packageName, rule)
+        summaryIds[groupKey]?.let { safeCancel(poster, it) }
+        groups[groupKey]?.forEach { safeCancel(poster, it.childId) }
+        forgetGroup(groupKey)
+    }
+
+    /**
+     * Context-based variant for the UI process, which has no [StackPoster] (that lives in the
+     * listener service). The UI and the listener share one process, so the registry read here is
+     * the same one the service writes.
+     *
+     * Deleting the rule's channel would cancel its notifications anyway, but only on API 26+ —
+     * and it would leave the registry holding entries for a stack that no longer exists.
+     */
+    @Synchronized
+    fun cancelStackForRule(context: Context, packageName: String, rule: BlockerRule) {
+        val groupKey = groupKeyFor(packageName, rule)
+        val nmc = NotificationManagerCompat.from(context)
+        val ids = buildList {
+            summaryIds[groupKey]?.let { add(it) }
+            groups[groupKey]?.forEach { add(it.childId) }
+        }
+        for (id in ids) {
+            try {
+                nmc.cancel(id)
+            } catch (e: Exception) {
+                Log.w(TAG, "cancel($id) failed while tearing down a deleted rule's stack", e)
+            }
+        }
+        forgetGroup(groupKey)
     }
 
     // ---- removal & reconnect --------------------------------------------------
@@ -430,8 +496,16 @@ object StackedNotificationManager {
             maxStacksEviction = null
         )
         val plan = planAbsorb(snapshot, list.last(), System.currentTimeMillis(), ::nextId)
+        val channelId = channelIds[childGroup]
+        if (channelId == null) {
+            // Registry lost the channel (e.g. process restart mid-stack): drop the group rather
+            // than guess a channel and post onto the wrong one.
+            summaryIds[childGroup]?.let { safeCancel(poster, it) }
+            forgetGroup(childGroup)
+            return
+        }
         try {
-            poster.postSummary(plan, childGroup, appLabel)
+            poster.postSummary(plan, childGroup, channelId, appLabel)
         } catch (e: Exception) {
             Log.w(TAG, "rebuild summary after child removal failed", e)
         }
@@ -462,6 +536,7 @@ object StackedNotificationManager {
         summaryIds.clear()
         lastTouched.clear()
         cumulativeCounts.clear()
+        channelIds.clear()
     }
 
     // ---- real Android poster --------------------------------------------------
@@ -481,12 +556,12 @@ object StackedNotificationManager {
 
         override fun areEnabled(): Boolean = nmc.areNotificationsEnabled()
 
-        override fun channelImportance(): Int {
+        override fun channelImportance(channelId: String): Int {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
                 return NotificationManager.IMPORTANCE_DEFAULT
             }
             val nm = context.getSystemService(NotificationManager::class.java)
-            return nm?.getNotificationChannel(CHANNEL_ID)?.importance
+            return nm?.getNotificationChannel(channelId)?.importance
                 ?: NotificationManager.IMPORTANCE_NONE
         }
 
@@ -495,12 +570,13 @@ object StackedNotificationManager {
         override fun postChild(
             plan: AbsorbPlan,
             groupKey: String,
+            channelId: String,
             appLabel: String,
             entry: Entry,
             largeIcon: Bitmap?
         ) {
             val title = entry.title?.takeIf { it.isNotBlank() } ?: appLabel
-            val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            val builder = NotificationCompat.Builder(context, channelId)
                 .setSmallIcon(R.drawable.ic_stat_stack)
                 .setContentTitle(title)
                 .setContentText(entry.text)
@@ -512,19 +588,28 @@ object StackedNotificationManager {
                 .setContentIntent(entry.contentIntent ?: sourceLaunchIntent(groupKey, plan.childId))
             largeIcon?.let { builder.setLargeIcon(it) }
             if (plan.redactPublic) {
-                builder.setPublicVersion(redactedPublic(groupKey, appLabel, plan.cumulativeCount))
+                builder.setPublicVersion(
+                    redactedPublic(groupKey, channelId, appLabel, plan.cumulativeCount)
+                )
             }
             notifyChecked(plan.childId, builder.build())
         }
 
-        override fun postSummary(plan: AbsorbPlan, groupKey: String, appLabel: String) {
+        override fun postSummary(
+            plan: AbsorbPlan,
+            groupKey: String,
+            channelId: String,
+            appLabel: String
+        ) {
             val countText = context.resources.getQuantityStringOrFallback(plan.cumulativeCount)
             val inbox = NotificationCompat.InboxStyle().setSummaryText(countText)
             plan.summaryLines.forEach { inbox.addLine(it) }
             if (plan.overflowCount > 0) {
                 inbox.addLine(context.getString(R.string.stack_overflow_more, plan.overflowCount))
             }
-            val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+            // Summary and children share the rule's channel: GROUP_ALERT_CHILDREN means the
+            // *child* is what actually alerts, and grouping only behaves if both sit on one channel.
+            val builder = NotificationCompat.Builder(context, channelId)
                 .setSmallIcon(R.drawable.ic_stat_stack)
                 .setContentTitle(appLabel)
                 .setContentText(countText)
@@ -536,15 +621,22 @@ object StackedNotificationManager {
                 .setVisibility(plan.summaryVisibility)
                 .setContentIntent(sourceLaunchIntent(groupKey, plan.summaryId))
             if (plan.summaryRedactPublic) {
-                builder.setPublicVersion(redactedPublic(groupKey, appLabel, plan.cumulativeCount))
+                builder.setPublicVersion(
+                    redactedPublic(groupKey, channelId, appLabel, plan.cumulativeCount)
+                )
             }
             notifyChecked(plan.summaryId, builder.build())
         }
 
         /** Lock-screen-safe public version: shows the app name + count, never the
          *  source notification's title/body. */
-        private fun redactedPublic(groupKey: String, appLabel: String, count: Int): Notification =
-            NotificationCompat.Builder(context, CHANNEL_ID)
+        private fun redactedPublic(
+            groupKey: String,
+            channelId: String,
+            appLabel: String,
+            count: Int
+        ): Notification =
+            NotificationCompat.Builder(context, channelId)
                 .setSmallIcon(R.drawable.ic_stat_stack)
                 .setContentTitle(appLabel)
                 .setContentText(

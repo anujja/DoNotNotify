@@ -1,6 +1,9 @@
 package com.donotnotify.donotnotify
 
+import com.google.gson.ExclusionStrategy
+import com.google.gson.FieldAttributes
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.JsonParser
 import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
@@ -19,6 +22,27 @@ data class RuleExport(
     val locale: String? = null,
     val rules: List<BlockerRule> = emptyList()
 )
+
+/**
+ * Serializer for exported rule files. Two fields are deliberately withheld:
+ * - `hitCount` — local statistics, meaningless to a recipient.
+ * - `id` — device-local identity. It keys *this* device's notification channels; exporting it
+ *   would let an import carry foreign identity and collide with an existing rule's channel.
+ *   [RuleImport.parse] mints a fresh id for every imported rule regardless.
+ */
+object RuleExportSerializer {
+    private val gson: Gson = GsonBuilder()
+        .setPrettyPrinting()
+        .setExclusionStrategies(object : ExclusionStrategy {
+            override fun shouldSkipField(f: FieldAttributes): Boolean =
+                f.name == "hitCount" || f.name == "id"
+
+            override fun shouldSkipClass(clazz: Class<*>?): Boolean = false
+        })
+        .create()
+
+    fun toJson(export: RuleExport): String = gson.toJson(export)
+}
 
 enum class ImportError { TooLarge, Malformed, SchemaMismatch, Empty }
 
@@ -92,6 +116,14 @@ object RuleImport {
         for (raw in rawRules) {
             val normalized = if (raw == null) null else normalize(raw)
             if (normalized == null) dropped++ else sanitized.add(normalized)
+        }
+
+        // Imported identity is never meaningful: import *appends*, it does not restore. Mint a
+        // fresh id for every rule rather than merely repairing invalid ones — a file carrying
+        // well-formed UUIDs would otherwise keep externally-chosen identity and could collide
+        // with a rule already stored, putting two rules on one notification channel.
+        for (i in sanitized.indices) {
+            sanitized[i] = sanitized[i].copy(id = RuleIds.newId())
         }
 
         return when {

@@ -152,8 +152,7 @@ class MainActivity : ComponentActivity() {
         }
 
         if (newRules.isNotEmpty()) {
-            val updatedRules = existingRules + newRules
-            ruleStorage.saveRules(updatedRules)
+            ruleStorage.addRules(newRules)
 
             val newProcessedPackages = processedPackages + newRules.mapNotNull { it.packageName }
             with(sharedPreferences.edit()) {
@@ -240,9 +239,8 @@ class MainActivity : ComponentActivity() {
                 userRules = rules,
                 onClose = { showPrebuiltRulesScreen = false },
                 onAddRule = { rule ->
-                    val updatedRules = rules + rule
-                    ruleStorage.saveRules(updatedRules)
-                    rules = updatedRules
+                    rules = ruleStorage.addRules(listOf(rule))
+                    StackChannelsAndroid.sync(context)
                     Toast.makeText(context, context.getString(R.string.toast_rule_added), Toast.LENGTH_SHORT).show()
                 }
             )
@@ -280,9 +278,7 @@ class MainActivity : ComponentActivity() {
                 onSettingsClick = { showSettingsScreen = true },
                 onBrowsePrebuiltRulesClick = { showPrebuiltRulesScreen = true },
                 onToggleAllRules = { enabled ->
-                    val updated = rules.map { it.copy(isEnabled = enabled) }
-                    ruleStorage.saveRules(updated)
-                    rules = updated
+                    rules = ruleStorage.setAllEnabled(enabled)
                 },
                 onStopMonitoring = { packageName, appName ->
                     unmonitoredAppsStorage.addApp(packageName)
@@ -305,9 +301,8 @@ class MainActivity : ComponentActivity() {
                 notification = notification,
                 onDismiss = { notificationToShowAddDialog = null },
                 onAddRule = { rule ->
-                    val updatedRules = rules + rule
-                    ruleStorage.saveRules(updatedRules)
-                    rules = updatedRules
+                    rules = ruleStorage.addRules(listOf(rule))
+                    StackChannelsAndroid.sync(context)
                     notificationToShowAddDialog = null
                     Toast.makeText(context, context.getString(R.string.toast_rule_added), Toast.LENGTH_SHORT).show()
                     coroutineScope.launch { pagerState.animateScrollToPage(1) }
@@ -395,21 +390,35 @@ class MainActivity : ComponentActivity() {
                 rule = rule,
                 onDismiss = { ruleToEdit = null },
                 onUpdateRule = { oldRule, newRule ->
-                    val updatedRules = rules.toMutableList()
-                    val index = updatedRules.indexOf(oldRule)
-                    if (index != -1) {
-                        updatedRules[index] = newRule
+                    // Id-keyed: storage re-reads current state and forces the committed rule back
+                    // onto oldRule.id. The old indexOf() compared hitCount, so a listener writeback
+                    // racing this dialog returned -1 and the edit was silently dropped.
+                    ruleStorage.updateRuleById(oldRule.id, newRule)?.let { rules = it }
+                    // The stack's group key is derived from rule *content*, so an edit that changes
+                    // any matched field strands the old stack under the pre-edit key. Tear it down
+                    // — but only when the key actually moved, so a cosmetic edit (e.g. renaming the
+                    // rule) doesn't needlessly dismiss the user's live stack.
+                    val pkg = oldRule.packageName
+                    if (oldRule.ruleType == RuleType.STACK && pkg != null) {
+                        val oldKey = StackedNotificationManager.groupKeyFor(pkg, oldRule)
+                        val newKey = StackedNotificationManager.groupKeyFor(pkg, newRule)
+                        if (oldKey != newKey || newRule.ruleType != RuleType.STACK) {
+                            StackedNotificationManager.cancelStackForRule(context, pkg, oldRule)
+                        }
                     }
-                    ruleStorage.saveRules(updatedRules)
-                    rules = updatedRules
+                    StackChannelsAndroid.sync(context)
                     ruleToEdit = null
                     Toast.makeText(context, context.getString(R.string.toast_rule_updated), Toast.LENGTH_SHORT).show()
                     coroutineScope.launch { pagerState.animateScrollToPage(1) }
                 },
-                onDeleteRule = {
-                    val updatedRules = rules - it
-                    ruleStorage.saveRules(updatedRules)
-                    rules = updatedRules
+                onDeleteRule = { deleted ->
+                    rules = ruleStorage.deleteRuleById(deleted.id)
+                    if (deleted.ruleType == RuleType.STACK) {
+                        deleted.packageName?.let {
+                            StackedNotificationManager.cancelStackForRule(context, it, deleted)
+                        }
+                    }
+                    StackChannelsAndroid.sync(context)
                     ruleToEdit = null
                     Toast.makeText(context, context.getString(R.string.toast_rule_deleted), Toast.LENGTH_SHORT).show()
                     coroutineScope.launch { pagerState.animateScrollToPage(1) }
@@ -422,9 +431,13 @@ class MainActivity : ComponentActivity() {
                 itemName = context.getString(R.string.rule_for, rule.appName.orEmpty()),
                 onDismiss = { ruleToDelete = null },
                 onConfirm = {
-                    val updatedRules = rules - rule
-                    ruleStorage.saveRules(updatedRules)
-                    rules = updatedRules
+                    rules = ruleStorage.deleteRuleById(rule.id)
+                    if (rule.ruleType == RuleType.STACK) {
+                        rule.packageName?.let {
+                            StackedNotificationManager.cancelStackForRule(context, it, rule)
+                        }
+                    }
+                    StackChannelsAndroid.sync(context)
                     ruleToDelete = null
                     Toast.makeText(context, context.getString(R.string.toast_rule_deleted), Toast.LENGTH_SHORT).show()
                 }
@@ -480,7 +493,7 @@ class MainActivity : ComponentActivity() {
             containerColor = MaterialTheme.colorScheme.background,
             topBar = {
                 TopAppBar(
-                    title = { Text("DoNotNotify") },
+                    title = { Text(stringResource(R.string.app_name)) },
                     actions = {
                         IconButton(onClick = {
                             val status = if (isServiceEnabled)

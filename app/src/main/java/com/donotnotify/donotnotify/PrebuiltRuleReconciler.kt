@@ -64,17 +64,12 @@ object PrebuiltRuleReconciler {
         val currentPrebuilt = PrebuiltRulesRepository(context).getPrebuiltRules()
 
         val storage = RuleStorage(context)
-        var changed = false
-        val updated = storage.getRules().map { rule ->
-            if (isStaleAutoInstalledAllowlist(rule, processed, englishPrebuilt, currentPrebuilt)) {
-                changed = true
-                rule.copy(isEnabled = false)
-            } else {
-                rule
-            }
-        }
-        if (changed) {
-            storage.saveRules(updated)
+        val staleIds = storage.getRules()
+            .filter { isStaleAutoInstalledAllowlist(it, processed, englishPrebuilt, currentPrebuilt) }
+            .map { it.id }
+            .toSet()
+        if (staleIds.isNotEmpty()) {
+            storage.setEnabledByIds(staleIds, enabled = false)
             Log.i(TAG, "Disabled stale prebuilt ALLOWLIST rule(s) after locale change")
         }
     }

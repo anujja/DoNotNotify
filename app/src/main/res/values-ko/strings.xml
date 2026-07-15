@@ -93,13 +93,13 @@
     <string name="denylist">차단 목록</string>
     <string name="allowlist">허용 목록</string>
     <string name="stack">묶기</string>
+    <string name="match_type_contains">포함</string>
+    <string name="match_type_regex">정규식</string>
     <string name="rule_type_desc_denylist">이 규칙과 일치하는 모든 알림을 차단합니다.</string>
     <string name="rule_type_desc_allowlist">이 규칙과 일치하는 알림만 허용합니다. 이 앱의 다른 모든 알림은 차단됩니다.</string>
     <string name="rule_type_desc_stack">일치하는 알림을 하나의 요약으로 묶습니다. 원본 알림은 제거됩니다.</string>
 
     <!-- Stacked notifications -->
-    <string name="stack_channel_name">묶음 알림</string>
-    <string name="stack_channel_description">묶기 규칙으로 모은 그룹 알림입니다.</string>
     <string name="stack_summary_count">알림 %d개</string>
     <string name="stack_overflow_more">+%d개 더</string>
     <string name="stack_warning_notifications_disabled">묶기 비활성 — DoNotNotify의 알림이 꺼져 있습니다. 탭하여 활성화하세요.</string>
@@ -247,4 +247,14 @@
     <string name="rules_file_too_large">규칙 파일이 너무 큽니다.</string>
     <string name="import_no_rules">가져올 규칙이 없습니다.</string>
     <string name="imported_rules_some_skipped">%1$d개의 규칙을 가져왔습니다(%2$d개 건너뜀).</string>
+    <string name="not_applicable">해당 없음</string>
+    <string name="unknown">알 수 없음</string>
+    <string name="stack_channel_group_name">묶은 알림</string>
+    <string name="stack_channel_name_app_rule">%1$s — 규칙 %2$s</string>
+    <string name="stack_channel_name_unnamed">묶기 규칙 %1$s</string>
+    <string name="rule_name_optional">규칙 이름(선택 사항)</string>
+    <string name="rule_name_supporting">알림 채널 이름으로 사용되어 소리와 진동을 설정할 수 있습니다.</string>
+    <string name="rule_name_use_suggestion">“%1$s” 사용</string>
+    <string name="rule_sound_vibration">소리 및 진동</string>
+    <string name="rule_sound_vibration_desc">시스템 설정에서 구성</string>
 </resources>

@@ -93,13 +93,13 @@
     <string name="denylist">拦截名单</string>
     <string name="allowlist">允许名单</string>
     <string name="stack">堆叠</string>
+    <string name="match_type_contains">包含</string>
+    <string name="match_type_regex">正则表达式</string>
     <string name="rule_type_desc_denylist">拦截所有符合此规则的通知。</string>
     <string name="rule_type_desc_allowlist">仅允许符合此规则的通知。该应用的所有其他通知都将被拦截。</string>
     <string name="rule_type_desc_stack">将匹配的通知归并为一条摘要。原始通知将被移除。</string>
 
     <!-- Stacked notifications -->
-    <string name="stack_channel_name">堆叠通知</string>
-    <string name="stack_channel_description">由您的堆叠规则收集的分组通知。</string>
     <string name="stack_summary_count">%d 条通知</string>
     <string name="stack_overflow_more">+%d 条更多</string>
     <string name="stack_warning_notifications_disabled">堆叠未生效——DoNotNotify 的通知已关闭。点按以启用。</string>
@@ -247,4 +247,14 @@
     <string name="rules_file_too_large">规则文件过大。</string>
     <string name="import_no_rules">没有可导入的规则。</string>
     <string name="imported_rules_some_skipped">已导入 %1$d 条规则（跳过 %2$d 条）。</string>
+    <string name="not_applicable">不适用</string>
+    <string name="unknown">未知</string>
+    <string name="stack_channel_group_name">堆叠通知</string>
+    <string name="stack_channel_name_app_rule">%1$s — 规则 %2$s</string>
+    <string name="stack_channel_name_unnamed">堆叠规则 %1$s</string>
+    <string name="rule_name_optional">规则名称（可选）</string>
+    <string name="rule_name_supporting">用作通知渠道名称，以便您设置其声音和振动。</string>
+    <string name="rule_name_use_suggestion">使用“%1$s”</string>
+    <string name="rule_sound_vibration">声音与振动</string>
+    <string name="rule_sound_vibration_desc">在系统设置中配置</string>
 </resources>

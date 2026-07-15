@@ -62,18 +62,10 @@
     <!-- Rules screen -->
     <string name="no_rules_created">Aucune règle créée</string>
     <string name="no_rules_created_desc">Créez des règles pour bloquer automatiquement les notifications indésirables. Appuyez sur une notification dans l\'onglet Historique pour créer une règle, ou parcourez les règles prédéfinies.</string>
-    <string name="rules_auto_block_desc">Notifications matching the rules below are handled automatically according to each rule.</string>
+    <string name="rules_auto_block_desc">Les notifications correspondant aux règles ci-dessous sont traitées automatiquement selon chaque règle.</string>
     <string name="rules_master_switch_label">Toutes les règles actives</string>
     <string name="how_to_add_rule">Comment ajouter une nouvelle règle</string>
-    <string name="how_to_add_rule_desc">To create a new rule:
-
-1. Switch to the \"History\" tab
-2. Find a notification you want a rule for
-3. Tap on the notification
-4. Select \"Create Rule\" from the options
-5. Customize the rule settings as needed
-
-The rule will then appear here and apply to matching notifications automatically.</string>
+    <string name="how_to_add_rule_desc">Pour créer une nouvelle règle :\n\n1. Passez à l\'onglet « Historique »\n2. Trouvez une notification pour laquelle vous voulez une règle\n3. Appuyez sur la notification\n4. Sélectionnez « Créer une règle » parmi les options\n5. Personnalisez les paramètres de la règle selon vos besoins\n\nLa règle apparaîtra alors ici et s\'appliquera automatiquement aux notifications correspondantes.</string>
     <string name="add_new_rule">Ajouter une nouvelle règle</string>
     <string name="browse_prebuilt_rules">Parcourir les règles prédéfinies</string>
     <string name="hits_count">Correspondances : %d</string>
@@ -233,22 +225,32 @@ The rule will then appear here and apply to matching notifications automatically
     <string name="toast_action_unavailable">L\'action de notification n\'est plus disponible</string>
     <string name="toast_stopped_monitoring">Surveillance de %s arrêtée</string>
     <string name="toast_resumed_monitoring">Surveillance de %s reprise</string>
-    <string name="stacks_notifications_containing">Stacks notifications containing:</string>
-    <string name="stack">Stack</string>
+    <string name="stacks_notifications_containing">Groupe les notifications contenant :</string>
+    <string name="stack">Grouper</string>
+    <string name="match_type_contains">Contient</string>
+    <string name="match_type_regex">Regex</string>
     <string name="rule_type_desc_denylist">Bloque toutes les notifications correspondant à cette règle.</string>
     <string name="rule_type_desc_allowlist">N\'autorise que les notifications correspondant à cette règle. Toutes les autres de cette application sont bloquées.</string>
     <string name="rule_type_desc_stack">Regroupe les notifications correspondantes en un seul résumé. Les originaux sont supprimés.</string>
-    <string name="stack_channel_name">Stacked notifications</string>
-    <string name="stack_channel_description">Grouped notifications collected by your stack rules.</string>
     <string name="stack_summary_count">%d notifications</string>
-    <string name="stack_overflow_more">+%d more</string>
-    <string name="stack_warning_notifications_disabled">Stacking inactive — notifications are turned off for DoNotNotify. Tap to enable.</string>
-    <string name="stack_warning_channel_disabled">Stacking inactive — the stacked-notifications channel is disabled. Tap to enable.</string>
-    <string name="setup_post_notif_title">Allow DoNotNotify to post notifications</string>
-    <string name="setup_post_notif_body">Stack rules re-post grouped notifications under DoNotNotify. Android 13+ requires you to allow this app to post notifications, or stacking will be inactive.</string>
-    <string name="setup_post_notif_cta">Allow notifications</string>
-    <string name="setup_post_notif_granted">Allowed</string>
+    <string name="stack_overflow_more">+%d de plus</string>
+    <string name="stack_warning_notifications_disabled">Groupement inactif — les notifications sont désactivées pour DoNotNotify. Appuyez pour activer.</string>
+    <string name="stack_warning_channel_disabled">Groupement inactif — le canal des notifications groupées est désactivé. Appuyez pour activer.</string>
+    <string name="setup_post_notif_title">Autoriser DoNotNotify à envoyer des notifications</string>
+    <string name="setup_post_notif_body">Les règles de groupement republient les notifications groupées sous DoNotNotify. Android 13+ exige que vous autorisiez cette application à envoyer des notifications, sinon le groupement sera inactif.</string>
+    <string name="setup_post_notif_cta">Autoriser les notifications</string>
+    <string name="setup_post_notif_granted">Autorisé</string>
     <string name="rules_file_too_large">Le fichier de règles est trop volumineux.</string>
     <string name="import_no_rules">Aucune règle à importer.</string>
     <string name="imported_rules_some_skipped">%1$d règles importées (%2$d ignorées).</string>
+    <string name="not_applicable">N/D</string>
+    <string name="unknown">Inconnu</string>
+    <string name="stack_channel_group_name">Notifications groupées</string>
+    <string name="stack_channel_name_app_rule">%1$s — règle %2$s</string>
+    <string name="stack_channel_name_unnamed">Règle de groupement %1$s</string>
+    <string name="rule_name_optional">Nom de la règle (facultatif)</string>
+    <string name="rule_name_supporting">Utilisé comme nom du canal de notification, pour en régler le son et la vibration.</string>
+    <string name="rule_name_use_suggestion">Utiliser « %1$s »</string>
+    <string name="rule_sound_vibration">Son et vibration</string>
+    <string name="rule_sound_vibration_desc">Configurer dans les paramètres système</string>
 </resources>

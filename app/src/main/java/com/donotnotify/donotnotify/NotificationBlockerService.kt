@@ -159,6 +159,10 @@ class NotificationBlockerService : NotificationListenerService() {
             // re-post succeeded (post-then-cancel — never lose a notification).
             val stackRule = decision.matchedStackRule!!
             val groupKey = StackedNotificationManager.groupKeyFor(packageName, stackRule)
+            // Defence in depth: if a channel sync was missed (or the rule arrived from a path we
+            // don't hook), create it now rather than silently dropping the stack.
+            StackChannelsAndroid.ensure(this, stackRule)
+            val channelId = StackChannelsAndroid.channelIdFor(stackRule)
             // Resolve the large-icon bitmap from cached storage before the lock
             // (no PackageManager call on the binder thread).
             val largeIcon = appInfoStorage.getAppIcon(packageName)
@@ -172,7 +176,7 @@ class NotificationBlockerService : NotificationListenerService() {
                 childId = 0
             )
             val posted = StackedNotificationManager.absorbAndPost(
-                stackPoster, groupKey, appLabel, entry, largeIcon
+                stackPoster, groupKey, channelId, appLabel, entry, largeIcon
             )
             if (posted) {
                 cancelNotification(sbn.key)
@@ -183,15 +187,10 @@ class NotificationBlockerService : NotificationListenerService() {
             // normal-history branch below (blocked count is not incremented).
         }
 
-        // Prepare hitCount updates (deferred toMutableList only when needed)
-        val updatedRules = if (matchedRuleIndices.isNotEmpty()) {
-            val mutableRules = rules.toMutableList()
-            for (idx in matchedRuleIndices) {
-                val r = mutableRules[idx]
-                mutableRules[idx] = r.copy(hitCount = r.hitCount + 1)
-            }
-            mutableRules as List<BlockerRule>
-        } else null
+        // Carry the matched rule *ids*, not a whole-list snapshot: storage re-reads current
+        // state and bumps only these, so a hit-count write can never resurrect a rule the UI
+        // deleted (or clobber an edit) in the window before the executor runs.
+        val hitRuleIds: List<String> = matchedRuleIndices.map { rules[it].id }
 
         // Debounce check on binder thread
         val notificationKey = sbn.key
@@ -200,10 +199,10 @@ class NotificationBlockerService : NotificationListenerService() {
         if (isDuplicate) {
             Log.i(TAG, "Ignoring duplicate for history/stats: $notificationKey")
             // Still persist hitCount updates asynchronously
-            if (updatedRules != null) {
+            if (hitRuleIds.isNotEmpty()) {
                 historyExecutor.execute {
                     try {
-                        ruleStorage.saveRules(updatedRules)
+                        ruleStorage.incrementHitCounts(hitRuleIds)
                     } catch (e: Exception) {
                         Log.e(TAG, "Failed to save rules", e)
                     }
@@ -225,7 +224,7 @@ class NotificationBlockerService : NotificationListenerService() {
             // Move all I/O to background executor
             historyExecutor.execute {
                 try {
-                    updatedRules?.let { ruleStorage.saveRules(it) }
+                    ruleStorage.incrementHitCounts(hitRuleIds)
                     if (isBlocked) {
                         val isNew = blockedNotificationHistoryStorage.saveNotification(simpleNotification)
                         if (isNew) {

@@ -93,13 +93,13 @@
     <string name="denylist">Lista de bloqueo</string>
     <string name="allowlist">Lista de permitidos</string>
     <string name="stack">Agrupar</string>
+    <string name="match_type_contains">Contiene</string>
+    <string name="match_type_regex">Regex</string>
     <string name="rule_type_desc_denylist">Bloquea todas las notificaciones que coincidan con esta regla.</string>
     <string name="rule_type_desc_allowlist">Solo permite las notificaciones que coincidan con esta regla. Todas las demás de esta aplicación se bloquean.</string>
     <string name="rule_type_desc_stack">Agrupa las notificaciones coincidentes en un único resumen. Las originales se descartan.</string>
 
     <!-- Stacked notifications -->
-    <string name="stack_channel_name">Notificaciones agrupadas</string>
-    <string name="stack_channel_description">Notificaciones agrupadas recopiladas por tus reglas de agrupación.</string>
     <string name="stack_summary_count">%d notificaciones</string>
     <string name="stack_overflow_more">+%d más</string>
     <string name="stack_warning_notifications_disabled">Agrupación inactiva: las notificaciones están desactivadas para DoNotNotify. Toca para activarlas.</string>
@@ -247,4 +247,14 @@
     <string name="rules_file_too_large">El archivo de reglas es demasiado grande.</string>
     <string name="import_no_rules">No hay reglas para importar.</string>
     <string name="imported_rules_some_skipped">Se importaron %1$d reglas (%2$d omitidas).</string>
+    <string name="not_applicable">N/D</string>
+    <string name="unknown">Desconocido</string>
+    <string name="stack_channel_group_name">Notificaciones agrupadas</string>
+    <string name="stack_channel_name_app_rule">%1$s — regla %2$s</string>
+    <string name="stack_channel_name_unnamed">Regla de agrupación %1$s</string>
+    <string name="rule_name_optional">Nombre de la regla (opcional)</string>
+    <string name="rule_name_supporting">Se usa como nombre del canal de notificaciones, para que puedas ajustar su sonido y vibración.</string>
+    <string name="rule_name_use_suggestion">Usar «%1$s»</string>
+    <string name="rule_sound_vibration">Sonido y vibración</string>
+    <string name="rule_sound_vibration_desc">Configurar en los ajustes del sistema</string>
 </resources>

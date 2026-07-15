@@ -67,12 +67,11 @@ import com.donotnotify.donotnotify.ImportError
 import com.donotnotify.donotnotify.ImportResult
 import com.donotnotify.donotnotify.R
 import com.donotnotify.donotnotify.RuleExport
+import com.donotnotify.donotnotify.RuleExportSerializer
 import com.donotnotify.donotnotify.RuleImport
 import com.donotnotify.donotnotify.RuleStorage
+import com.donotnotify.donotnotify.StackChannelsAndroid
 import com.donotnotify.donotnotify.ui.components.AboutDialog
-import com.google.gson.ExclusionStrategy
-import com.google.gson.FieldAttributes
-import com.google.gson.GsonBuilder
 import java.io.ByteArrayOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,19 +87,6 @@ fun SettingsScreen(
     var showAboutDialog by remember { mutableStateOf(false) }
 
     val ruleStorage = remember { RuleStorage(context) }
-    val gson = remember {
-        GsonBuilder()
-            .setPrettyPrinting()
-            .setExclusionStrategies(object : ExclusionStrategy {
-            override fun shouldSkipField(f: FieldAttributes): Boolean {
-                return f.name == "hitCount"
-            }
-
-            override fun shouldSkipClass(clazz: Class<*>?): Boolean {
-                return false
-            }
-        }).create()
-    }
 
     var showExportImportDialog by remember { mutableStateOf(false) }
     var exportImportMessage by remember { mutableStateOf<String?>(null) }
@@ -113,7 +99,7 @@ fun SettingsScreen(
             try {
                 val localeTag = context.resources.configuration.locales[0].toLanguageTag()
                 val export = RuleExport(locale = localeTag, rules = ruleStorage.getRules())
-                val json = gson.toJson(export)
+                val json = RuleExportSerializer.toJson(export)
                 context.contentResolver.openOutputStream(it)?.use { outputStream ->
                     outputStream.write(json.toByteArray())
                 }
@@ -144,7 +130,9 @@ fun SettingsScreen(
                         }
                     }
                     is ImportResult.Success -> {
-                        val currentRules = ruleStorage.getRules().toMutableList()
+                        val currentRules = ruleStorage.getRules()
+                        // Dedup by rule *signature* (not identity): imported ids are always freshly
+                        // minted, so they can never match an existing rule.
                         val newRules = result.rules.filter { imported ->
                             currentRules.none { current ->
                                 current.packageName == imported.packageName &&
@@ -156,8 +144,11 @@ fun SettingsScreen(
                             }
                         }
                         if (newRules.isNotEmpty()) {
-                            currentRules.addAll(newRules)
-                            ruleStorage.saveRules(currentRules)
+                            ruleStorage.addRules(newRules)
+                            // Imported STACK rules need channels now — otherwise they'd have none
+                            // until the next app start, and the settings deep-link would point at
+                            // a channel that doesn't exist.
+                            StackChannelsAndroid.sync(context)
                         }
                         exportImportMessage = if (result.droppedCount > 0) {
                             context.getString(
@@ -355,7 +346,7 @@ fun SettingsScreen(
             } catch (e: Exception) {
                 null
             }
-            val versionName = packageInfo?.versionName ?: "Unknown"
+            val versionName = packageInfo?.versionName ?: stringResource(R.string.unknown)
 
             Text(
                 text = stringResource(R.string.app_version, versionName),
