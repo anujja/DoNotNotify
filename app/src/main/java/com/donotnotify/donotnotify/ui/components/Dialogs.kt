@@ -10,6 +10,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,8 +26,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -92,81 +94,181 @@ fun TimeSelector(
 fun AdvancedRuleConfigDialog(
     initialConfig: AdvancedRuleConfig,
     initialIsEnabled: Boolean,
+    initialName: String,
+    suggestedName: String,
+    /** True for STACK rules: shows the channel-name field. */
+    showRuleName: Boolean,
+    /** Non-null (a channel id) shows the "Sound & vibration" deep-link for that channel. */
+    soundChannelId: String?,
     onDismiss: () -> Unit,
-    onSave: (AdvancedRuleConfig, Boolean) -> Unit
+    onSave: (AdvancedRuleConfig, Boolean, String) -> Unit
 ) {
     var config by remember { mutableStateOf(initialConfig) }
     var isEnabled by remember { mutableStateOf(initialIsEnabled) }
+    var ruleName by remember { mutableStateOf(initialName) }
+    val scrollState = rememberScrollState()
+    val context = LocalContext.current
 
     Dialog(onDismissRequest = onDismiss) {
         Card {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 20.dp, vertical = 20.dp)
+                    .imePadding()
+                    .verticalScroll(scrollState)
+            ) {
                 Text(
                     stringResource(R.string.advanced_configuration),
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = 12.dp)
                 )
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Checkbox(
-                        checked = isEnabled,
-                        onCheckedChange = { isEnabled = it }
-                    )
-                    Text(stringResource(R.string.enable_rule))
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Checkbox(
-                        checked = config.isTimeLimitEnabled,
-                        onCheckedChange = {
-                            config = config.copy(isTimeLimitEnabled = it)
-                        }
-                    )
-                    Text(stringResource(R.string.enable_time_limit))
-                }
+                ToggleRow(
+                    checked = isEnabled,
+                    label = stringResource(R.string.enable_rule),
+                    onToggle = { isEnabled = it }
+                )
+                ToggleRow(
+                    checked = config.isTimeLimitEnabled,
+                    label = stringResource(R.string.enable_time_limit),
+                    onToggle = { config = config.copy(isTimeLimitEnabled = it) }
+                )
 
                 if (config.isTimeLimitEnabled) {
-                    TimeSelector(
-                        label = stringResource(R.string.start_time),
-                        hour = config.startTimeHour,
-                        minute = config.startTimeMinute,
-                        onTimeSelected = { h, m ->
-                            config = config.copy(startTimeHour = h, startTimeMinute = m)
-                        }
+                    // Indent the pickers so they read as children of the time-limit toggle.
+                    Column(modifier = Modifier.padding(start = 40.dp, top = 4.dp)) {
+                        TimeSelector(
+                            label = stringResource(R.string.start_time),
+                            hour = config.startTimeHour,
+                            minute = config.startTimeMinute,
+                            onTimeSelected = { h, m ->
+                                config = config.copy(startTimeHour = h, startTimeMinute = m)
+                            }
+                        )
+                        TimeSelector(
+                            label = stringResource(R.string.end_time),
+                            hour = config.endTimeHour,
+                            minute = config.endTimeMinute,
+                            onTimeSelected = { h, m ->
+                                config = config.copy(endTimeHour = h, endTimeMinute = m)
+                            }
+                        )
+                    }
+                }
+
+                if (showRuleName) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+                    TextField(
+                        value = ruleName,
+                        onValueChange = { ruleName = it },
+                        label = { Text(stringResource(R.string.rule_name_optional)) },
+                        supportingText = {
+                            Text(stringResource(R.string.rule_name_supporting))
+                        },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
                     )
-                    TimeSelector(
-                        label = stringResource(R.string.end_time),
-                        hour = config.endTimeHour,
-                        minute = config.endTimeMinute,
-                        onTimeSelected = { h, m ->
-                            config = config.copy(endTimeHour = h, endTimeMinute = m)
+                    // Explicit opt-in: tapping this is what publishes filter-derived text as the
+                    // channel name. Prefilling the field would mean a user who just taps Save
+                    // silently exposes their filter to any notification listener.
+                    if (suggestedName.isNotBlank() && ruleName != suggestedName) {
+                        TextButton(
+                            onClick = { ruleName = suggestedName },
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp)
+                        ) {
+                            Text(stringResource(R.string.rule_name_use_suggestion, suggestedName))
                         }
-                    )
+                    }
+
+                    // Sound/vibration are user-owned once the channel exists — Android gives the
+                    // app no way to change them — so link out rather than fake an in-app control.
+                    // Only for a saved rule: the channel must exist before it can be configured.
+                    if (soundChannelId != null) {
+                        OutlinedCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 12.dp)
+                                .clickable {
+                                    runCatching {
+                                        val intent = Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+                                            .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                                            .putExtra(Settings.EXTRA_CHANNEL_ID, soundChannelId)
+                                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        context.startActivity(intent)
+                                    }
+                                }
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Filled.Notifications,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        stringResource(R.string.rule_sound_vibration),
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                    Text(
+                                        stringResource(R.string.rule_sound_vibration_desc),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Icon(
+                                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
                 }
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 16.dp),
+                        .padding(top = 24.dp),
                     horizontalArrangement = Arrangement.End
                 ) {
                     Button(onClick = onDismiss) {
                         Text(stringResource(R.string.cancel))
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    Button(onClick = { onSave(config, isEnabled) }) {
+                    Button(onClick = { onSave(config, isEnabled, ruleName) }) {
                         Text(stringResource(R.string.save))
                     }
                 }
             }
         }
+    }
+}
+
+/** Full-width, tappable checkbox row — larger target and consistent rhythm than a bare Checkbox. */
+@Composable
+private fun ToggleRow(
+    checked: Boolean,
+    label: String,
+    onToggle: (Boolean) -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onToggle(!checked) }
+            .padding(vertical = 4.dp)
+    ) {
+        Checkbox(checked = checked, onCheckedChange = null)
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(label, modifier = Modifier.weight(1f))
     }
 }
 
@@ -191,7 +293,6 @@ private fun RuleDialog(
     var showAdvancedDialog by remember { mutableStateOf(false) }
     var showDeleteConfirmationDialog by remember { mutableStateOf(false) } // State for delete confirmation
     val scrollState = rememberScrollState()
-    val context = LocalContext.current
 
     // A name derived from the rule's filters, offered as a *suggestion* only. It is never
     // prefilled: the name becomes the notification channel's name, which any notification
@@ -210,10 +311,18 @@ private fun RuleDialog(
         AdvancedRuleConfigDialog(
             initialConfig = advancedConfig,
             initialIsEnabled = isEnabled,
+            initialName = ruleName,
+            suggestedName = suggestedName,
+            showRuleName = ruleType == RuleType.STACK,
+            // The channel exists only after the rule is saved, so the deep-link is edit-mode only.
+            soundChannelId = if (isEditMode && ruleType == RuleType.STACK &&
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+            ) StackChannels.channelIdFor(initialRule) else null,
             onDismiss = { showAdvancedDialog = false },
-            onSave = { config, enabled ->
+            onSave = { config, enabled, name ->
                 advancedConfig = config
                 isEnabled = enabled
+                ruleName = name
                 showAdvancedDialog = false
             }
         )
@@ -345,59 +454,6 @@ private fun RuleDialog(
                         ) {
                             Text(matchType.label())
                         }
-                    }
-                }
-
-                if (ruleType == RuleType.STACK) {
-                    Spacer(modifier = Modifier.padding(vertical = 8.dp))
-
-                    TextField(
-                        value = ruleName,
-                        onValueChange = { ruleName = it },
-                        label = { Text(stringResource(R.string.rule_name_optional)) },
-                        supportingText = {
-                            Text(stringResource(R.string.rule_name_supporting))
-                        },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    // Explicit opt-in: tapping this is what publishes filter-derived text as the
-                    // channel name. Prefilling the field would mean a user who just taps Save
-                    // silently exposes their filter to any notification listener.
-                    if (suggestedName.isNotBlank() && ruleName != suggestedName) {
-                        TextButton(onClick = { ruleName = suggestedName }) {
-                            Text(stringResource(R.string.rule_name_use_suggestion, suggestedName))
-                        }
-                    }
-
-                    // Sound/vibration are user-owned once the channel exists — Android gives the
-                    // app no way to change them — so link out rather than fake an in-app control.
-                    // Only for a saved rule: the channel must exist before it can be configured.
-                    if (isEditMode && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        ListItem(
-                            headlineContent = { Text(stringResource(R.string.rule_sound_vibration)) },
-                            supportingContent = {
-                                Text(stringResource(R.string.rule_sound_vibration_desc))
-                            },
-                            leadingContent = {
-                                Icon(Icons.Filled.Notifications, contentDescription = null)
-                            },
-                            trailingContent = {
-                                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
-                            },
-                            modifier = Modifier.clickable {
-                                runCatching {
-                                    val intent = Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
-                                        .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                                        .putExtra(
-                                            Settings.EXTRA_CHANNEL_ID,
-                                            StackChannels.channelIdFor(initialRule)
-                                        )
-                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    context.startActivity(intent)
-                                }
-                            }
-                        )
                     }
                 }
 
