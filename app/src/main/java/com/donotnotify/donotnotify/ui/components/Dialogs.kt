@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -473,7 +474,13 @@ private fun RuleDialog(
                     horizontalArrangement = if (isEditMode) Arrangement.SpaceBetween else Arrangement.End
                 ) {
                     if (isEditMode && onDelete != null) {
-                        Button(onClick = { showDeleteConfirmationDialog = true }) { // Changed to show confirmation dialog
+                        Button(
+                            onClick = { showDeleteConfirmationDialog = true }, // Changed to show confirmation dialog
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = MaterialTheme.colorScheme.onError
+                            )
+                        ) {
                             Text(stringResource(R.string.delete))
                         }
                     }
