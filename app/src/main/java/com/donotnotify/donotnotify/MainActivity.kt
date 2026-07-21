@@ -142,11 +142,7 @@ class MainActivity : ComponentActivity() {
 
         val newRules = prebuiltRules.filter { rule ->
             val packageName = rule.packageName ?: return@filter false
-            // ALLOWLIST rules are fail-closed (block everything that doesn't match), so we never
-            // auto-enable them without consent — they remain available via the Prebuilt Rules
-            // screen, where the correctly-localized variant is offered. See PrebuiltRuleReconciler.
-            rule.ruleType != RuleType.ALLOWLIST &&
-                    packageName in installedPackages &&
+            packageName in installedPackages &&
                     packageName !in processedPackages &&
                     existingRules.none { it.packageName == packageName }
         }
