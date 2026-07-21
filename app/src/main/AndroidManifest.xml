@@ -39,6 +39,7 @@
         <package android:name="com.disney.disneyplus" />
         <package android:name="com.hulu.plus" />
         <package android:name="com.linkedin.android" />
+        <package android:name="com.google.android.apps.nbu.paisa.user" />
 
     </queries>
 
