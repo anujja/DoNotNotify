@@ -2,6 +2,7 @@
   {
     "appName": "Mygate",
     "packageName": "com.mygate.user",
+    "titleMatchType": "CONTAINS",
     "textFilter": ".*(checked|approv|declined|invite).*",
     "textMatchType": "REGEX",
     "ruleType": "ALLOWLIST",
