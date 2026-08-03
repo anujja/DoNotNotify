@@ -1,0 +1,2 @@
+• Fixed: Rules with anchored regex (e.g. ^-.*) now match notifications from Google Calendar and other apps that wrap text in invisible Unicode formatting characters — matching now sees exactly the text you see
+• Fixed: Contains-filters pasted from notification text with hidden formatting characters now match correctly
