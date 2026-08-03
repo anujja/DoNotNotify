@@ -64,8 +64,6 @@
     <string name="no_rules_created_desc">Créez des règles pour bloquer automatiquement les notifications indésirables. Appuyez sur une notification dans l\'onglet Historique pour créer une règle, ou parcourez les règles prédéfinies.</string>
     <string name="rules_auto_block_desc">Les notifications correspondant aux règles ci-dessous sont traitées automatiquement selon chaque règle.</string>
     <string name="rules_master_switch_label">Toutes les règles actives</string>
-    <string name="how_to_add_rule">Comment ajouter une nouvelle règle</string>
-    <string name="how_to_add_rule_desc">Pour créer une nouvelle règle :\n\n1. Passez à l\'onglet « Historique »\n2. Trouvez une notification pour laquelle vous voulez une règle\n3. Appuyez sur la notification\n4. Sélectionnez « Créer une règle » parmi les options\n5. Personnalisez les paramètres de la règle selon vos besoins\n\nLa règle apparaîtra alors ici et s\'appliquera automatiquement aux notifications correspondantes.</string>
     <string name="add_new_rule">Ajouter une nouvelle règle</string>
     <string name="browse_prebuilt_rules">Parcourir les règles prédéfinies</string>
     <string name="hits_count">Correspondances : %d</string>
@@ -232,6 +230,38 @@
     <string name="rule_type_desc_denylist">Bloque toutes les notifications correspondant à cette règle.</string>
     <string name="rule_type_desc_allowlist">N\'autorise que les notifications correspondant à cette règle. Toutes les autres de cette application sont bloquées.</string>
     <string name="rule_type_desc_stack">Regroupe les notifications correspondantes en un seul résumé. Les originaux sont supprimés.</string>
+
+    <!-- Rule creation wizard -->
+    <string name="rule_wizard_step_app_title">Choisissez une application</string>
+    <string name="rule_wizard_step_app_body">Aux notifications de quelle application cette règle doit-elle s\'appliquer ? Cette liste affiche les applications ayant déjà affiché des notifications sur cet appareil, ainsi que les applications installées reconnues.</string>
+    <string name="rule_wizard_app_not_listed">Application absente de la liste ?</string>
+    <string name="rule_wizard_enter_package">Saisissez son nom de paquet</string>
+    <string name="rule_wizard_package_label">Nom de paquet</string>
+    <string name="rule_wizard_package_hint">ex. com.example.app</string>
+    <string name="rule_wizard_package_help">Les applications apparaissent dans la liste après avoir affiché une notification. Un nom de paquet ressemble à com.example.app — vous le trouverez dans l\'URL de la page Play Store de l\'application.</string>
+    <string name="rule_wizard_package_warning">Cela ne ressemble pas à un nom de paquet, mais vous pouvez quand même l\'utiliser.</string>
+    <string name="rule_wizard_no_known_apps_title">Aucune application à afficher pour l\'instant</string>
+    <string name="rule_wizard_no_known_apps_desc">Les applications apparaîtront ici dès qu\'elles auront affiché une notification. Vous pouvez aussi saisir un nom de paquet ci-dessous.</string>
+    <string name="rule_wizard_selected">Sélectionnée</string>
+    <string name="rule_wizard_step_type_title">Choisissez un type de règle</string>
+    <string name="rule_wizard_step_type_body">Que faire des notifications correspondantes ?</string>
+    <string name="rule_wizard_step_filters_title">Ajoutez des filtres</string>
+    <string name="rule_wizard_step_filters_body">Seules les notifications correspondant à ces filtres sont concernées.</string>
+    <string name="rule_wizard_example_now">maintenant</string>
+    <string name="rule_wizard_example_title">Votre commande a été livrée</string>
+    <string name="rule_wizard_example_text">Appuyez pour voir les détails de la livraison</string>
+    <string name="rule_wizard_regex_help">Correspond lorsque la notification correspond à cette expression régulière.</string>
+    <string name="rule_wizard_invalid_regex">Expression régulière non valide : %1$s</string>
+    <string name="rule_wizard_matches_all_warning">Aucun filtre défini — cette règle s\'appliquera à TOUTES les notifications de %1$s.</string>
+    <string name="rule_wizard_step_summary_title">Vérifiez votre règle</string>
+    <string name="rule_wizard_summary_title_filter">Titre</string>
+    <string name="rule_wizard_summary_text_filter">Texte</string>
+    <string name="rule_wizard_summary_any">Tous</string>
+    <string name="rule_wizard_summary_contains">Contient « %1$s »</string>
+    <string name="rule_wizard_summary_regex">Correspond à la regex « %1$s »</string>
+    <string name="rule_wizard_duplicate_warning">Une règle similaire existe déjà pour cette application.</string>
+    <string name="rule_wizard_edit_later_hint">Vous pourrez modifier cette règle plus tard pour la désactiver, la renommer ou la limiter à certaines heures.</string>
+    <string name="rule_wizard_create">Créer la règle</string>
     <string name="stack_summary_count">%d notifications</string>
     <string name="stack_overflow_more">+%d de plus</string>
     <string name="stack_warning_notifications_disabled">Groupement inactif — les notifications sont désactivées pour DoNotNotify. Appuyez pour activer.</string>

@@ -18,7 +18,6 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.AccessAlarms
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.automirrored.outlined.Rule
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
@@ -26,12 +25,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.Lifecycle
@@ -63,25 +60,10 @@ import com.donotnotify.donotnotify.ui.components.label
 fun RulesScreen(
     rules: List<BlockerRule>,
     onRuleClick: (BlockerRule) -> Unit,
-    onDeleteRuleClick: (BlockerRule) -> Unit, // This lambda is no longer directly used for UI, but kept for consistency if needed elsewhere.
+    onCreateRuleClick: () -> Unit,
     onBrowsePrebuiltRulesClick: () -> Unit,
     onToggleAllRules: (Boolean) -> Unit
 ) {
-    var showAddRuleDialog by remember { mutableStateOf(false) }
-
-    if (showAddRuleDialog) {
-        AlertDialog(
-            onDismissRequest = { showAddRuleDialog = false },
-            title = { Text(stringResource(R.string.how_to_add_rule)) },
-            text = { Text(stringResource(R.string.how_to_add_rule_desc)) },
-            confirmButton = {
-                TextButton(onClick = { showAddRuleDialog = false }) {
-                    Text(stringResource(R.string.got_it))
-                }
-            }
-        )
-    }
-
     // Group rules by packageName; apps with multiple rules get a section header
     val grouped = rules.groupBy { it.packageName ?: it.appName ?: "" }
 
@@ -168,7 +150,7 @@ fun RulesScreen(
         }
         item {
             Button(
-                onClick = { showAddRuleDialog = true },
+                onClick = onCreateRuleClick,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp)

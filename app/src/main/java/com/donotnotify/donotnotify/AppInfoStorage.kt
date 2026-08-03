@@ -119,6 +119,29 @@ class AppInfoStorage(context: Context) {
         return appName
     }
 
+    /** All known apps as (packageName, appName). Icons stay lazy — fetch per row via [getAppIcon]. */
+    fun getAllApps(): List<Pair<String, String?>> {
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            AppInfoDatabaseHelper.TABLE_NAME,
+            arrayOf(AppInfoDatabaseHelper.COLUMN_PACKAGE_NAME, AppInfoDatabaseHelper.COLUMN_APP_NAME),
+            null,
+            null,
+            null,
+            null,
+            AppInfoDatabaseHelper.COLUMN_APP_NAME
+        )
+
+        val apps = mutableListOf<Pair<String, String?>>()
+        while (cursor.moveToNext()) {
+            val packageName = cursor.getString(cursor.getColumnIndexOrThrow(AppInfoDatabaseHelper.COLUMN_PACKAGE_NAME))
+            val appName = cursor.getString(cursor.getColumnIndexOrThrow(AppInfoDatabaseHelper.COLUMN_APP_NAME))
+            apps.add(packageName to appName)
+        }
+        cursor.close()
+        return apps
+    }
+
     fun deleteAppInfo(packageName: String) {
         val db = dbHelper.writableDatabase
         db.delete(

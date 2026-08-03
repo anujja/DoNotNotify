@@ -64,8 +64,6 @@
     <string name="no_rules_created_desc">不要な通知を自動的にブロックするルールを作成しましょう。「履歴」タブで通知をタップしてルールを作成するか、プリセットルールを利用してください。</string>
     <string name="rules_auto_block_desc">以下のルールに一致する通知は、各ルールに従って自動的に処理されます。</string>
     <string name="rules_master_switch_label">すべてのルールを有効にする</string>
-    <string name="how_to_add_rule">新しいルールの追加方法</string>
-    <string name="how_to_add_rule_desc">新しいルールを作成するには:\n\n1. 「履歴」タブに切り替えます\n2. ルールを作成したい通知を見つけます\n3. その通知をタップします\n4. オプションから「ルールを作成」を選択します\n5. 必要に応じてルール設定をカスタマイズします\n\nルールはここに表示され、一致する通知に自動的に適用されます。</string>
     <string name="add_new_rule">新しいルールを追加</string>
     <string name="browse_prebuilt_rules">プリセットルールを閲覧</string>
     <string name="hits_count">ヒット数: %d</string>
@@ -232,6 +230,38 @@
     <string name="rule_type_desc_denylist">このルールに一致するすべての通知をブロックします。</string>
     <string name="rule_type_desc_allowlist">このルールに一致する通知のみを許可します。このアプリからの他の通知はすべてブロックされます。</string>
     <string name="rule_type_desc_stack">一致する通知を1つのサマリーにまとめます。元の通知は削除されます。</string>
+
+    <!-- Rule creation wizard -->
+    <string name="rule_wizard_step_app_title">アプリを選択</string>
+    <string name="rule_wizard_step_app_body">どのアプリの通知にこのルールを適用しますか? このリストには、この端末で通知を送信したことのあるアプリと、認識済みのインストール済みアプリが表示されます。</string>
+    <string name="rule_wizard_app_not_listed">アプリが見つかりませんか?</string>
+    <string name="rule_wizard_enter_package">パッケージ名を入力</string>
+    <string name="rule_wizard_package_label">パッケージ名</string>
+    <string name="rule_wizard_package_hint">例: com.example.app</string>
+    <string name="rule_wizard_package_help">アプリは通知を送信するとリストに表示されます。パッケージ名は com.example.app のような形式で、Play ストアのアプリページの URL で確認できます。</string>
+    <string name="rule_wizard_package_warning">パッケージ名ではないようですが、そのまま使用することもできます。</string>
+    <string name="rule_wizard_no_known_apps_title">表示できるアプリがまだありません</string>
+    <string name="rule_wizard_no_known_apps_desc">アプリが通知を送信するとここに表示されます。下でパッケージ名を直接入力することもできます。</string>
+    <string name="rule_wizard_selected">選択済み</string>
+    <string name="rule_wizard_step_type_title">ルールの種類を選択</string>
+    <string name="rule_wizard_step_type_body">一致した通知をどうしますか?</string>
+    <string name="rule_wizard_step_filters_title">フィルターを追加</string>
+    <string name="rule_wizard_step_filters_body">これらのフィルターに一致する通知のみが対象になります。</string>
+    <string name="rule_wizard_example_now">今</string>
+    <string name="rule_wizard_example_title">ご注文の商品が配達されました</string>
+    <string name="rule_wizard_example_text">タップして配達の詳細を確認</string>
+    <string name="rule_wizard_regex_help">通知がこの正規表現に一致すると一致します。</string>
+    <string name="rule_wizard_invalid_regex">無効な正規表現: %1$s</string>
+    <string name="rule_wizard_matches_all_warning">フィルターが未設定です — このルールは %1$s のすべての通知に適用されます。</string>
+    <string name="rule_wizard_step_summary_title">ルールの確認</string>
+    <string name="rule_wizard_summary_title_filter">タイトル</string>
+    <string name="rule_wizard_summary_text_filter">テキスト</string>
+    <string name="rule_wizard_summary_any">すべて</string>
+    <string name="rule_wizard_summary_contains">「%1$s」を含む</string>
+    <string name="rule_wizard_summary_regex">正規表現「%1$s」に一致</string>
+    <string name="rule_wizard_duplicate_warning">このアプリには同様のルールが既に存在します。</string>
+    <string name="rule_wizard_edit_later_hint">このルールは後から編集して、無効化、名前の変更、時間帯の制限ができます。</string>
+    <string name="rule_wizard_create">ルールを作成</string>
     <string name="stack_summary_count">%d件の通知</string>
     <string name="stack_overflow_more">他%d件</string>
     <string name="stack_warning_notifications_disabled">まとめ機能は無効です — DoNotNotify の通知がオフになっています。タップして有効にしてください。</string>

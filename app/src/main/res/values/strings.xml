@@ -64,8 +64,6 @@
     <string name="no_rules_created_desc">Create rules to automatically block unwanted notifications. Tap a notification in the History tab to create a rule, or browse pre-built rules.</string>
     <string name="rules_auto_block_desc">Notifications matching the rules below are handled automatically according to each rule.</string>
     <string name="rules_master_switch_label">All rules active</string>
-    <string name="how_to_add_rule">How to Add a New Rule</string>
-    <string name="how_to_add_rule_desc">To create a new rule:\n\n1. Switch to the \"History\" tab\n2. Find a notification you want a rule for\n3. Tap on the notification\n4. Select \"Create Rule\" from the options\n5. Customize the rule settings as needed\n\nThe rule will then appear here and apply to matching notifications automatically.</string>
     <string name="add_new_rule">Add a New Rule</string>
     <string name="browse_prebuilt_rules">Browse Pre-built Rules</string>
     <string name="hits_count">Hits: %d</string>
@@ -98,6 +96,38 @@
     <string name="rule_type_desc_denylist">Block all notifications matching this rule.</string>
     <string name="rule_type_desc_allowlist">Only allow notifications matching this rule. All others from this app are blocked.</string>
     <string name="rule_type_desc_stack">Group matching notifications into one summary. The originals are dismissed.</string>
+
+    <!-- Rule creation wizard -->
+    <string name="rule_wizard_step_app_title">Choose an app</string>
+    <string name="rule_wizard_step_app_body">Which app\'s notifications should this rule apply to? This list shows apps that have posted notifications on this device, plus recognized installed apps.</string>
+    <string name="rule_wizard_app_not_listed">App not listed?</string>
+    <string name="rule_wizard_enter_package">Enter its package name</string>
+    <string name="rule_wizard_package_label">Package name</string>
+    <string name="rule_wizard_package_hint">e.g. com.example.app</string>
+    <string name="rule_wizard_package_help">Apps appear in the list after they post a notification. A package name looks like com.example.app — you can find it in the app\'s Play Store page URL.</string>
+    <string name="rule_wizard_package_warning">This doesn\'t look like a package name, but you can still use it.</string>
+    <string name="rule_wizard_no_known_apps_title">No apps to show yet</string>
+    <string name="rule_wizard_no_known_apps_desc">Apps show up here once they post a notification. You can still enter a package name below.</string>
+    <string name="rule_wizard_selected">Selected</string>
+    <string name="rule_wizard_step_type_title">Choose a rule type</string>
+    <string name="rule_wizard_step_type_body">What should happen to matching notifications?</string>
+    <string name="rule_wizard_step_filters_title">Add filters</string>
+    <string name="rule_wizard_step_filters_body">Only notifications that match these filters are affected.</string>
+    <string name="rule_wizard_example_now">now</string>
+    <string name="rule_wizard_example_title">Your order has been delivered</string>
+    <string name="rule_wizard_example_text">Tap to see the delivery details</string>
+    <string name="rule_wizard_regex_help">Matches when the notification matches this regular expression.</string>
+    <string name="rule_wizard_invalid_regex">Invalid regular expression: %1$s</string>
+    <string name="rule_wizard_matches_all_warning">No filters set — this rule will apply to ALL notifications from %1$s.</string>
+    <string name="rule_wizard_step_summary_title">Review your rule</string>
+    <string name="rule_wizard_summary_title_filter">Title</string>
+    <string name="rule_wizard_summary_text_filter">Text</string>
+    <string name="rule_wizard_summary_any">Any</string>
+    <string name="rule_wizard_summary_contains">Contains \"%1$s\"</string>
+    <string name="rule_wizard_summary_regex">Matches regex \"%1$s\"</string>
+    <string name="rule_wizard_duplicate_warning">A similar rule for this app already exists.</string>
+    <string name="rule_wizard_edit_later_hint">You can edit this rule later to turn it off, rename it, or limit it to certain hours.</string>
+    <string name="rule_wizard_create">Create Rule</string>
 
     <!-- Stacked notifications -->
     <string name="stack_summary_count">%d notifications</string>

@@ -64,8 +64,6 @@
     <string name="no_rules_created_desc">원치 않는 알림을 자동으로 차단하는 규칙을 만드세요. 기록 탭에서 알림을 탭하여 규칙을 만들거나 미리 만들어진 규칙을 살펴보세요.</string>
     <string name="rules_auto_block_desc">아래 규칙과 일치하는 알림은 각 규칙에 따라 자동으로 처리됩니다.</string>
     <string name="rules_master_switch_label">모든 규칙 활성화</string>
-    <string name="how_to_add_rule">새 규칙 추가 방법</string>
-    <string name="how_to_add_rule_desc">새 규칙을 만들려면:\n\n1. \"기록\" 탭으로 이동합니다\n2. 규칙을 만들 알림을 찾습니다\n3. 알림을 탭합니다\n4. 옵션에서 \"규칙 만들기\"를 선택합니다\n5. 필요에 따라 규칙 설정을 조정합니다\n\n규칙은 여기에 표시되며 일치하는 알림에 자동으로 적용됩니다.</string>
     <string name="add_new_rule">새 규칙 추가</string>
     <string name="browse_prebuilt_rules">미리 만들어진 규칙 보기</string>
     <string name="hits_count">적중: %d</string>
@@ -98,6 +96,38 @@
     <string name="rule_type_desc_denylist">이 규칙과 일치하는 모든 알림을 차단합니다.</string>
     <string name="rule_type_desc_allowlist">이 규칙과 일치하는 알림만 허용합니다. 이 앱의 다른 모든 알림은 차단됩니다.</string>
     <string name="rule_type_desc_stack">일치하는 알림을 하나의 요약으로 묶습니다. 원본 알림은 제거됩니다.</string>
+
+    <!-- Rule creation wizard -->
+    <string name="rule_wizard_step_app_title">앱 선택</string>
+    <string name="rule_wizard_step_app_body">어떤 앱의 알림에 이 규칙을 적용할까요? 이 목록에는 이 기기에서 알림을 보낸 적이 있는 앱과 인식된 설치 앱이 표시됩니다.</string>
+    <string name="rule_wizard_app_not_listed">앱이 목록에 없나요?</string>
+    <string name="rule_wizard_enter_package">패키지 이름을 입력하세요</string>
+    <string name="rule_wizard_package_label">패키지 이름</string>
+    <string name="rule_wizard_package_hint">예: com.example.app</string>
+    <string name="rule_wizard_package_help">앱이 알림을 보내면 목록에 표시됩니다. 패키지 이름은 com.example.app 형식이며, Play 스토어 앱 페이지 URL에서 확인할 수 있습니다.</string>
+    <string name="rule_wizard_package_warning">패키지 이름이 아닌 것 같지만 그대로 사용할 수 있습니다.</string>
+    <string name="rule_wizard_no_known_apps_title">표시할 앱이 아직 없습니다</string>
+    <string name="rule_wizard_no_known_apps_desc">앱이 알림을 보내면 여기에 표시됩니다. 아래에서 패키지 이름을 직접 입력할 수도 있습니다.</string>
+    <string name="rule_wizard_selected">선택됨</string>
+    <string name="rule_wizard_step_type_title">규칙 유형 선택</string>
+    <string name="rule_wizard_step_type_body">일치하는 알림을 어떻게 처리할까요?</string>
+    <string name="rule_wizard_step_filters_title">필터 추가</string>
+    <string name="rule_wizard_step_filters_body">이 필터와 일치하는 알림만 영향을 받습니다.</string>
+    <string name="rule_wizard_example_now">지금</string>
+    <string name="rule_wizard_example_title">주문하신 상품이 배송되었습니다</string>
+    <string name="rule_wizard_example_text">탭하여 배송 세부정보 보기</string>
+    <string name="rule_wizard_regex_help">알림이 이 정규식과 일치하면 일치합니다.</string>
+    <string name="rule_wizard_invalid_regex">잘못된 정규식: %1$s</string>
+    <string name="rule_wizard_matches_all_warning">필터가 없습니다. 이 규칙은 %1$s의 모든 알림에 적용됩니다.</string>
+    <string name="rule_wizard_step_summary_title">규칙 확인</string>
+    <string name="rule_wizard_summary_title_filter">제목</string>
+    <string name="rule_wizard_summary_text_filter">내용</string>
+    <string name="rule_wizard_summary_any">모두</string>
+    <string name="rule_wizard_summary_contains">\"%1$s\" 포함</string>
+    <string name="rule_wizard_summary_regex">정규식 \"%1$s\" 일치</string>
+    <string name="rule_wizard_duplicate_warning">이 앱에 대한 유사한 규칙이 이미 있습니다.</string>
+    <string name="rule_wizard_edit_later_hint">이 규칙은 나중에 편집하여 끄거나, 이름을 바꾸거나, 특정 시간대로 제한할 수 있습니다.</string>
+    <string name="rule_wizard_create">규칙 만들기</string>
 
     <!-- Stacked notifications -->
     <string name="stack_summary_count">알림 %d개</string>

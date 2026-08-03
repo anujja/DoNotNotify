@@ -57,6 +57,7 @@ import com.donotnotify.donotnotify.ui.screens.BlockedScreen
 import com.donotnotify.donotnotify.ui.screens.HistoryScreen
 import com.donotnotify.donotnotify.ui.screens.PrebuiltRulesScreen
 import com.donotnotify.donotnotify.ui.screens.RulesScreen
+import com.donotnotify.donotnotify.ui.screens.RuleWizardScreen
 import com.donotnotify.donotnotify.ui.screens.SettingsScreen
 import com.donotnotify.donotnotify.ui.screens.SetupWizardScreen
 import com.donotnotify.donotnotify.ui.theme.DoNotNotifyTheme
@@ -78,6 +79,7 @@ class MainActivity : ComponentActivity() {
     private var unmonitoredApps by mutableStateOf<Set<String>>(emptySet())
     private var showSettingsScreen by mutableStateOf(false)
     private var showPrebuiltRulesScreen by mutableStateOf(false)
+    private var showRuleWizard by mutableStateOf(false)
     private var autoAddedApps by mutableStateOf<List<String>>(emptyList())
     private var showAutoAddedDialog by mutableStateOf(false)
     private var showSetupWizard by mutableStateOf(false)
@@ -170,7 +172,6 @@ class MainActivity : ComponentActivity() {
         var notificationToShowDetailsDialog by remember { mutableStateOf<SimpleNotification?>(null) }
         var notificationToShowHistoryDetailsDialog by remember { mutableStateOf<SimpleNotification?>(null) }
         var ruleToEdit by remember { mutableStateOf<BlockerRule?>(null) }
-        var ruleToDelete by remember { mutableStateOf<BlockerRule?>(null) }
         var notificationToDelete by remember { mutableStateOf<SimpleNotification?>(null) }
         val pagerState = rememberPagerState(pageCount = { 3 })
         val coroutineScope = rememberCoroutineScope()
@@ -240,6 +241,22 @@ class MainActivity : ComponentActivity() {
                     Toast.makeText(context, context.getString(R.string.toast_rule_added), Toast.LENGTH_SHORT).show()
                 }
             )
+        } else if (showRuleWizard) {
+            // No BackHandler here: the wizard owns back (keyboard first, then
+            // step-back, then close).
+            RuleWizardScreen(
+                existingRules = rules,
+                pastNotifications = pastNotifications,
+                blockedNotifications = blockedNotifications,
+                onClose = { showRuleWizard = false },
+                onCreateRule = { rule ->
+                    rules = ruleStorage.addRules(listOf(rule))
+                    StackChannelsAndroid.sync(context)
+                    showRuleWizard = false
+                    Toast.makeText(context, context.getString(R.string.toast_rule_added), Toast.LENGTH_SHORT).show()
+                    coroutineScope.launch { pagerState.animateScrollToPage(1) }
+                }
+            )
         } else {
             TabbedScreen(
                 pagerState = pagerState,
@@ -263,7 +280,7 @@ class MainActivity : ComponentActivity() {
                     Toast.makeText(context, context.getString(R.string.toast_blocked_history_cleared), Toast.LENGTH_SHORT).show()
                 },
                 onRuleClick = { rule -> ruleToEdit = rule },
-                onDeleteRuleClick = { rule -> ruleToDelete = rule },
+                onCreateRuleClick = { showRuleWizard = true },
                 onDeleteNotificationClick = { notification -> notificationToDelete = notification },
                 onDeleteHistoryNotificationClick = { notification ->
                     notificationHistoryStorage.deleteNotification(notification)
@@ -422,24 +439,6 @@ class MainActivity : ComponentActivity() {
             )
         }
 
-        ruleToDelete?.let { rule ->
-            DeleteConfirmationDialog(
-                itemName = context.getString(R.string.rule_for, rule.appName.orEmpty()),
-                onDismiss = { ruleToDelete = null },
-                onConfirm = {
-                    rules = ruleStorage.deleteRuleById(rule.id)
-                    if (rule.ruleType == RuleType.STACK) {
-                        rule.packageName?.let {
-                            StackedNotificationManager.cancelStackForRule(context, it, rule)
-                        }
-                    }
-                    StackChannelsAndroid.sync(context)
-                    ruleToDelete = null
-                    Toast.makeText(context, context.getString(R.string.toast_rule_deleted), Toast.LENGTH_SHORT).show()
-                }
-            )
-        }
-
         notificationToDelete?.let { notification ->
             DeleteConfirmationDialog(
                 itemName = context.getString(R.string.blocked_notification_from, notification.appLabel.orEmpty()),
@@ -466,7 +465,7 @@ class MainActivity : ComponentActivity() {
         onClearHistory: () -> Unit,
         onClearBlockedHistory: () -> Unit,
         onRuleClick: (BlockerRule) -> Unit,
-        onDeleteRuleClick: (BlockerRule) -> Unit,
+        onCreateRuleClick: () -> Unit,
         onDeleteNotificationClick: (SimpleNotification) -> Unit,
         onDeleteHistoryNotificationClick: (SimpleNotification) -> Unit,
         isServiceEnabled: Boolean, // Pass isServiceEnabled
@@ -543,7 +542,7 @@ class MainActivity : ComponentActivity() {
                             onClearHistory = onClearHistory,
                             onClearBlockedHistory = onClearBlockedHistory,
                             onRuleClick = onRuleClick,
-                            onDeleteRuleClick = onDeleteRuleClick,
+                            onCreateRuleClick = onCreateRuleClick,
                             onDeleteNotificationClick = onDeleteNotificationClick,
                             onDeleteHistoryNotificationClick = onDeleteHistoryNotificationClick,
                             onBrowsePrebuiltRulesClick = onBrowsePrebuiltRulesClick,
@@ -569,7 +568,7 @@ class MainActivity : ComponentActivity() {
         onClearHistory: () -> Unit,
         onClearBlockedHistory: () -> Unit,
         onRuleClick: (BlockerRule) -> Unit,
-        onDeleteRuleClick: (BlockerRule) -> Unit,
+        onCreateRuleClick: () -> Unit,
         onDeleteNotificationClick: (SimpleNotification) -> Unit,
         onDeleteHistoryNotificationClick: (SimpleNotification) -> Unit,
         onBrowsePrebuiltRulesClick: () -> Unit,
@@ -588,7 +587,7 @@ class MainActivity : ComponentActivity() {
                 onResumeMonitoring
             )
 
-            1 -> RulesScreen(rules, onRuleClick, onDeleteRuleClick, onBrowsePrebuiltRulesClick, onToggleAllRules)
+            1 -> RulesScreen(rules, onRuleClick, onCreateRuleClick, onBrowsePrebuiltRulesClick, onToggleAllRules)
             2 -> BlockedScreen(
                 blockedNotifications,
                 onClearBlockedHistory,

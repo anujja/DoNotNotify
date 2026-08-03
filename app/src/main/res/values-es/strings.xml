@@ -64,8 +64,6 @@
     <string name="no_rules_created_desc">Crea reglas para bloquear automáticamente las notificaciones no deseadas. Toca una notificación en la pestaña Historial para crear una regla, o explora las reglas predefinidas.</string>
     <string name="rules_auto_block_desc">Las notificaciones que coinciden con las reglas siguientes se gestionan automáticamente según cada regla.</string>
     <string name="rules_master_switch_label">Todas las reglas activas</string>
-    <string name="how_to_add_rule">Cómo añadir una nueva regla</string>
-    <string name="how_to_add_rule_desc">Para crear una nueva regla:\n\n1. Cambia a la pestaña «Historial»\n2. Busca una notificación para la que quieras una regla\n3. Toca la notificación\n4. Selecciona «Crear regla» entre las opciones\n5. Personaliza los ajustes de la regla según sea necesario\n\nLa regla aparecerá aquí y se aplicará automáticamente a las notificaciones coincidentes.</string>
     <string name="add_new_rule">Añadir una nueva regla</string>
     <string name="browse_prebuilt_rules">Explorar reglas predefinidas</string>
     <string name="hits_count">Coincidencias: %d</string>
@@ -98,6 +96,38 @@
     <string name="rule_type_desc_denylist">Bloquea todas las notificaciones que coincidan con esta regla.</string>
     <string name="rule_type_desc_allowlist">Solo permite las notificaciones que coincidan con esta regla. Todas las demás de esta aplicación se bloquean.</string>
     <string name="rule_type_desc_stack">Agrupa las notificaciones coincidentes en un único resumen. Las originales se descartan.</string>
+
+    <!-- Rule creation wizard -->
+    <string name="rule_wizard_step_app_title">Elige una aplicación</string>
+    <string name="rule_wizard_step_app_body">¿A las notificaciones de qué aplicación se aplicará esta regla? Esta lista muestra las aplicaciones que han publicado notificaciones en este dispositivo, además de aplicaciones instaladas reconocidas.</string>
+    <string name="rule_wizard_app_not_listed">¿No aparece la aplicación?</string>
+    <string name="rule_wizard_enter_package">Introduce su nombre de paquete</string>
+    <string name="rule_wizard_package_label">Nombre del paquete</string>
+    <string name="rule_wizard_package_hint">p. ej. com.example.app</string>
+    <string name="rule_wizard_package_help">Las aplicaciones aparecen en la lista después de publicar una notificación. Un nombre de paquete tiene la forma com.example.app; puedes encontrarlo en la URL de la página de la aplicación en Play Store.</string>
+    <string name="rule_wizard_package_warning">Esto no parece un nombre de paquete, pero puedes usarlo de todos modos.</string>
+    <string name="rule_wizard_no_known_apps_title">Aún no hay aplicaciones que mostrar</string>
+    <string name="rule_wizard_no_known_apps_desc">Las aplicaciones aparecerán aquí cuando publiquen una notificación. También puedes introducir un nombre de paquete abajo.</string>
+    <string name="rule_wizard_selected">Seleccionada</string>
+    <string name="rule_wizard_step_type_title">Elige el tipo de regla</string>
+    <string name="rule_wizard_step_type_body">¿Qué debe ocurrir con las notificaciones coincidentes?</string>
+    <string name="rule_wizard_step_filters_title">Añade filtros</string>
+    <string name="rule_wizard_step_filters_body">Solo se verán afectadas las notificaciones que coincidan con estos filtros.</string>
+    <string name="rule_wizard_example_now">ahora</string>
+    <string name="rule_wizard_example_title">Tu pedido ha sido entregado</string>
+    <string name="rule_wizard_example_text">Toca para ver los detalles de la entrega</string>
+    <string name="rule_wizard_regex_help">Coincide cuando la notificación coincide con esta expresión regular.</string>
+    <string name="rule_wizard_invalid_regex">Expresión regular no válida: %1$s</string>
+    <string name="rule_wizard_matches_all_warning">Sin filtros: esta regla se aplicará a TODAS las notificaciones de %1$s.</string>
+    <string name="rule_wizard_step_summary_title">Revisa tu regla</string>
+    <string name="rule_wizard_summary_title_filter">Título</string>
+    <string name="rule_wizard_summary_text_filter">Texto</string>
+    <string name="rule_wizard_summary_any">Cualquiera</string>
+    <string name="rule_wizard_summary_contains">Contiene «%1$s»</string>
+    <string name="rule_wizard_summary_regex">Coincide con la regex «%1$s»</string>
+    <string name="rule_wizard_duplicate_warning">Ya existe una regla similar para esta aplicación.</string>
+    <string name="rule_wizard_edit_later_hint">Puedes editar esta regla más tarde para desactivarla, renombrarla o limitarla a ciertas horas.</string>
+    <string name="rule_wizard_create">Crear regla</string>
 
     <!-- Stacked notifications -->
     <string name="stack_summary_count">%d notificaciones</string>

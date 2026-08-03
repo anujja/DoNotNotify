@@ -64,8 +64,6 @@
     <string name="no_rules_created_desc">Создайте правила для автоматической блокировки нежелательных уведомлений. Нажмите на уведомление на вкладке «История», чтобы создать правило, или просмотрите готовые правила.</string>
     <string name="rules_auto_block_desc">Уведомления, соответствующие приведённым ниже правилам, обрабатываются автоматически согласно каждому правилу.</string>
     <string name="rules_master_switch_label">Все правила активны</string>
-    <string name="how_to_add_rule">Как добавить новое правило</string>
-    <string name="how_to_add_rule_desc">Чтобы создать новое правило:\n\n1. Перейдите на вкладку «История»\n2. Найдите уведомление, для которого нужно правило\n3. Нажмите на уведомление\n4. Выберите «Создать правило» в меню\n5. Настройте параметры правила по своему усмотрению\n\nПравило появится здесь и будет автоматически применяться к подходящим уведомлениям.</string>
     <string name="add_new_rule">Добавить новое правило</string>
     <string name="browse_prebuilt_rules">Просмотр готовых правил</string>
     <string name="hits_count">Совпадений: %d</string>
@@ -232,6 +230,38 @@
     <string name="rule_type_desc_denylist">Блокирует все уведомления, соответствующие этому правилу.</string>
     <string name="rule_type_desc_allowlist">Разрешает только уведомления, соответствующие этому правилу. Все остальные из этого приложения блокируются.</string>
     <string name="rule_type_desc_stack">Группирует подходящие уведомления в одно сводное уведомление. Оригиналы удаляются.</string>
+
+    <!-- Rule creation wizard -->
+    <string name="rule_wizard_step_app_title">Выберите приложение</string>
+    <string name="rule_wizard_step_app_body">К уведомлениям какого приложения применять это правило? В этом списке — приложения, отправлявшие уведомления на этом устройстве, а также распознанные установленные приложения.</string>
+    <string name="rule_wizard_app_not_listed">Приложения нет в списке?</string>
+    <string name="rule_wizard_enter_package">Введите имя его пакета</string>
+    <string name="rule_wizard_package_label">Имя пакета</string>
+    <string name="rule_wizard_package_hint">напр. com.example.app</string>
+    <string name="rule_wizard_package_help">Приложения появляются в списке после того, как отправят уведомление. Имя пакета выглядит как com.example.app — его можно найти в URL страницы приложения в Play Маркете.</string>
+    <string name="rule_wizard_package_warning">Это не похоже на имя пакета, но вы всё равно можете его использовать.</string>
+    <string name="rule_wizard_no_known_apps_title">Пока нет приложений для отображения</string>
+    <string name="rule_wizard_no_known_apps_desc">Приложения появятся здесь, когда отправят уведомление. Вы также можете ввести имя пакета ниже.</string>
+    <string name="rule_wizard_selected">Выбрано</string>
+    <string name="rule_wizard_step_type_title">Выберите тип правила</string>
+    <string name="rule_wizard_step_type_body">Что делать с подходящими уведомлениями?</string>
+    <string name="rule_wizard_step_filters_title">Добавьте фильтры</string>
+    <string name="rule_wizard_step_filters_body">Правило затронет только уведомления, соответствующие этим фильтрам.</string>
+    <string name="rule_wizard_example_now">сейчас</string>
+    <string name="rule_wizard_example_title">Ваш заказ доставлен</string>
+    <string name="rule_wizard_example_text">Нажмите, чтобы посмотреть детали доставки</string>
+    <string name="rule_wizard_regex_help">Срабатывает, когда уведомление соответствует этому регулярному выражению.</string>
+    <string name="rule_wizard_invalid_regex">Недопустимое регулярное выражение: %1$s</string>
+    <string name="rule_wizard_matches_all_warning">Фильтры не заданы — правило будет применяться ко ВСЕМ уведомлениям от %1$s.</string>
+    <string name="rule_wizard_step_summary_title">Проверьте правило</string>
+    <string name="rule_wizard_summary_title_filter">Заголовок</string>
+    <string name="rule_wizard_summary_text_filter">Текст</string>
+    <string name="rule_wizard_summary_any">Любой</string>
+    <string name="rule_wizard_summary_contains">Содержит «%1$s»</string>
+    <string name="rule_wizard_summary_regex">Соответствует регулярному выражению «%1$s»</string>
+    <string name="rule_wizard_duplicate_warning">Похожее правило для этого приложения уже существует.</string>
+    <string name="rule_wizard_edit_later_hint">Позже правило можно изменить: отключить, переименовать или ограничить определёнными часами.</string>
+    <string name="rule_wizard_create">Создать правило</string>
     <string name="stack_summary_count">Уведомлений: %d</string>
     <string name="stack_overflow_more">+%d ещё</string>
     <string name="stack_warning_notifications_disabled">Группировка неактивна — уведомления для DoNotNotify отключены. Нажмите, чтобы включить.</string>

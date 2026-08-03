@@ -64,8 +64,6 @@
     <string name="no_rules_created_desc">创建规则以自动拦截不需要的通知。在历史标签页中点按通知即可创建规则，或浏览预设规则。</string>
     <string name="rules_auto_block_desc">符合以下规则的通知将根据每条规则自动处理。</string>
     <string name="rules_master_switch_label">所有规则均启用</string>
-    <string name="how_to_add_rule">如何添加新规则</string>
-    <string name="how_to_add_rule_desc">创建新规则的方法：\n\n1. 切换到“历史”标签页\n2. 找到您想要创建规则的通知\n3. 点按该通知\n4. 从选项中选择“创建规则”\n5. 根据需要自定义规则设置\n\n规则随后将显示在此处，并自动应用于匹配的通知。</string>
     <string name="add_new_rule">添加新规则</string>
     <string name="browse_prebuilt_rules">浏览预设规则</string>
     <string name="hits_count">命中：%d</string>
@@ -98,6 +96,38 @@
     <string name="rule_type_desc_denylist">拦截所有符合此规则的通知。</string>
     <string name="rule_type_desc_allowlist">仅允许符合此规则的通知。该应用的所有其他通知都将被拦截。</string>
     <string name="rule_type_desc_stack">将匹配的通知归并为一条摘要。原始通知将被移除。</string>
+
+    <!-- Rule creation wizard -->
+    <string name="rule_wizard_step_app_title">选择应用</string>
+    <string name="rule_wizard_step_app_body">此规则要应用于哪个应用的通知？此列表显示在此设备上发送过通知的应用，以及已识别的已安装应用。</string>
+    <string name="rule_wizard_app_not_listed">找不到应用？</string>
+    <string name="rule_wizard_enter_package">输入其包名</string>
+    <string name="rule_wizard_package_label">包名</string>
+    <string name="rule_wizard_package_hint">例如 com.example.app</string>
+    <string name="rule_wizard_package_help">应用在发出通知后会出现在列表中。包名形如 com.example.app，可在 Play 商店应用页面的网址中找到。</string>
+    <string name="rule_wizard_package_warning">这看起来不像包名，但您仍然可以使用它。</string>
+    <string name="rule_wizard_no_known_apps_title">暂无可显示的应用</string>
+    <string name="rule_wizard_no_known_apps_desc">应用发出通知后会显示在这里。您也可以在下方输入包名。</string>
+    <string name="rule_wizard_selected">已选择</string>
+    <string name="rule_wizard_step_type_title">选择规则类型</string>
+    <string name="rule_wizard_step_type_body">如何处理匹配的通知？</string>
+    <string name="rule_wizard_step_filters_title">添加筛选条件</string>
+    <string name="rule_wizard_step_filters_body">仅与这些筛选条件匹配的通知会受影响。</string>
+    <string name="rule_wizard_example_now">现在</string>
+    <string name="rule_wizard_example_title">您的订单已送达</string>
+    <string name="rule_wizard_example_text">点按即可查看配送详情</string>
+    <string name="rule_wizard_regex_help">当通知匹配此正则表达式时匹配。</string>
+    <string name="rule_wizard_invalid_regex">无效的正则表达式：%1$s</string>
+    <string name="rule_wizard_matches_all_warning">未设置筛选条件 — 此规则将应用于 %1$s 的所有通知。</string>
+    <string name="rule_wizard_step_summary_title">检查您的规则</string>
+    <string name="rule_wizard_summary_title_filter">标题</string>
+    <string name="rule_wizard_summary_text_filter">内容</string>
+    <string name="rule_wizard_summary_any">任意</string>
+    <string name="rule_wizard_summary_contains">包含“%1$s”</string>
+    <string name="rule_wizard_summary_regex">匹配正则“%1$s”</string>
+    <string name="rule_wizard_duplicate_warning">此应用已存在类似规则。</string>
+    <string name="rule_wizard_edit_later_hint">您可以稍后编辑此规则：将其关闭、重命名或限制在特定时间段。</string>
+    <string name="rule_wizard_create">创建规则</string>
 
     <!-- Stacked notifications -->
     <string name="stack_summary_count">%d 条通知</string>

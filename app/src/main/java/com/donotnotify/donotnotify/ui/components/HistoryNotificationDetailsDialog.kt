@@ -6,16 +6,23 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -60,32 +67,36 @@ fun HistoryNotificationDetailsDialog(
                 DetailRow(stringResource(R.string.label_text), notification.text.orEmpty())
                 DetailRow(stringResource(R.string.label_time), dateFormat.format(Date(notification.timestamp)))
 
-                Row(
+                // Create Rule is the dialog's primary action: the only filled
+                // button, full-width so the label never wraps. Open appears only
+                // when the notification's action is still available.
+                Button(
+                    onClick = onCreateRule,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 24.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                        .padding(top = 24.dp)
                 ) {
-                    Button(
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(stringResource(R.string.create_rule))
+                }
+
+                if (isActionAvailable) {
+                    FilledTonalButton(
                         onClick = onTriggerAction,
-                        enabled = isActionAvailable,
                         modifier = Modifier
-                            .weight(1f)
-                            .padding(end = 8.dp)
+                            .fillMaxWidth()
+                            .padding(top = 8.dp)
                     ) {
                         Text(stringResource(R.string.open))
                     }
-                    Button(
-                        onClick = onCreateRule,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 8.dp)
-                    ) {
-                        Text(stringResource(R.string.create_rule))
-                    }
                 }
 
-                Button(
+                TextButton(
                     onClick = onDismiss,
                     modifier = Modifier
                         .fillMaxWidth()

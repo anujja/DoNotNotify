@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Night variant: keep the window background in sync with the Compose dark
+         scheme (md_theme_dark_background). Screens that don't paint their own
+         Surface would otherwise show the light window background through. -->
+    <style name="Theme.DoNotNotify" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">#2B2D30</item>
+    </style>
+</resources>

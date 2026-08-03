@@ -3,9 +3,7 @@ package com.donotnotify.donotnotify.ui.screens
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -26,10 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Block
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -65,6 +60,9 @@ import com.donotnotify.donotnotify.BlockerRule
 import com.donotnotify.donotnotify.PrebuiltRulesRepository
 import com.donotnotify.donotnotify.R
 import com.donotnotify.donotnotify.RuleType
+import com.donotnotify.donotnotify.ui.components.KeywordChip
+import com.donotnotify.donotnotify.ui.components.RuleTypeBadge
+import com.donotnotify.donotnotify.ui.components.icon
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -277,11 +275,7 @@ private fun PrebuiltRuleCard(
                     )
                 } else {
                     Icon(
-                        imageVector = when (rule.ruleType) {
-                            RuleType.DENYLIST -> Icons.Filled.Block
-                            RuleType.ALLOWLIST -> Icons.Filled.CheckCircle
-                            RuleType.STACK -> Icons.Filled.Layers
-                        },
+                        imageVector = rule.ruleType.icon(),
                         contentDescription = null,
                         modifier = Modifier.size(48.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -341,74 +335,6 @@ private fun PrebuiltRuleCard(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun KeywordChip(keyword: String, ruleType: RuleType) {
-    val backgroundColor = when (ruleType) {
-        RuleType.DENYLIST -> MaterialTheme.colorScheme.errorContainer
-        RuleType.ALLOWLIST -> MaterialTheme.colorScheme.primaryContainer
-        RuleType.STACK -> MaterialTheme.colorScheme.secondaryContainer
-    }
-    val textColor = when (ruleType) {
-        RuleType.DENYLIST -> MaterialTheme.colorScheme.onErrorContainer
-        RuleType.ALLOWLIST -> MaterialTheme.colorScheme.onPrimaryContainer
-        RuleType.STACK -> MaterialTheme.colorScheme.onSecondaryContainer
-    }
-
-    Box(
-        modifier = Modifier
-            .background(
-                color = backgroundColor,
-                shape = RoundedCornerShape(16.dp)
-            )
-            .padding(horizontal = 10.dp, vertical = 4.dp)
-    ) {
-        Text(
-            text = keyword,
-            style = MaterialTheme.typography.labelMedium,
-            color = textColor
-        )
-    }
-}
-
-@Composable
-private fun RuleTypeBadge(ruleType: RuleType) {
-    val (icon, text, color) = when (ruleType) {
-        RuleType.DENYLIST -> Triple(
-            Icons.Filled.Block,
-            stringResource(R.string.denylist),
-            MaterialTheme.colorScheme.error
-        )
-        RuleType.ALLOWLIST -> Triple(
-            Icons.Filled.CheckCircle,
-            stringResource(R.string.allowlist),
-            MaterialTheme.colorScheme.primary
-        )
-        RuleType.STACK -> Triple(
-            Icons.Filled.Layers,
-            stringResource(R.string.stack),
-            MaterialTheme.colorScheme.secondary
-        )
-    }
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(horizontal = 4.dp)
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = text,
-            modifier = Modifier.size(14.dp),
-            tint = color
-        )
-        Spacer(modifier = Modifier.width(2.dp))
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall,
-            color = color
-        )
     }
 }
 

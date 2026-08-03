@@ -64,8 +64,6 @@
     <string name="no_rules_created_desc">Twórz reguły, aby automatycznie blokować niechciane powiadomienia. Dotknij powiadomienia na karcie Historia, aby utworzyć regułę, lub przeglądaj gotowe reguły.</string>
     <string name="rules_auto_block_desc">Powiadomienia pasujące do poniższych reguł są obsługiwane automatycznie zgodnie z każdą regułą.</string>
     <string name="rules_master_switch_label">Wszystkie reguły aktywne</string>
-    <string name="how_to_add_rule">Jak dodać nową regułę</string>
-    <string name="how_to_add_rule_desc">Aby utworzyć nową regułę:\n\n1. Przejdź do karty „Historia”\n2. Znajdź powiadomienie, dla którego chcesz utworzyć regułę\n3. Dotknij powiadomienia\n4. Wybierz „Utwórz regułę” z opcji\n5. Dostosuj ustawienia reguły według potrzeb\n\nReguła pojawi się tutaj i będzie automatycznie stosowana do pasujących powiadomień.</string>
     <string name="add_new_rule">Dodaj nową regułę</string>
     <string name="browse_prebuilt_rules">Przeglądaj gotowe reguły</string>
     <string name="hits_count">Trafień: %d</string>
@@ -232,6 +230,38 @@
     <string name="rule_type_desc_denylist">Blokuje wszystkie powiadomienia pasujące do tej reguły.</string>
     <string name="rule_type_desc_allowlist">Zezwala tylko na powiadomienia pasujące do tej reguły. Wszystkie inne z tej aplikacji są blokowane.</string>
     <string name="rule_type_desc_stack">Grupuje pasujące powiadomienia w jedno podsumowanie. Oryginały są odrzucane.</string>
+
+    <!-- Rule creation wizard -->
+    <string name="rule_wizard_step_app_title">Wybierz aplikację</string>
+    <string name="rule_wizard_step_app_body">Do powiadomień której aplikacji ma być stosowana ta reguła? Ta lista zawiera aplikacje, które wysłały powiadomienia na tym urządzeniu, oraz rozpoznane zainstalowane aplikacje.</string>
+    <string name="rule_wizard_app_not_listed">Nie ma aplikacji na liście?</string>
+    <string name="rule_wizard_enter_package">Wpisz nazwę jej pakietu</string>
+    <string name="rule_wizard_package_label">Nazwa pakietu</string>
+    <string name="rule_wizard_package_hint">np. com.example.app</string>
+    <string name="rule_wizard_package_help">Aplikacje pojawiają się na liście po wysłaniu powiadomienia. Nazwa pakietu wygląda jak com.example.app — znajdziesz ją w adresie URL strony aplikacji w Sklepie Play.</string>
+    <string name="rule_wizard_package_warning">To nie wygląda na nazwę pakietu, ale nadal możesz jej użyć.</string>
+    <string name="rule_wizard_no_known_apps_title">Brak aplikacji do wyświetlenia</string>
+    <string name="rule_wizard_no_known_apps_desc">Aplikacje pojawią się tutaj, gdy wyślą powiadomienie. Możesz też wpisać nazwę pakietu poniżej.</string>
+    <string name="rule_wizard_selected">Wybrano</string>
+    <string name="rule_wizard_step_type_title">Wybierz typ reguły</string>
+    <string name="rule_wizard_step_type_body">Co ma się stać z pasującymi powiadomieniami?</string>
+    <string name="rule_wizard_step_filters_title">Dodaj filtry</string>
+    <string name="rule_wizard_step_filters_body">Reguła obejmie tylko powiadomienia pasujące do tych filtrów.</string>
+    <string name="rule_wizard_example_now">teraz</string>
+    <string name="rule_wizard_example_title">Twoje zamówienie zostało dostarczone</string>
+    <string name="rule_wizard_example_text">Dotknij, aby zobaczyć szczegóły dostawy</string>
+    <string name="rule_wizard_regex_help">Pasuje, gdy powiadomienie pasuje do tego wyrażenia regularnego.</string>
+    <string name="rule_wizard_invalid_regex">Nieprawidłowe wyrażenie regularne: %1$s</string>
+    <string name="rule_wizard_matches_all_warning">Brak filtrów — ta reguła obejmie WSZYSTKIE powiadomienia z aplikacji %1$s.</string>
+    <string name="rule_wizard_step_summary_title">Sprawdź regułę</string>
+    <string name="rule_wizard_summary_title_filter">Tytuł</string>
+    <string name="rule_wizard_summary_text_filter">Treść</string>
+    <string name="rule_wizard_summary_any">Dowolny</string>
+    <string name="rule_wizard_summary_contains">Zawiera „%1$s”</string>
+    <string name="rule_wizard_summary_regex">Pasuje do regexa „%1$s”</string>
+    <string name="rule_wizard_duplicate_warning">Podobna reguła dla tej aplikacji już istnieje.</string>
+    <string name="rule_wizard_edit_later_hint">Regułę możesz później edytować, aby ją wyłączyć, zmienić jej nazwę lub ograniczyć do określonych godzin.</string>
+    <string name="rule_wizard_create">Utwórz regułę</string>
     <string name="stack_summary_count">Powiadomienia: %d</string>
     <string name="stack_overflow_more">+%d więcej</string>
     <string name="stack_warning_notifications_disabled">Grupowanie nieaktywne — powiadomienia dla DoNotNotify są wyłączone. Dotknij, aby włączyć.</string>
