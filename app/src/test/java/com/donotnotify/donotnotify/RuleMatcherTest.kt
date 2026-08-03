@@ -269,6 +269,53 @@ class RuleMatcherTest {
     }
 
     @Test
+    fun `regex start-anchor matches title wrapped in bidi isolate chars`() {
+        // Issue #19: Google Calendar wraps titles in invisible U+2068/U+2069
+        // (FIRST STRONG ISOLATE / POP DIRECTIONAL ISOLATE), so "^-" never
+        // anchored at the visible hyphen.
+        val rule = BlockerRule(
+            packageName = "com.example.app",
+            titleFilter = "^-.*",
+            titleMatchType = MatchType.REGEX,
+            ruleType = RuleType.DENYLIST
+        )
+        assertTrue(RuleMatcher.shouldBlock("com.example.app", "\u2068-example\u2069", null, listOf(rule)))
+    }
+
+    @Test
+    fun `regex start-anchor matches title prefixed with left-to-right mark`() {
+        val rule = BlockerRule(
+            packageName = "com.example.app",
+            titleFilter = "^-.*",
+            titleMatchType = MatchType.REGEX,
+            ruleType = RuleType.DENYLIST
+        )
+        assertTrue(RuleMatcher.shouldBlock("com.example.app", "\u200E-example", null, listOf(rule)))
+    }
+
+    @Test
+    fun `regex end-anchor matches title with trailing bidi isolate char`() {
+        val rule = BlockerRule(
+            packageName = "com.example.app",
+            titleFilter = "[0-9]+$",
+            titleMatchType = MatchType.REGEX,
+            ruleType = RuleType.DENYLIST
+        )
+        assertTrue(RuleMatcher.shouldBlock("com.example.app", "\u2068OTP 1234\u2069", null, listOf(rule)))
+    }
+
+    @Test
+    fun `contains filter with pasted bidi chars matches clean title`() {
+        val rule = BlockerRule(
+            packageName = "com.example.app",
+            titleFilter = "\u2068Promo",
+            titleMatchType = MatchType.CONTAINS,
+            ruleType = RuleType.DENYLIST
+        )
+        assertTrue(RuleMatcher.shouldBlock("com.example.app", "big promo deal", null, listOf(rule)))
+    }
+
+    @Test
     fun `regex stack rule matches with regex pattern via planNotificationDecision`() {
         val rule = BlockerRule(
             packageName = "com.example.app",

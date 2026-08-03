@@ -15,6 +15,12 @@ object RuleMatcher {
     private fun getCachedRegex(pattern: String): Regex =
         regexCache.getOrPut(pattern) { pattern.toRegex() }
 
+    // Google apps wrap notification strings in invisible bidi/format chars
+    // (U+2066–U+2069 isolates, U+200E/F marks, zero-width chars). They survive
+    // toString() but never render, so rules must match the visible text only.
+    private fun stripInvisibleFormatting(s: String?): String? =
+        s?.filterNot { it.category == CharCategory.FORMAT }
+
     fun matches(
         rule: BlockerRule,
         packageName: String?,
@@ -47,14 +53,19 @@ object RuleMatcher {
         if (!rule.packageName.isNullOrEmpty() && rule.packageName != packageName) return false
 
         try {
+            val cleanTitle = stripInvisibleFormatting(title)
+            val cleanText = stripInvisibleFormatting(text)
+
             val titleMatch = when (rule.titleMatchType) {
-                MatchType.REGEX -> rule.titleFilter.isNullOrBlank() || (title != null && getCachedRegex(rule.titleFilter).containsMatchIn(title))
-                MatchType.CONTAINS -> rule.titleFilter.isNullOrBlank() || (title?.contains(rule.titleFilter, ignoreCase = true) ?: false)
+                MatchType.REGEX -> rule.titleFilter.isNullOrBlank() || (cleanTitle != null && getCachedRegex(rule.titleFilter).containsMatchIn(cleanTitle))
+                // Filters are stripped too: CONTAINS filters are often pasted from
+                // notification text and can carry the same invisible chars.
+                MatchType.CONTAINS -> rule.titleFilter.isNullOrBlank() || (cleanTitle?.contains(stripInvisibleFormatting(rule.titleFilter)!!, ignoreCase = true) ?: false)
             }
 
             val textMatch = when (rule.textMatchType) {
-                MatchType.REGEX -> rule.textFilter.isNullOrBlank() || (text != null && getCachedRegex(rule.textFilter).containsMatchIn(text))
-                MatchType.CONTAINS -> rule.textFilter.isNullOrBlank() || (text?.contains(rule.textFilter, ignoreCase = true) ?: false)
+                MatchType.REGEX -> rule.textFilter.isNullOrBlank() || (cleanText != null && getCachedRegex(rule.textFilter).containsMatchIn(cleanText))
+                MatchType.CONTAINS -> rule.textFilter.isNullOrBlank() || (cleanText?.contains(stripInvisibleFormatting(rule.textFilter)!!, ignoreCase = true) ?: false)
             }
 
             return titleMatch && textMatch
