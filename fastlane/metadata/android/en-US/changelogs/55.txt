@@ -1,0 +1,5 @@
+• New: Rule creation wizard — "Add a New Rule" on the Rules tab now walks you through picking an app, choosing a rule type, and adding filters, with a summary before the rule is created
+• New: App picker with search, uniform icons, and a manual package-name option for apps we haven't seen yet
+• New: Filters step shows an example notification explaining Title vs Text, catches invalid regex as you type, and warns when a rule would match everything
+• Improved: Create Rule is now the highlighted action in notification details
+• Fixed: White background on wizard screens in dark mode
