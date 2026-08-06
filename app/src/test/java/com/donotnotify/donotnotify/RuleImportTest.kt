@@ -106,4 +106,16 @@ class RuleImportTest {
     fun `non-array non-object root is schema mismatch`() {
         assertEquals(ImportError.SchemaMismatch, errorOf("""42"""))
     }
+
+    @Test
+    fun `legacy minified envelope from pre-6_2 release builds is accepted`() {
+        // Release builds up to 6.1 lacked @Keep on RuleExport, so R8 renamed the envelope
+        // fields: locale -> "a", rules -> "b". Files exported by those builds must import.
+        val s = successOf(
+            """{"a":"en-US","b":[{"packageName":"com.x","textFilter":"spam","textMatchType":"CONTAINS"}]}"""
+        )
+        assertEquals(1, s.rules.size)
+        assertEquals("en-US", s.locale)
+        assertEquals("com.x", s.rules[0].packageName)
+    }
 }

@@ -1,7 +1,6 @@
 package com.donotnotify.donotnotify.ui.screens
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -33,6 +32,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.ImportExport
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ElevatedCard
@@ -63,6 +63,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.donotnotify.donotnotify.CommunityShare
+import com.donotnotify.donotnotify.ExternalLinks
 import com.donotnotify.donotnotify.ImportError
 import com.donotnotify.donotnotify.ImportResult
 import com.donotnotify.donotnotify.R
@@ -299,6 +301,14 @@ fun SettingsScreen(
                 )
                 RowDivider()
                 SettingsRow(
+                    icon = Icons.Filled.Public,
+                    title = stringResource(R.string.get_more_rules),
+                    subtitle = stringResource(R.string.get_more_rules_desc),
+                    onClick = { ExternalLinks.open(context, CommunityShare.REPO_URL) },
+                    trailing = { NavChevron() }
+                )
+                RowDivider()
+                SettingsRow(
                     icon = Icons.Filled.RestartAlt,
                     title = stringResource(R.string.reset_hit_counters),
                     subtitle = stringResource(R.string.reset_hit_counters_desc),
@@ -312,11 +322,7 @@ fun SettingsScreen(
                     icon = Icons.Filled.Favorite,
                     title = stringResource(R.string.support_this_app),
                     subtitle = stringResource(R.string.support_this_app_desc),
-                    onClick = {
-                        context.startActivity(
-                            Intent(Intent.ACTION_VIEW, Uri.parse("https://buymeacoffee.com/jainanuj"))
-                        )
-                    },
+                    onClick = { ExternalLinks.open(context, "https://buymeacoffee.com/jainanuj") },
                     trailing = { NavChevron() }
                 )
                 RowDivider()
@@ -324,11 +330,7 @@ fun SettingsScreen(
                     icon = Icons.Filled.BugReport,
                     title = stringResource(R.string.report_an_issue),
                     subtitle = stringResource(R.string.report_an_issue_desc),
-                    onClick = {
-                        context.startActivity(
-                            Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/anujja/DoNotNotify/issues"))
-                        )
-                    },
+                    onClick = { ExternalLinks.open(context, "https://github.com/anujja/DoNotNotify/issues") },
                     trailing = { NavChevron() }
                 )
                 RowDivider()

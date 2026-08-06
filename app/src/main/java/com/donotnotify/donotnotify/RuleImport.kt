@@ -1,5 +1,6 @@
 package com.donotnotify.donotnotify
 
+import androidx.annotation.Keep
 import com.google.gson.ExclusionStrategy
 import com.google.gson.FieldAttributes
 import com.google.gson.Gson
@@ -16,7 +17,13 @@ const val RULE_EXPORT_VERSION = 2
 /**
  * Envelope written by the export feature. Backward compatible: older app versions
  * exported a bare JSON array of [BlockerRule]; [RuleImport.parse] accepts both forms.
+ *
+ * @Keep is load-bearing: without it R8 renames these fields in release builds
+ * (`locale` → `a`, `rules` → `b`), producing exports no other build can import.
+ * Release builds up to 6.1 shipped with that defect; [RuleImport.parse] contains a
+ * compatibility branch for files they wrote.
  */
+@Keep
 data class RuleExport(
     val version: Int = RULE_EXPORT_VERSION,
     val locale: String? = null,
@@ -93,7 +100,12 @@ object RuleImport {
             }
             root.isJsonObject -> {
                 val obj = root.asJsonObject
+                // Release builds up to 6.1 lacked @Keep on RuleExport, so their exports carry
+                // R8-renamed fields: locale → "a", rules → "b". Accept those files forever —
+                // users hold them as backups. (BlockerRule itself was always @Keep, so the
+                // rules inside such files are well-formed.)
                 val rulesEl = obj.get("rules")
+                    ?: obj.get("b")?.takeIf { it.isJsonArray }
                 if (rulesEl == null || !rulesEl.isJsonArray) {
                     return ImportResult.Error(ImportError.SchemaMismatch)
                 }
@@ -104,7 +116,7 @@ object RuleImport {
                 }
                 // `version` is advisory: a schema designed to be additive is best-effort
                 // parsed for any version rather than hard-rejected (forward compatibility).
-                locale = obj.get("locale")
+                locale = (obj.get("locale") ?: obj.get("a"))
                     ?.takeIf { it.isJsonPrimitive }
                     ?.asString
             }

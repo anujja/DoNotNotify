@@ -35,6 +35,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
@@ -57,6 +58,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import com.donotnotify.donotnotify.BlockerRule
+import com.donotnotify.donotnotify.CommunityShare
+import com.donotnotify.donotnotify.ExternalLinks
 import com.donotnotify.donotnotify.PrebuiltRulesRepository
 import com.donotnotify.donotnotify.R
 import com.donotnotify.donotnotify.RuleType
@@ -199,6 +202,15 @@ fun PrebuiltRulesScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
                         )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        TextButton(
+                            onClick = { ExternalLinks.open(context, CommunityShare.RULE_REQUEST_URL) }
+                        ) {
+                            Text(
+                                text = stringResource(R.string.prebuilt_empty_community),
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                 }
             } else {

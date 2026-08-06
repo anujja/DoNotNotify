@@ -1,0 +1,4 @@
+• New: Community rules — browse and share notification-blocking rules at github.com/anujja/DoNotNotify-rules ("Get more rules" in Settings)
+• New: Rules that block 25+ notifications offer a one-tap "share with the community" flow, with a full preview of what is shared before your browser opens
+• Fixed: Rule exports from release builds 6.0–6.1 were written in a broken format; exporting is fixed and those old export files now import correctly
+• Fixed: Opening external links no longer crashes on devices without a browser

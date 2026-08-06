@@ -16,19 +16,24 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.AccessAlarms
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.automirrored.outlined.Rule
 import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.Lifecycle
@@ -48,7 +53,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.widget.Toast
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.ui.text.font.FontFamily
 import com.donotnotify.donotnotify.BlockerRule
+import com.donotnotify.donotnotify.CommunityShare
+import com.donotnotify.donotnotify.ExternalLinks
+import com.donotnotify.donotnotify.PrebuiltRuleReconciler
+import com.donotnotify.donotnotify.PrebuiltRulesRepository
 import com.donotnotify.donotnotify.R
 import com.donotnotify.donotnotify.RuleType
 import com.donotnotify.donotnotify.StackChannels
@@ -66,6 +85,43 @@ fun RulesScreen(
 ) {
     // Group rules by packageName; apps with multiple rules get a section header
     val grouped = rules.groupBy { it.packageName ?: it.appName ?: "" }
+
+    val context = LocalContext.current
+    val nudgePrefs = remember { context.getSharedPreferences("settings", Context.MODE_PRIVATE) }
+    var nudgeDismissed by remember {
+        mutableStateOf(
+            nudgePrefs.getStringSet(CommunityShare.PREF_NUDGE_DISMISSED, emptySet()).orEmpty().toSet()
+        )
+    }
+    fun dismissNudge(ruleId: String) {
+        // Prune ids of since-deleted rules so the persisted set stays bounded by the rule list.
+        val liveIds = rules.mapTo(HashSet()) { it.id }
+        nudgeDismissed = (nudgeDismissed intersect liveIds) + ruleId
+        nudgePrefs.edit().putStringSet(CommunityShare.PREF_NUDGE_DISMISSED, nudgeDismissed).apply()
+    }
+    // Prebuilt rules are already community-shared; their cards never nudge. Null until loaded.
+    // The repository degrades load failures to an empty list; the catalog is never genuinely
+    // empty, so treat empty as "unknown" and keep every nudge suppressed rather than nudging
+    // prebuilt rules we failed to recognize.
+    var prebuiltSignatures by remember { mutableStateOf<Set<CommunityShare.NudgeSignature>?>(null) }
+    LaunchedEffect(Unit) {
+        prebuiltSignatures = PrebuiltRulesRepository(context).getPrebuiltRules()
+            .takeIf { it.isNotEmpty() }
+            ?.map { CommunityShare.signatureOf(it) }
+            ?.toSet()
+    }
+    // Share flow: nudge → in-app preview of the exact payload → browser only on confirm.
+    var shareDialogRule by remember { mutableStateOf<BlockerRule?>(null) }
+    shareDialogRule?.let { rule ->
+        CommunitySharePreviewDialog(
+            rule = rule,
+            onConfirmed = {
+                dismissNudge(rule.id)
+                shareDialogRule = null
+            },
+            onDismiss = { shareDialogRule = null }
+        )
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -116,7 +172,14 @@ fun RulesScreen(
                 if (appRules.size == 1) {
                     // Single rule — show as flat card (unchanged)
                     item(key = "rule_${appRules[0].id}") {
-                        RuleCard(rule = appRules[0], showAppName = true, onClick = { onRuleClick(appRules[0]) })
+                        RuleCard(
+                            rule = appRules[0],
+                            showAppName = true,
+                            showCommunityNudge = CommunityShare.isNudgeEligible(appRules[0], nudgeDismissed, prebuiltSignatures),
+                            onShareToCommunity = { shareDialogRule = appRules[0] },
+                            onDismissNudge = { dismissNudge(appRules[0].id) },
+                            onClick = { onRuleClick(appRules[0]) }
+                        )
                     }
                 } else {
                     // Multiple rules — show a section header then indented rule cards
@@ -142,6 +205,9 @@ fun RulesScreen(
                             rule = rule,
                             showAppName = false,
                             modifier = Modifier.padding(start = 8.dp),
+                            showCommunityNudge = CommunityShare.isNudgeEligible(rule, nudgeDismissed, prebuiltSignatures),
+                            onShareToCommunity = { shareDialogRule = rule },
+                            onDismissNudge = { dismissNudge(rule.id) },
                             onClick = { onRuleClick(rule) }
                         )
                     }
@@ -169,11 +235,93 @@ fun RulesScreen(
     }
 }
 
+/** Cap on the JSON characters rendered in the preview — display only, copy/share always carry it all. */
+private const val SHARE_PREVIEW_MAX_CHARS = 4000
+
+/**
+ * In-app review step before anything reaches the network: shows the JSON that will be
+ * embedded in the prefilled GitHub issue. The browser is opened only from here, and the
+ * nudge is marked handled only when the handoff succeeds. Rules too large to prefill
+ * (payload.prefilled == false) switch to a copy-and-paste flow: the confirm button first
+ * puts the JSON on the clipboard, then opens the plain new-issue page.
+ */
+@Composable
+private fun CommunitySharePreviewDialog(
+    rule: BlockerRule,
+    onConfirmed: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val payload = remember(rule.id) {
+        CommunityShare.sharePayload(rule, PrebuiltRuleReconciler.currentLocaleTag(context))
+    }
+    fun copyJson() {
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText("DoNotNotify rule", payload.json))
+        // Android 13+ shows its own clipboard confirmation overlay.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            Toast.makeText(context, R.string.toast_copied_to_clipboard, Toast.LENGTH_SHORT).show()
+        }
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.community_share_preview_title)) },
+        text = {
+            Column {
+                Text(
+                    text = stringResource(
+                        if (payload.prefilled) R.string.community_share_preview_desc
+                        else R.string.community_share_manual_desc
+                    ),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = if (payload.json.length > SHARE_PREVIEW_MAX_CHARS) {
+                        payload.json.take(SHARE_PREVIEW_MAX_CHARS) + "…"
+                    } else {
+                        payload.json
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = FontFamily.Monospace,
+                    modifier = Modifier
+                        .heightIn(max = 200.dp)
+                        .verticalScroll(rememberScrollState())
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                if (!payload.prefilled) copyJson()
+                if (ExternalLinks.open(context, payload.url)) {
+                    onConfirmed()
+                }
+            }) {
+                Text(
+                    stringResource(
+                        if (payload.prefilled) R.string.community_share_open
+                        else R.string.community_share_copy_open
+                    )
+                )
+            }
+        },
+        dismissButton = {
+            Row {
+                TextButton(onClick = { copyJson() }) { Text(stringResource(R.string.copy_json)) }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+            }
+        }
+    )
+}
+
 @Composable
 private fun RuleCard(
     rule: BlockerRule,
     showAppName: Boolean,
     modifier: Modifier = Modifier,
+    showCommunityNudge: Boolean = false,
+    onShareToCommunity: () -> Unit = {},
+    onDismissNudge: () -> Unit = {},
     onClick: () -> Unit
 ) {
     ElevatedCard(
@@ -304,6 +452,29 @@ private fun RuleCard(
                         text = stringResource(R.string.no_hits),
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+        if (showCommunityNudge) {
+            HorizontalDivider()
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(start = 16.dp, end = 4.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.community_nudge_text, rule.hitCount),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
+                )
+                TextButton(onClick = onShareToCommunity) {
+                    Text(stringResource(R.string.community_nudge_share))
+                }
+                IconButton(onClick = onDismissNudge) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = stringResource(R.string.close)
                     )
                 }
             }
