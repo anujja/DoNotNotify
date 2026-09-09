@@ -1,0 +1,2 @@
+• New: Turkish translation (Türkçe) — the app now follows your system language in 8 languages
+• Fixed: The app could crash on startup when returning to the setup wizard from system settings, after granting notification access or the notification permission
