@@ -10,9 +10,14 @@ on:
       play_track:
         description: 'Play track to publish to'
         required: false
-        default: 'internal'
+        default: 'production'
         type: choice
-        options: [internal, alpha, beta, production]
+        options: [production, beta, alpha, internal]
+      play_rollout:
+        description: 'Staged rollout fraction, e.g. 0.2 for 20% (blank = full release)'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: write
@@ -140,7 +145,7 @@ jobs:
           echo "$KEYSTORE_B64" | base64 -d > "${{ runner.temp }}/upload.jks"
           printf '%s' "$PLAY_JSON" > "${{ runner.temp }}/play-service-account.json"
 
-      - name: Build and upload to Play
+      - name: Build and publish to Play
         if: steps.guard.outputs.configured == 'true'
         env:
           # Consumed by the playStore signingConfig in app/build.gradle.kts
@@ -150,8 +155,12 @@ jobs:
           KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
           SUPPLY_JSON_KEY: ${{ runner.temp }}/play-service-account.json
         run: |
-          bundle exec fastlane android internal \
-            track:"${{ github.event.inputs.play_track || 'internal' }}"
+          ARGS=(track:"${{ github.event.inputs.play_track || 'production' }}")
+          ROLLOUT="${{ github.event.inputs.play_rollout }}"
+          if [ -n "$ROLLOUT" ]; then
+            ARGS+=(rollout:"$ROLLOUT")
+          fi
+          bundle exec fastlane android publish "${ARGS[@]}"
 
       - name: Clean up credentials
         if: always()

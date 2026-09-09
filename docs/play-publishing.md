@@ -71,18 +71,31 @@ uploaded manually** in the Console before any of this works.
    already exists.
 3. `build-and-release` builds the APK signed with the public `github` key and
    attaches it to a GitHub release (unchanged).
-4. `publish-to-play` builds an AAB signed with the *upload* key and sends it to
-   the **internal** track, along with that version's changelog.
+4. `publish-to-play` builds an AAB signed with the *upload* key and sends it
+   straight to **production**, along with that version's changelog.
 
-Promotion to production stays a deliberate act — either in the Console, or:
+**A version bump on `main` is therefore a public release.** There is no testing
+track in between and no manual gate — the only thing standing between a pushed
+commit and every user is Google's review. Bump the version only when you mean to
+ship.
+
+The safety valve, if you want one, is a staged rollout: release to a fraction of
+users, watch crash reports, then widen or halt from the Console.
 
 ```bash
-bundle exec fastlane android promote version_code:58 to:production
-bundle exec fastlane android promote version_code:58 to:production rollout:0.1
+# staged from the start — 20% of users
+bundle exec fastlane android publish rollout:0.2
+
+# or widen an existing staged release
+bundle exec fastlane android promote version_code:59 to:production rollout:1.0
 ```
 
-`workflow_dispatch` accepts a `play_track` input, but only for a version that
-has not been released yet — `check-version` gates the whole workflow on that.
+To make *every* CI release staged, add `rollout:0.2` to the fastlane call in
+`.github/workflows/release.yml`.
+
+`workflow_dispatch` takes `play_track` (default `production`) and an optional
+`play_rollout`, but only works for a version that has not been released yet —
+`check-version` gates the whole workflow on that.
 
 ## Local use
 
@@ -93,7 +106,9 @@ bundle install
 cp /path/to/service-account.json fastlane/play-service-account.json  # gitignored
 
 bundle exec fastlane android validate                 # dry run, uploads nothing
-bundle exec fastlane android internal                 # build + upload to internal
+bundle exec fastlane android publish                  # build + upload to production
+bundle exec fastlane android publish track:internal   # ...to a testing track instead
+bundle exec fastlane android publish rollout:0.2      # ...staged to 20% of users
 bundle exec fastlane android metadata                 # push store listing text
 bundle exec fastlane android metadata with_images:true  # ...and screenshots/icon
 ```

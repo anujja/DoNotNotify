@@ -1,9 +1,11 @@
 # Play Store publishing for DoNotNotify.
 #
-#   bundle exec fastlane android internal          # build + upload to internal
-#   bundle exec fastlane android validate          # dry run, uploads nothing
+#   bundle exec fastlane android publish                 # build + upload to production
+#   bundle exec fastlane android publish track:internal  # ...to a testing track instead
+#   bundle exec fastlane android publish rollout:0.2     # staged: 20% of users
+#   bundle exec fastlane android validate                # dry run, uploads nothing
 #   bundle exec fastlane android promote version_code:58 to:production
-#   bundle exec fastlane android metadata          # push store listing text
+#   bundle exec fastlane android metadata                # push store listing text
 #
 # Release notes come from fastlane/metadata/android/<locale>/changelogs/<versionCode>.txt
 # and are uploaded with every build. Store listing text (title, descriptions)
@@ -20,14 +22,13 @@ platform :android do
     gradle(task: "bundle", build_type: "Release")
   end
 
-  desc "Build and upload to a Play track. Options: track, release_status, skip_build, validate_only"
-  lane :internal do |options|
+  desc "Build and upload to a Play track (default: production). Options: track, rollout, release_status, skip_build, validate_only"
+  lane :publish do |options|
     build_bundle unless options[:skip_build]
 
-    supply(
-      track: options[:track] || "internal",
+    params = {
+      track: options[:track] || "production",
       aab: BUNDLE_PATH,
-      release_status: options[:release_status] || "completed",
       validate_only: options[:validate_only] || false,
       # The AAB embeds the R8 mapping at
       # BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map,
@@ -40,12 +41,24 @@ platform :android do
       skip_upload_images: true,
       skip_upload_screenshots: true,
       skip_upload_changelogs: false
-    )
+    }
+
+    # A staged rollout must be "inProgress"; a full release is "completed".
+    # An empty string counts as absent - Ruby treats "" as truthy.
+    rollout = options[:rollout].to_s.strip
+    if rollout.empty?
+      params[:release_status] = options[:release_status] || "completed"
+    else
+      params[:rollout] = rollout
+      params[:release_status] = options[:release_status] || "inProgress"
+    end
+
+    supply(params)
   end
 
-  desc "Dry run of the internal upload — validates against Play, uploads nothing"
+  desc "Dry run of the upload — validates against Play, uploads nothing"
   lane :validate do |options|
-    internal(options.merge(validate_only: true))
+    publish(options.merge(validate_only: true))
   end
 
   desc "Promote an already-uploaded version between tracks. Options: version_code (required), from, to, release_status, rollout"
