@@ -1,0 +1,302 @@
+<resources>
+    <string name="app_name">DoNotNotify</string>
+
+    <!-- Tabs -->
+    <string name="tab_history">Geçmiş (%d)</string>
+    <string name="tab_rules">Kurallar (%d)</string>
+    <string name="tab_blocked">Engellenen (%d)</string>
+
+    <!-- Common actions -->
+    <string name="cancel">İptal</string>
+    <string name="clear">Temizle</string>
+    <string name="close">Kapat</string>
+    <string name="save">Kaydet</string>
+    <string name="delete">Sil</string>
+    <string name="add">Ekle</string>
+    <string name="ok">Tamam</string>
+    <string name="open">Aç</string>
+    <string name="resume">Sürdür</string>
+    <string name="stop">Durdur</string>
+    <string name="got_it">Anladım</string>
+    <string name="back">Geri</string>
+    <string name="export">Dışa aktar</string>
+    <string name="import_rules">İçe aktar</string>
+    <string name="settings">Ayarlar</string>
+    <string name="about">Hakkında</string>
+
+    <!-- Search -->
+    <string name="search">Ara</string>
+    <string name="clear_search">Aramayı temizle</string>
+    <string name="search_notifications">Bildirimlerde ara…</string>
+    <string name="search_apps">Uygulamalarda ara…</string>
+
+    <!-- History screen -->
+    <string name="no_notifications_yet">Henüz Bildirim Yok</string>
+    <string name="no_notifications_yet_desc">Uygulamalarınızdan gelen bildirimler burada görünecek.</string>
+    <string name="no_results_found">Sonuç Bulunamadı</string>
+    <string name="no_results_found_desc">Aramanızla eşleşen bildirim yok. Farklı bir arama terimi deneyin.</string>
+    <string name="clear_history">Geçmişi Temizle</string>
+    <string name="clear_history_title">Geçmiş Temizlensin mi?</string>
+    <string name="clear_history_confirm">Tüm bildirim geçmişini temizlemek istediğinizden emin misiniz?</string>
+    <string name="reset">Sıfırla</string>
+    <string name="reset_hit_counters">Eşleşme Sayaçlarını Sıfırla</string>
+    <string name="reset_hit_counters_title">Eşleşme Sayaçları Sıfırlansın mı?</string>
+    <string name="reset_hit_counters_confirm">Tüm kuralların eşleşme sayısını sıfırlamak istediğinizden emin misiniz?</string>
+    <string name="toast_hit_counters_reset">Eşleşme sayaçları sıfırlandı</string>
+    <string name="stop_monitoring_title">İzleme Durdurulsun mu?</string>
+    <string name="stop_monitoring_confirm">%s uygulamasını izlemeyi durdurmak istediğinizden emin misiniz? İzlemeyi daha sonra İzlenmeyen Uygulamalar bölümünden yeniden başlatabilirsiniz.</string>
+    <string name="stop_monitoring_app">%s izlemesini durdur</string>
+    <string name="unmonitored_apps">İzlenmeyen Uygulamalar (%d)</string>
+    <string name="ongoing_notification_cannot_block">Bu, devam eden bir bildirimdi. Engellenmesi mümkün olmayabilir.</string>
+    <string name="collapse">Daralt</string>
+    <string name="expand">Genişlet</string>
+
+    <!-- Notification labels in list cards -->
+    <string name="notification_title_prefix">Başlık: %s</string>
+    <string name="notification_text_prefix">Metin: %s</string>
+
+    <!-- Ongoing notification icon -->
+    <string name="ongoing_notification">Devam Eden Bildirim</string>
+    <string name="time_limited_rule">Zaman sınırlı kural</string>
+
+    <!-- Rules screen -->
+    <string name="no_rules_created">Kural Oluşturulmadı</string>
+    <string name="no_rules_created_desc">İstenmeyen bildirimleri otomatik olarak engellemek için kurallar oluşturun. Kural oluşturmak üzere Geçmiş sekmesindeki bir bildirime dokunun veya hazır kurallara göz atın.</string>
+    <string name="rules_auto_block_desc">Aşağıdaki kurallarla eşleşen bildirimler, her kurala göre otomatik olarak işlenir.</string>
+    <string name="rules_master_switch_label">Tüm kurallar etkin</string>
+    <string name="add_new_rule">Yeni Kural Ekle</string>
+    <string name="browse_prebuilt_rules">Hazır Kurallara Göz At</string>
+    <string name="hits_count">Eşleşme: %d</string>
+    <string name="no_hits">Eşleşme yok</string>
+
+    <!-- Blocked screen -->
+    <string name="no_blocked_notifications">Engellenen Bildirim Yok</string>
+    <string name="no_blocked_notifications_desc">Kurallarınızın engellediği bildirimler burada görünecek. İstenmeyen bildirimleri engellemeye başlamak için Kurallar sekmesinde kural oluşturun.</string>
+    <string name="clear_blocked_history">Engellenenler Geçmişini Temizle</string>
+    <string name="clear_blocked_history_title">Engellenenler Geçmişi Temizlensin mi?</string>
+    <string name="clear_blocked_history_confirm">Engellenen tüm bildirim geçmişini temizlemek istediğinizden emin misiniz?</string>
+    <string name="ongoing_notification_partially_blocked">Bu, devam eden bir bildirimdi. Tamamen engellenmemiş olabilir.</string>
+    <string name="delete_blocked_notification">Engellenen Bildirimi Sil</string>
+
+    <!-- Pre-built rules screen -->
+    <string name="prebuilt_rules">Hazır Kurallar</string>
+    <string name="prebuilt_rules_desc">Yüklü uygulamalarınız için önceden yapılandırılmış kurallar ekleyin. Bu kurallar, yaygın tanıtım ve etkileşim bildirimlerini engeller.</string>
+    <string name="no_rules_match_search">Aramayla eşleşen kural yok</string>
+    <string name="try_different_search">Farklı bir arama terimi deneyin</string>
+    <string name="no_new_prebuilt_rules">Yeni hazır kural yok</string>
+    <string name="all_rules_added">Yüklü uygulamalarınız için mevcut tüm kuralları zaten eklediniz ya da desteklenen bir uygulama yüklü değil.</string>
+    <string name="blocks_notifications_containing">Şunları içeren bildirimleri engeller:</string>
+    <string name="allows_only_notifications_containing">Yalnızca şunları içeren bildirimlere izin verir:</string>
+    <string name="stacks_notifications_containing">Şunları içeren bildirimleri gruplar:</string>
+    <string name="denylist">Engelleme listesi</string>
+    <string name="allowlist">İzin listesi</string>
+    <string name="stack">Grupla</string>
+    <string name="match_type_contains">İçerir</string>
+    <string name="match_type_regex">Regex</string>
+    <string name="rule_type_desc_denylist">Bu kuralla eşleşen tüm bildirimleri engelle.</string>
+    <string name="rule_type_desc_allowlist">Yalnızca bu kuralla eşleşen bildirimlere izin ver. Bu uygulamadan gelen diğer tüm bildirimler engellenir.</string>
+    <string name="rule_type_desc_stack">Eşleşen bildirimleri tek bir özet altında grupla. Orijinalleri kapatılır.</string>
+
+    <!-- Rule creation wizard -->
+    <string name="rule_wizard_step_app_title">Bir uygulama seçin</string>
+    <string name="rule_wizard_step_app_body">Bu kural hangi uygulamanın bildirimlerine uygulansın? Bu listede, bu cihazda bildirim göndermiş uygulamalar ve tanınan yüklü uygulamalar yer alır.</string>
+    <string name="rule_wizard_app_not_listed">Uygulama listede yok mu?</string>
+    <string name="rule_wizard_enter_package">Paket adını girin</string>
+    <string name="rule_wizard_package_label">Paket adı</string>
+    <string name="rule_wizard_package_hint">örn. com.example.app</string>
+    <string name="rule_wizard_package_help">Uygulamalar, bir bildirim gönderdikten sonra listede görünür. Paket adı com.example.app gibi görünür — uygulamanın Play Store sayfasının adresinde bulabilirsiniz.</string>
+    <string name="rule_wizard_package_warning">Bu bir paket adına benzemiyor, yine de kullanabilirsiniz.</string>
+    <string name="rule_wizard_no_known_apps_title">Henüz gösterilecek uygulama yok</string>
+    <string name="rule_wizard_no_known_apps_desc">Uygulamalar, bir bildirim gönderdiklerinde burada görünür. Yine de aşağıya bir paket adı girebilirsiniz.</string>
+    <string name="rule_wizard_selected">Seçildi</string>
+    <string name="rule_wizard_step_type_title">Kural türü seçin</string>
+    <string name="rule_wizard_step_type_body">Eşleşen bildirimlere ne olsun?</string>
+    <string name="rule_wizard_step_filters_title">Filtre ekleyin</string>
+    <string name="rule_wizard_step_filters_body">Yalnızca bu filtrelerle eşleşen bildirimler etkilenir.</string>
+    <string name="rule_wizard_example_now">şimdi</string>
+    <string name="rule_wizard_example_title">Siparişiniz teslim edildi</string>
+    <string name="rule_wizard_example_text">Teslimat ayrıntıları için dokunun</string>
+    <string name="rule_wizard_regex_help">Bildirim bu düzenli ifadeyle eşleştiğinde uygulanır.</string>
+    <string name="rule_wizard_invalid_regex">Geçersiz düzenli ifade: %1$s</string>
+    <string name="rule_wizard_matches_all_warning">Filtre ayarlanmadı — bu kural %1$s uygulamasının TÜM bildirimlerine uygulanır.</string>
+    <string name="rule_wizard_step_summary_title">Kuralınızı gözden geçirin</string>
+    <string name="rule_wizard_summary_title_filter">Başlık</string>
+    <string name="rule_wizard_summary_text_filter">Metin</string>
+    <string name="rule_wizard_summary_any">Herhangi biri</string>
+    <string name="rule_wizard_summary_contains">\"%1$s\" içerir</string>
+    <string name="rule_wizard_summary_regex">\"%1$s\" düzenli ifadesiyle eşleşir</string>
+    <string name="rule_wizard_duplicate_warning">Bu uygulama için benzer bir kural zaten var.</string>
+    <string name="rule_wizard_edit_later_hint">Bu kuralı daha sonra düzenleyerek kapatabilir, yeniden adlandırabilir veya belirli saatlerle sınırlayabilirsiniz.</string>
+    <string name="rule_wizard_create">Kural Oluştur</string>
+
+    <!-- Stacked notifications -->
+    <string name="stack_summary_count">%d bildirim</string>
+    <string name="stack_overflow_more">+%d tane daha</string>
+    <string name="stack_warning_notifications_disabled">Gruplama devre dışı — DoNotNotify için bildirimler kapalı. Etkinleştirmek için dokunun.</string>
+    <string name="stack_warning_channel_disabled">Gruplama devre dışı — gruplanmış bildirimler kanalı kapalı. Etkinleştirmek için dokunun.</string>
+    <string name="unknown_app">Bilinmiyor</string>
+
+    <!-- Enable notification listener screen -->
+    <string name="notifications_off">Bildirimler Kapalı</string>
+    <string name="permission_required">İzin Gerekli</string>
+    <string name="permission_required_desc">Bu uygulamanın bildirimlerinizi engelleyebilmesi için onlara erişmesi gerekir. Lütfen cihaz ayarlarınızdan erişime izin verin.</string>
+    <string name="enable_notification_access">Bildirim Erişimini Etkinleştir</string>
+
+    <!-- Settings screen -->
+    <string name="history_retention_days">Geçmişi Saklama (Gün):</string>
+    <string name="export_import_rules">Kuralları Dışa/İçe Aktar</string>
+    <string name="choose_action">Bir işlem seçin</string>
+    <string name="support_this_app">Bağış &amp; Destek</string>
+    <string name="report_an_issue">Sorun Bildir</string>
+    <string name="app_version">DoNotNotify v%s</string>
+    <!-- Settings sections and descriptions -->
+    <string name="settings_section_general">Genel</string>
+    <string name="settings_section_rules">Kurallar &amp; Veriler</string>
+    <string name="settings_section_about">Destek &amp; Hakkında</string>
+    <string name="history_retention">Geçmişi saklama</string>
+    <string name="history_retention_desc">Bundan daha eski bildirimler otomatik olarak silinir</string>
+    <string name="days_unit">gün</string>
+    <string name="export_import_rules_desc">Kurallarınızı bir dosyaya yedekleyin veya geri yükleyin</string>
+    <string name="get_more_rules">Daha fazla kural edinin</string>
+    <string name="get_more_rules_desc">GitHub\'daki topluluk kural listelerine göz atın</string>
+    <string name="community_nudge_text">Bu kural %1$d bildirimi engelledi. Toplulukla paylaşmak ister misiniz?</string>
+    <string name="community_nudge_share">Paylaş</string>
+    <string name="prebuilt_empty_community">Uygulamanızı bulamıyor musunuz? GitHub\'da kural isteyin veya paylaşın</string>
+    <string name="open_link_failed">Bu bağlantıyı açacak bir uygulama bulunamadı</string>
+    <string name="community_share_preview_title">Kuralı toplulukla paylaş</string>
+    <string name="community_share_preview_desc">Bu işlem, tarayıcınızda GitHub\'ı açar ve aşağıdaki kuralı yeni bir konuya önceden doldurur. Siz orada konuyu göndermeden hiçbir şey yayınlanmaz.</string>
+    <string name="community_share_open">GitHub\'ı aç</string>
+    <string name="copy_json">JSON\'u kopyala</string>
+    <string name="community_share_manual_desc">Bu kural, konuya önceden doldurulamayacak kadar büyük. Aşağıdaki JSON panonuza kopyalanacak — GitHub\'daki konuya yapıştırın.</string>
+    <string name="community_share_copy_open">Kopyala &amp; GitHub\'ı aç</string>
+    <string name="reset_hit_counters_desc">Her kuralın eşleşme sayısını sıfıra döndürün</string>
+    <string name="support_this_app_desc">DoNotNotify\'ın ücretsiz ve reklamsız kalmasına yardımcı olun</string>
+    <string name="report_an_issue_desc">Hata bildirin veya özellik isteyin</string>
+    <string name="about_desc">Uygulama sürümü, lisanslar ve daha fazlası</string>
+    <string name="status">Durum</string>
+    <string name="rules_exported_successfully">Kurallar başarıyla dışa aktarıldı.</string>
+    <string name="failed_to_export_rules">Kurallar dışa aktarılamadı: %s</string>
+    <string name="successfully_imported_rules">%d kural başarıyla içe aktarıldı.</string>
+    <string name="invalid_rules_file">Geçersiz kural dosyası: Kurallar çözümlenemedi.</string>
+    <string name="invalid_rules_file_schema">Geçersiz kural dosyası: Şema uyuşmuyor.</string>
+    <string name="failed_to_import_rules">Kurallar içe aktarılamadı: %s</string>
+    <string name="rules_file_too_large">Kural dosyası çok büyük.</string>
+    <string name="import_no_rules">İçe aktarılacak kural yok.</string>
+    <string name="imported_rules_some_skipped">%1$d kural içe aktarıldı (%2$d atlandı).</string>
+
+    <!-- Rule dialogs -->
+    <string name="advanced_configuration">Gelişmiş Yapılandırma</string>
+    <string name="enable_rule">Kuralı Etkinleştir</string>
+    <string name="enable_time_limit">Zaman Sınırını Etkinleştir</string>
+    <string name="start_time">Başlangıç Saati:</string>
+    <string name="end_time">Bitiş Saati:</string>
+    <string name="title_filter_optional">Başlık Filtresi (İsteğe Bağlı)</string>
+    <string name="text_filter_optional">Metin Filtresi (İsteğe Bağlı)</string>
+    <string name="save_rule">Kuralı Kaydet</string>
+    <string name="add_rule_title">Yeni Kural Ekle (%s)</string>
+    <string name="edit_rule_title">Kuralı Düzenle (%s)</string>
+    <string name="rule_for">%s için kural</string>
+    <string name="blocked_notification_from">%s uygulamasından engellenen bildirim</string>
+
+    <!-- Delete confirmation dialog -->
+    <string name="delete_item_title">Öğe Silinsin mi?</string>
+    <string name="delete_item_confirm">Bu öğeyi silmek istediğinizden emin misiniz?\n\n%s</string>
+
+    <!-- Notification details dialogs -->
+    <string name="notification_details">Bildirim Ayrıntıları</string>
+    <string name="label_app">Uygulama:</string>
+    <string name="label_title">Başlık:</string>
+    <string name="label_text">Metin:</string>
+    <string name="label_time">Saat:</string>
+    <string name="create_rule">Kural Oluştur</string>
+    <string name="view_rule">Kuralı Görüntüle</string>
+
+    <!-- Auto-added rules dialog -->
+    <string name="rules_added_automatically">Kurallar Otomatik Eklendi</string>
+    <string name="rules_added_automatically_desc">Cihazınızda aşağıdaki uygulamaları bulduk ve bunlar için engelleme kuralları ekledik:</string>
+    <string name="and_more">+ %d tane daha</string>
+    <string name="do_not_show_again">Bir Daha Gösterme</string>
+
+    <!-- About dialog -->
+    <string name="about_app">Uygulama: %s</string>
+    <string name="about_version">Sürüm: %s</string>
+    <string name="about_developer">Geliştirici: %s</string>
+
+    <!-- Setup wizard -->
+    <string name="setup_skip">Atla</string>
+    <string name="setup_next">İleri</string>
+    <string name="setup_back">Geri</string>
+    <string name="setup_finish">Bitir</string>
+    <string name="setup_done_check">Tamamlandı</string>
+    <string name="setup_step_indicator">Adım %1$d / %2$d</string>
+
+    <string name="setup_welcome_title">DoNotNotify\'ı çalışır durumda tutun</string>
+    <string name="setup_welcome_body">Bazı Android telefonlar, pil tasarrufu için arka plandaki uygulamaları agresif biçimde kapatır — bu da bildirim engellemeyi sessizce durdurur. Sonraki adımlar, bu uygulamanın kapatılmasını önler.</string>
+    <string name="setup_welcome_cta">Başlayın</string>
+
+    <string name="setup_listener_title">Bildirim erişimi verin</string>
+    <string name="setup_listener_body">DoNotNotify\'ın bildirimlerinizi kurallarınıza göre filtreleyip engelleyebilmesi için onlara erişmesi gerekir.</string>
+    <string name="setup_listener_cta">Ayarları aç</string>
+    <string name="setup_listener_granted">Verildi</string>
+
+    <string name="setup_battery_title">Pil optimizasyonunu kapatın</string>
+    <string name="setup_battery_body">Android, pil tasarrufu için uygulamaları uykuya alır (Doze). DoNotNotify\'ın arka planda filtrelemeyi sürdürebilmesi için lütfen kısıtlamasız çalışmasına izin verin.</string>
+    <string name="setup_battery_cta">Kısıtlamasız pil kullanımına izin ver</string>
+    <string name="setup_battery_granted">İzin verildi</string>
+
+    <string name="setup_oem_title">Telefonunuzda otomatik başlatmaya izin verin</string>
+    <string name="setup_oem_body_generic">Telefonunuzun üreticisi, arka plan uygulamalarına ek bir kısıtlama katmanı ekler. İlgili ayar ekranını açmak ve DoNotNotify için otomatik başlatmayı / arka plan etkinliğini etkinleştirmek üzere aşağıya dokunun.</string>
+    <string name="setup_oem_body_xiaomi">Xiaomi / MIUI, arka plan uygulamalarını agresif biçimde kapatır. Otomatik başlatma ayarlarını açmak için aşağıya dokunun, ardından DoNotNotify\'ı etkinleştirin. Ayrıca Pil &amp; performans → uygulama pil tasarrufu → Kısıtlama yok yolunu da kontrol edin.</string>
+    <string name="setup_oem_body_huawei">Huawei / Honor, arka plan uygulamalarını Telefon Yöneticisi üzerinden kısıtlar. Başlatma yönetimini açmak için aşağıya dokunun, ardından DoNotNotify için otomatik başlatmayı açın.</string>
+    <string name="setup_oem_body_oppo">OPPO / ColorOS, arka plan uygulamalarını kısıtlar. Başlatma yöneticisini açmak için aşağıya dokunun, ardından DoNotNotify\'ın otomatik başlamasına izin verin.</string>
+    <string name="setup_oem_body_oneplus">OnePlus, arka plan etkinliğini varsayılan olarak kısıtlar. DoNotNotify\'ın arka planda başlamasına izin vermek için aşağıya dokunun.</string>
+    <string name="setup_oem_body_vivo">Vivo, arka plan uygulamalarını kısıtlar. Arka planda başlatma yönetimini açmak için aşağıya dokunun, ardından DoNotNotify\'a izin verin.</string>
+    <string name="setup_oem_body_samsung">Samsung Cihaz Bakımı, DoNotNotify\'ı uykuya alabilir. Pil ayarlarını açmak için aşağıya dokunun, ardından DoNotNotify\'ı Kısıtlanmamış olarak işaretleyin (Pil → Arka plan kullanım sınırları).</string>
+    <string name="setup_oem_body_asus">ASUS Mobile Manager, arka plan uygulamalarını kısıtlar. Otomatik başlatma yöneticisini açmak ve DoNotNotify\'ı etkinleştirmek için aşağıya dokunun.</string>
+    <string name="setup_oem_body_letv">Letv, arka plan uygulamalarını kısıtlar. Otomatik başlatma yönetimini açmak için aşağıya dokunun.</string>
+    <string name="setup_oem_body_meizu">Meizu, arka plan uygulamalarını kısıtlar. Güvenlik ayarlarını açmak için aşağıya dokunun.</string>
+    <string name="setup_oem_body_nokia">Nokia, DoNotNotify\'ı kapatabilen Evenwell güç tasarrufu katmanını kullanır. Uygulamayı korunan listeye eklemek için aşağıya dokunun.</string>
+    <string name="setup_oem_cta">Ayarları aç</string>
+    <string name="setup_oem_done">Bunu yaptım</string>
+    <string name="setup_oem_failed">Ayar ekranı açılamadı. Lütfen telefonunuzdaki otomatik başlatma veya arka plan etkinliği ayarlarını elle bulup DoNotNotify\'a izin verin.</string>
+
+    <string name="setup_post_notif_title">DoNotNotify\'ın bildirim göndermesine izin verin</string>
+    <string name="setup_post_notif_body">Gruplama kuralları, gruplanan bildirimleri DoNotNotify altında yeniden yayınlar. Android 13 ve üzeri, bu uygulamanın bildirim göndermesine izin vermenizi gerektirir; aksi halde gruplama devre dışı kalır.</string>
+    <string name="setup_post_notif_cta">Bildirimlere izin ver</string>
+    <string name="setup_post_notif_granted">İzin verildi</string>
+
+    <string name="setup_done_title">Her şey hazır</string>
+    <string name="setup_done_body">DoNotNotify arka planda çalışacak ve bildirimleri filtreleyecek. Her şeyin çalışmayı sürdürdüğünü düzenli olarak kontrol edeceğiz — telefonunuz uygulamayı kapatırsa, bunu düzeltmeniz için bir bildirim alırsınız.</string>
+
+    <!-- Health check notification -->
+    <string name="health_channel_name">Servis durumu</string>
+    <string name="health_channel_description">DoNotNotify çalışmadığında sizi uyarır.</string>
+    <string name="health_notification_title">DoNotNotify çalışmıyor</string>
+    <string name="health_notification_body">Telefonunuz DoNotNotify\'ı kapattı. Yeniden etkinleştirmek ve güç tasarrufu ayarlarını gözden geçirmek için dokunun.</string>
+
+    <!-- Main screen -->
+    <string name="service_active">Servis Etkin</string>
+    <string name="toast_service_enabled">Bildirim servisi etkin</string>
+    <string name="toast_service_disabled">Bildirim servisi devre dışı</string>
+    <string name="toast_rule_added">Kural eklendi</string>
+    <string name="toast_rule_deleted">Kural silindi</string>
+    <string name="toast_rule_updated">Kural güncellendi</string>
+    <string name="toast_notification_deleted">Bildirim silindi</string>
+    <string name="toast_history_cleared">Geçmiş temizlendi</string>
+    <string name="toast_blocked_history_cleared">Engellenenler geçmişi temizlendi</string>
+    <string name="toast_copied_to_clipboard">Panoya kopyalandı</string>
+    <string name="toast_failed_to_trigger">İşlem tetiklenemedi</string>
+    <string name="toast_action_unavailable">Bildirim işlemi artık kullanılamıyor</string>
+    <string name="toast_stopped_monitoring">%s izlemesi durduruldu</string>
+    <string name="toast_resumed_monitoring">%s izlemesi sürdürüldü</string>
+    <string name="not_applicable">Yok</string>
+    <string name="unknown">Bilinmiyor</string>
+    <string name="stack_channel_group_name">Gruplanmış bildirimler</string>
+    <string name="stack_channel_name_app_rule">%1$s — kural %2$s</string>
+    <string name="stack_channel_name_unnamed">Gruplama kuralı %1$s</string>
+    <string name="rule_name_optional">Kural adı (isteğe bağlı)</string>
+    <string name="rule_name_supporting">Bildirim kanalının adı olarak kullanılır; böylece sesini ve titreşimini ayarlayabilirsiniz.</string>
+    <string name="rule_name_use_suggestion">“%1$s” kullan</string>
+    <string name="rule_sound_vibration">Ses ve titreşim</string>
+    <string name="rule_sound_vibration_desc">Sistem ayarlarında yapılandırın</string>
+</resources>
