@@ -18,6 +18,11 @@ on:
         required: false
         default: ''
         type: string
+      play_dry_run:
+        description: 'Dry run - build, sign and validate against Play, upload nothing'
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   contents: write
@@ -92,7 +97,9 @@ jobs:
 
   publish-to-play:
     needs: check-version
-    if: needs.check-version.outputs.should_release == 'true'
+    # A manual run is allowed even when the version is already released, so the
+    # pipeline can be dry-run on demand; it defaults to validate-only.
+    if: needs.check-version.outputs.should_release == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     steps:
@@ -160,7 +167,12 @@ jobs:
           if [ -n "$ROLLOUT" ]; then
             ARGS+=(rollout:"$ROLLOUT")
           fi
-          bundle exec fastlane android publish "${ARGS[@]}"
+          if [ "${{ github.event.inputs.play_dry_run }}" = "true" ]; then
+            echo "::notice::Dry run - validating against Play, uploading nothing"
+            bundle exec fastlane android validate "${ARGS[@]}"
+          else
+            bundle exec fastlane android publish "${ARGS[@]}"
+          fi
 
       - name: Clean up credentials
         if: always()
