@@ -29,3 +29,6 @@ keystore.properties
 # APK/AAB outputs
 *.apk
 *.aab
+
+# Signed build outputs (mapping.txt is ~40MB)
+/app/release/
