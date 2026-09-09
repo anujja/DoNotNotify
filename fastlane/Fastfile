@@ -1,0 +1,89 @@
+# Play Store publishing for DoNotNotify.
+#
+#   bundle exec fastlane android internal          # build + upload to internal
+#   bundle exec fastlane android validate          # dry run, uploads nothing
+#   bundle exec fastlane android promote version_code:58 to:production
+#   bundle exec fastlane android metadata          # push store listing text
+#
+# Release notes come from fastlane/metadata/android/<locale>/changelogs/<versionCode>.txt
+# and are uploaded with every build. Store listing text (title, descriptions)
+# and images are NOT touched by the release lanes — see the `metadata` lane.
+
+default_platform(:android)
+
+BUNDLE_PATH = "app/build/outputs/bundle/release/app-release.aab".freeze
+
+platform :android do
+  desc "Build the signed release App Bundle"
+  lane :build_bundle do
+    gradle(task: "clean")
+    gradle(task: "bundle", build_type: "Release")
+  end
+
+  desc "Build and upload to a Play track. Options: track, release_status, skip_build, validate_only"
+  lane :internal do |options|
+    build_bundle unless options[:skip_build]
+
+    supply(
+      track: options[:track] || "internal",
+      aab: BUNDLE_PATH,
+      release_status: options[:release_status] || "completed",
+      validate_only: options[:validate_only] || false,
+      # The AAB embeds the R8 mapping at
+      # BUNDLE-METADATA/com.android.tools.build.obfuscation/proguard.map,
+      # so Play picks up deobfuscation without a separate upload.
+      #
+      # Store listing text and images are deliberately left alone here: a
+      # release must never silently revert a listing edit made in the Console
+      # (an applied experiment winner, say). Push those with the metadata lane.
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_changelogs: false
+    )
+  end
+
+  desc "Dry run of the internal upload — validates against Play, uploads nothing"
+  lane :validate do |options|
+    internal(options.merge(validate_only: true))
+  end
+
+  desc "Promote an already-uploaded version between tracks. Options: version_code (required), from, to, release_status, rollout"
+  lane :promote do |options|
+    version_code = options[:version_code]
+    UI.user_error!("Pass version_code: e.g. `fastlane android promote version_code:58 to:production`") if version_code.nil?
+
+    params = {
+      track: options[:from] || "internal",
+      track_promote_to: options[:to] || "production",
+      version_code: version_code.to_i,
+      release_status: options[:release_status] || "completed",
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_changelogs: true
+    }
+    # A staged rollout is only valid alongside release_status "inProgress",
+    # so only pass it when asked for.
+    params[:rollout] = options[:rollout].to_s if options[:rollout]
+
+    supply(params)
+  end
+
+  desc "Push store listing text from fastlane/metadata. Options: with_images, validate_only"
+  lane :metadata do |options|
+    with_images = options[:with_images] || false
+
+    supply(
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_changelogs: true,
+      skip_upload_metadata: false,
+      skip_upload_images: !with_images,
+      skip_upload_screenshots: !with_images,
+      validate_only: options[:validate_only] || false
+    )
+  end
+end

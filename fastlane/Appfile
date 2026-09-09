@@ -1,0 +1,6 @@
+# Service account JSON with "Release manager" access to the Play listing.
+# CI sets SUPPLY_JSON_KEY to a file written from the PLAY_SERVICE_ACCOUNT_JSON
+# secret; locally, drop the key at the path below (it is gitignored).
+json_key_file(ENV["SUPPLY_JSON_KEY"] || "fastlane/play-service-account.json")
+
+package_name("com.donotnotify.donotnotify")

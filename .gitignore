@@ -32,3 +32,10 @@ keystore.properties
 
 # Signed build outputs (mapping.txt is ~40MB)
 /app/release/
+
+# fastlane / Play publishing
+/fastlane/report.xml
+/fastlane/Preview.html
+/fastlane/play-service-account.json
+/.bundle/
+/vendor/bundle/

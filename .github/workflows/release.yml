@@ -6,6 +6,13 @@ on:
     paths:
       - 'app/build.gradle.kts'
   workflow_dispatch:  # Allow manual trigger
+    inputs:
+      play_track:
+        description: 'Play track to publish to'
+        required: false
+        default: 'internal'
+        type: choice
+        options: [internal, alpha, beta, production]
 
 permissions:
   contents: write
@@ -77,3 +84,75 @@ jobs:
           files: app/build/outputs/apk/release/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-to-play:
+    needs: check-version
+    if: needs.check-version.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # secrets can't be referenced in a job-level `if`, so gate the steps.
+      # Until the Play secrets are configured this job is a green no-op.
+      - name: Check Play credentials
+        id: guard
+        env:
+          PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          KEYSTORE_B64: ${{ secrets.PLAY_UPLOAD_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$PLAY_JSON" ] && [ -n "$KEYSTORE_B64" ]; then
+            echo "configured=true" >> $GITHUB_OUTPUT
+          else
+            echo "configured=false" >> $GITHUB_OUTPUT
+            echo "::notice::Play secrets not configured - skipping Play upload. See docs/play-publishing.md"
+          fi
+
+      - name: Set up JDK 17
+        if: steps.guard.outputs.configured == 'true'
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Set up Ruby
+        if: steps.guard.outputs.configured == 'true'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          # No Gemfile.lock is committed yet, so bundler-cache (which keys off
+          # one) stays off. Run `bundle lock` locally, commit the lockfile, and
+          # this can become `bundler-cache: true`.
+          bundler-cache: false
+
+      - name: Install fastlane
+        if: steps.guard.outputs.configured == 'true'
+        run: bundle install --jobs 4 --retry 3
+
+      - name: Write signing key and service account
+        if: steps.guard.outputs.configured == 'true'
+        env:
+          KEYSTORE_B64: ${{ secrets.PLAY_UPLOAD_KEYSTORE_BASE64 }}
+          PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          echo "$KEYSTORE_B64" | base64 -d > "${{ runner.temp }}/upload.jks"
+          printf '%s' "$PLAY_JSON" > "${{ runner.temp }}/play-service-account.json"
+
+      - name: Build and upload to Play
+        if: steps.guard.outputs.configured == 'true'
+        env:
+          # Consumed by the playStore signingConfig in app/build.gradle.kts
+          KEYSTORE_FILE: ${{ runner.temp }}/upload.jks
+          KEYSTORE_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.PLAY_UPLOAD_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
+          SUPPLY_JSON_KEY: ${{ runner.temp }}/play-service-account.json
+        run: |
+          bundle exec fastlane android internal \
+            track:"${{ github.event.inputs.play_track || 'internal' }}"
+
+      - name: Clean up credentials
+        if: always()
+        run: rm -f "${{ runner.temp }}/upload.jks" "${{ runner.temp }}/play-service-account.json"
