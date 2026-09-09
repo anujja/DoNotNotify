@@ -11,14 +11,29 @@ notice and skips. Nothing about the existing GitHub-release flow changes.
 
 ### 1. Service account
 
-1. Play Console → **Setup → API access** → create or link a Google Cloud project.
-2. Create a service account, then grant it access in Play Console →
-   **Users and permissions** with the **Release manager** role, scoped to
-   `com.donotnotify.donotnotify`.
-3. Download its JSON key.
+Most of this happens in the *Google Cloud* Console, not the Play Console. The
+old "Play Console → Setup → API access" page is gone — a developer account no
+longer needs to be linked to a Cloud project.
 
-Permissions can take a few hours to propagate. `bundle exec fastlane android validate`
-is the cheapest way to check whether they have.
+1. Create (or pick) a project at
+   [console.cloud.google.com/projectcreate](https://console.cloud.google.com/projectcreate).
+2. Enable the **Google Play Android Developer API** for it:
+   [console.developers.google.com/apis/api/androidpublisher.googleapis.com](https://console.developers.google.com/apis/api/androidpublisher.googleapis.com/)
+   → **Enable**.
+3. [IAM & Admin → Service Accounts](https://console.cloud.google.com/iam-admin/serviceaccounts)
+   → **Create service account**. Name it anything; no Cloud IAM roles are needed.
+4. Open the new account → **Keys** → **Add key → Create new key → JSON**. That
+   downloaded file is the `PLAY_SERVICE_ACCOUNT_JSON` secret.
+5. Back in Play Console →
+   [Users and permissions](https://play.google.com/console/users-and-permissions)
+   → **Invite new users** → paste the service account's email address (it ends
+   in `.iam.gserviceaccount.com`) → grant **Release manager** on
+   `com.donotnotify.donotnotify` → **Invite user**.
+
+Step 5 is the only Play Console step, and it needs account-owner or admin
+rights. Permissions can take a few hours to propagate;
+`bundle exec fastlane android validate` is the cheapest way to check whether
+they have.
 
 ### 2. Upload keystore
 
