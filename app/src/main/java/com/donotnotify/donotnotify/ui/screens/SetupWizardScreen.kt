@@ -107,6 +107,15 @@ fun SetupWizardScreen(
     val pagerState = rememberPagerState(pageCount = { steps.size })
     val scope = rememberCoroutineScope()
 
+    // The pager saves its page index across activity recreation, but the step list is
+    // rebuilt from scratch and can be shorter than it was (the welcome step drops once
+    // the listener is on, POST_NOTIF drops once granted). A restored index is read here
+    // before the pager clamps it during layout, so clamp it ourselves.
+    val currentIndex = pagerState.currentPage.coerceIn(0, steps.lastIndex)
+    LaunchedEffect(steps.size) {
+        if (pagerState.currentPage > steps.lastIndex) pagerState.scrollToPage(steps.lastIndex)
+    }
+
     fun goNext() {
         if (pagerState.currentPage < steps.lastIndex) {
             scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
@@ -119,7 +128,7 @@ fun SetupWizardScreen(
     }
 
     LaunchedEffect(listenerEnabled, batteryIgnored, postNotifGranted) {
-        val current = steps.getOrNull(pagerState.currentPage) ?: return@LaunchedEffect
+        val current = steps.getOrNull(currentIndex) ?: return@LaunchedEffect
         if (current == WizardStep.LISTENER && listenerEnabled) goNext()
         else if (current == WizardStep.POST_NOTIF && postNotifGranted) goNext()
         else if (current == WizardStep.BATTERY && batteryIgnored) goNext()
@@ -132,12 +141,12 @@ fun SetupWizardScreen(
             .padding(16.dp),
     ) {
         LinearProgressIndicator(
-            progress = { (pagerState.currentPage + 1f) / steps.size },
+            progress = { (currentIndex + 1f) / steps.size },
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = stringResource(R.string.setup_step_indicator, pagerState.currentPage + 1, steps.size),
+            text = stringResource(R.string.setup_step_indicator, currentIndex + 1, steps.size),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -150,7 +159,7 @@ fun SetupWizardScreen(
                 .weight(1f),
             userScrollEnabled = false,
         ) { page ->
-            when (steps[page]) {
+            when (steps.getOrNull(page)) {
                 WizardStep.WELCOME -> WelcomeStep(onNext = { goNext() })
                 WizardStep.LISTENER -> ListenerStep(
                     enabled = listenerEnabled,
@@ -195,17 +204,17 @@ fun SetupWizardScreen(
                         goNext()
                     },
                 )
-                WizardStep.DONE -> DoneStep()
+                WizardStep.DONE, null -> DoneStep()
             }
         }
 
         WizardNavRow(
-            isFirst = pagerState.currentPage == 0,
-            isLast = pagerState.currentPage == steps.lastIndex,
-            canAdvance = canAdvance(steps[pagerState.currentPage], listenerEnabled, batteryIgnored, oemSeen),
+            isFirst = currentIndex == 0,
+            isLast = currentIndex == steps.lastIndex,
+            canAdvance = canAdvance(steps[currentIndex], listenerEnabled, batteryIgnored, oemSeen),
             onBack = { goBack() },
             onNext = {
-                if (pagerState.currentPage == steps.lastIndex) {
+                if (currentIndex == steps.lastIndex) {
                     SetupState.setLastSeenSetupVersion(context, SetupState.CURRENT_SETUP_VERSION)
                     onFinish()
                 } else {
@@ -213,10 +222,10 @@ fun SetupWizardScreen(
                 }
             },
             onSkip = {
-                if (pagerState.currentPage == steps.lastIndex) return@WizardNavRow
+                if (currentIndex == steps.lastIndex) return@WizardNavRow
                 goNext()
             },
-            showSkip = canSkip(steps[pagerState.currentPage]),
+            showSkip = canSkip(steps[currentIndex]),
         )
     }
 }
