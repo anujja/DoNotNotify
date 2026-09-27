@@ -1,7 +1,13 @@
 Categories:
-  - System
-
+  - Notification
 License: MIT
+AuthorName: Anuj Jain
+AuthorEmail: aj@donotnotify.com
+WebSite: https://donotnotify.com
+SourceCode: https://github.com/anujja/DoNotNotify
+IssueTracker: https://github.com/anujja/DoNotNotify/issues
+Changelog: https://github.com/anujja/DoNotNotify/releases
+Donate: https://buymeacoffee.com/jainanuj
 
 AutoName: DoNotNotify
 
@@ -9,13 +15,19 @@ RepoType: git
 Repo: https://github.com/anujja/DoNotNotify
 
 Builds:
-  - versionName: '5.1'
-    versionCode: 46
-    commit: v5.1
+  - versionName: '6.4'
+    versionCode: 59
+    commit: 3121e9d484943c86ac38f89d9681683340239e35
+    subdir: app
     gradle:
       - yes
+    rm:
+      - app/github-release.jks
+    prebuild:
+      - sed -i '/val playStoreConfig =/,+5d' build.gradle.kts
+      - sed -i '/foojay-resolver-convention/d' ../settings.gradle.kts
 
-AutoUpdateMode: Version v%v
-UpdateCheckMode: Tags
-CurrentVersion: '5.1'
-CurrentVersionCode: 46
+AutoUpdateMode: Version
+UpdateCheckMode: Tags ^v[0-9]+\.[0-9]+$
+CurrentVersion: '6.4'
+CurrentVersionCode: 59
