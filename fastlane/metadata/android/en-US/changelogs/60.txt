@@ -1,0 +1,1 @@
+• Improved: When adding a new rule, a "Don't see your app?" link on the app list explains why an app may be missing — apps appear there once they have sent a notification
