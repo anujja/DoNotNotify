@@ -246,6 +246,8 @@
     <!-- Rule creation wizard -->
     <string name="rule_wizard_step_app_title">Wybierz aplikację</string>
     <string name="rule_wizard_step_app_body">Do powiadomień której aplikacji ma być stosowana ta reguła? Ta lista zawiera aplikacje, które wysłały powiadomienia na tym urządzeniu, oraz rozpoznane zainstalowane aplikacje.</string>
+    <string name="rule_wizard_missing_app_title">Nie widzisz swojej aplikacji?</string>
+    <string name="rule_wizard_missing_app_desc">DoNotNotify może wyświetlić tylko aplikacje, które wysłały powiadomienie od czasu jego instalacji.\n\nJeśli szukanej aplikacji nie ma na tej liście, poczekaj, aż wyśle ona powiadomienie, a potem wróć i utwórz regułę.</string>
     <string name="rule_wizard_app_not_listed">Nie ma aplikacji na liście?</string>
     <string name="rule_wizard_enter_package">Wpisz nazwę jej pakietu</string>
     <string name="rule_wizard_package_label">Nazwa pakietu</string>

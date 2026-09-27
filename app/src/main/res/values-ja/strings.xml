@@ -246,6 +246,8 @@
     <!-- Rule creation wizard -->
     <string name="rule_wizard_step_app_title">アプリを選択</string>
     <string name="rule_wizard_step_app_body">どのアプリの通知にこのルールを適用しますか? このリストには、この端末で通知を送信したことのあるアプリと、認識済みのインストール済みアプリが表示されます。</string>
+    <string name="rule_wizard_missing_app_title">アプリが見つかりませんか?</string>
+    <string name="rule_wizard_missing_app_desc">DoNotNotify に表示されるのは、インストール後に通知を送信したアプリのみです。\n\n目的のアプリがこのリストにない場合は、そのアプリから通知が届くのを待ってから、もう一度ルールを作成してください。</string>
     <string name="rule_wizard_app_not_listed">アプリが見つかりませんか?</string>
     <string name="rule_wizard_enter_package">パッケージ名を入力</string>
     <string name="rule_wizard_package_label">パッケージ名</string>

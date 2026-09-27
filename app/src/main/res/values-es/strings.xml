@@ -100,6 +100,8 @@
     <!-- Rule creation wizard -->
     <string name="rule_wizard_step_app_title">Elige una aplicación</string>
     <string name="rule_wizard_step_app_body">¿A las notificaciones de qué aplicación se aplicará esta regla? Esta lista muestra las aplicaciones que han publicado notificaciones en este dispositivo, además de aplicaciones instaladas reconocidas.</string>
+    <string name="rule_wizard_missing_app_title">¿No ves tu aplicación?</string>
+    <string name="rule_wizard_missing_app_desc">DoNotNotify solo puede mostrar las aplicaciones que han enviado una notificación desde que se instaló.\n\nSi la aplicación que buscas no aparece en esta lista, espera a que envíe una notificación y vuelve después para crear tu regla.</string>
     <string name="rule_wizard_app_not_listed">¿No aparece la aplicación?</string>
     <string name="rule_wizard_enter_package">Introduce su nombre de paquete</string>
     <string name="rule_wizard_package_label">Nombre del paquete</string>

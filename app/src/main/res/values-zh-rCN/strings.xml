@@ -100,6 +100,8 @@
     <!-- Rule creation wizard -->
     <string name="rule_wizard_step_app_title">选择应用</string>
     <string name="rule_wizard_step_app_body">此规则要应用于哪个应用的通知？此列表显示在此设备上发送过通知的应用，以及已识别的已安装应用。</string>
+    <string name="rule_wizard_missing_app_title">找不到您的应用？</string>
+    <string name="rule_wizard_missing_app_desc">DoNotNotify 只能列出自安装以来发送过通知的应用。\n\n如果您要的应用不在此列表中，请等待该应用发送一条通知，然后再回来创建规则。</string>
     <string name="rule_wizard_app_not_listed">找不到应用？</string>
     <string name="rule_wizard_enter_package">输入其包名</string>
     <string name="rule_wizard_package_label">包名</string>

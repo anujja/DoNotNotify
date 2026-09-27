@@ -100,6 +100,8 @@
     <!-- Rule creation wizard -->
     <string name="rule_wizard_step_app_title">Choose an app</string>
     <string name="rule_wizard_step_app_body">Which app\'s notifications should this rule apply to? This list shows apps that have posted notifications on this device, plus recognized installed apps.</string>
+    <string name="rule_wizard_missing_app_title">Don\'t see your app?</string>
+    <string name="rule_wizard_missing_app_desc">DoNotNotify can only list apps that have sent a notification since it was installed.\n\nIf the app you\'re looking for isn\'t in this list, wait for it to send a notification, then come back and create your rule.</string>
     <string name="rule_wizard_app_not_listed">App not listed?</string>
     <string name="rule_wizard_enter_package">Enter its package name</string>
     <string name="rule_wizard_package_label">Package name</string>

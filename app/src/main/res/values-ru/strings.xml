@@ -246,6 +246,8 @@
     <!-- Rule creation wizard -->
     <string name="rule_wizard_step_app_title">Выберите приложение</string>
     <string name="rule_wizard_step_app_body">К уведомлениям какого приложения применять это правило? В этом списке — приложения, отправлявшие уведомления на этом устройстве, а также распознанные установленные приложения.</string>
+    <string name="rule_wizard_missing_app_title">Не видите нужное приложение?</string>
+    <string name="rule_wizard_missing_app_desc">DoNotNotify может показать только приложения, которые отправляли уведомления после его установки.\n\nЕсли нужного приложения нет в этом списке, дождитесь, пока оно отправит уведомление, а затем вернитесь и создайте правило.</string>
     <string name="rule_wizard_app_not_listed">Приложения нет в списке?</string>
     <string name="rule_wizard_enter_package">Введите имя его пакета</string>
     <string name="rule_wizard_package_label">Имя пакета</string>

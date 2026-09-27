@@ -100,6 +100,8 @@
     <!-- Rule creation wizard -->
     <string name="rule_wizard_step_app_title">Bir uygulama seçin</string>
     <string name="rule_wizard_step_app_body">Bu kural hangi uygulamanın bildirimlerine uygulansın? Bu listede, bu cihazda bildirim göndermiş uygulamalar ve tanınan yüklü uygulamalar yer alır.</string>
+    <string name="rule_wizard_missing_app_title">Uygulamanızı göremiyor musunuz?</string>
+    <string name="rule_wizard_missing_app_desc">DoNotNotify yalnızca yüklendikten sonra bildirim göndermiş uygulamaları listeleyebilir.\n\nAradığınız uygulama bu listede yoksa bir bildirim göndermesini bekleyin, ardından geri gelip kuralınızı oluşturun.</string>
     <string name="rule_wizard_app_not_listed">Uygulama listede yok mu?</string>
     <string name="rule_wizard_enter_package">Paket adını girin</string>
     <string name="rule_wizard_package_label">Paket adı</string>
