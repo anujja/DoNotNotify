@@ -21,4 +21,4 @@ DoNotNotify lets you filter and block unwanted notifications using customizable 
 4. Blocked notifications appear in the Blocked tab
 5. Tap any blocked notification to view details or edit the rule that blocked it
 
-This app requires notification listener permission to function. It does not collect or transmit any data.
+This app requires notification listener permission to function. It has no network access. Notification history is stored locally and excluded from Android backups. Android may back up your rules and settings when system backup is enabled.

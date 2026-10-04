@@ -126,8 +126,6 @@ class NotificationBlockerService : NotificationListenerService() {
             appLabel = savedAppName
         }
 
-        Log.i(TAG, "Notification Received: App='${appLabel}', Title='${title}', Text='${text}'")
-
         // Authoritative guard: the listener process can survive a device-language change while
         // staying connected, so reconcile stale fail-closed prebuilt allowlists here, before
         // rules are read, regardless of whether the UI ever ran. Cheap + idempotent (no-op when
@@ -150,9 +148,9 @@ class NotificationBlockerService : NotificationListenerService() {
         if (isBlocked) {
             // Cancel immediately on binder thread
             if (wasOngoing) {
-                Log.w(TAG, "Attempting to block an ongoing notification. Cancellation may not be possible. Key: ${sbn.key}")
+                Log.w(TAG, "Attempting to block an ongoing notification. Cancellation may not be possible.")
             }
-            Log.i(TAG, "Blocking notification from $packageName. Matched rule: $matchedRule")
+            Log.i(TAG, "Blocking notification from $packageName")
             cancelNotification(sbn.key)
         } else if (decision.shouldStack) {
             // STACK: post the replacement FIRST; only cancel the source if the
@@ -197,7 +195,7 @@ class NotificationBlockerService : NotificationListenerService() {
         val isDuplicate = recentlyBlocked.containsKey(notificationKey) && currentTime - (recentlyBlocked[notificationKey] ?: 0) < DEBOUNCE_PERIOD_MS
 
         if (isDuplicate) {
-            Log.i(TAG, "Ignoring duplicate for history/stats: $notificationKey")
+            Log.i(TAG, "Ignoring duplicate for history/stats")
             // Still persist hitCount updates asynchronously
             if (hitRuleIds.isNotEmpty()) {
                 historyExecutor.execute {

@@ -1,0 +1,3 @@
+• Privacy: Removed notification text and rule contents from diagnostic logs.
+• Privacy: Android backups and device transfers now include only rules and preferences, excluding notification history.
+• Cleanup: Removed an unnecessary permission request while preserving notification access.

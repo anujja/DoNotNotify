@@ -4,7 +4,6 @@ import android.app.TimePickerDialog
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
@@ -538,7 +537,6 @@ fun AddRuleDialog(
         onDismiss = onDismiss,
         onSave = { newRule ->
             onAddRule(newRule)
-            Log.d("RuleEvent", "Rule Created: $newRule")
         }
     )
 }
@@ -558,7 +556,6 @@ fun EditRuleDialog(
         onDismiss = onDismiss,
         onSave = { newRule ->
             onUpdateRule(rule, newRule)
-            Log.d("RuleEvent", "Rule Updated: $newRule")
         },
         onDelete = { onDeleteRule(rule) } // This onDelete now sets the state to show the confirmation dialog in RuleDialog
     )
