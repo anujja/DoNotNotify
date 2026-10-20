@@ -57,7 +57,6 @@
 
     <!-- Ongoing notification icon -->
     <string name="ongoing_notification">Постоянное уведомление</string>
-    <string name="time_limited_rule">Правило с ограничением по времени</string>
 
     <!-- Rules screen -->
     <string name="no_rules_created">Правила не созданы</string>
@@ -138,13 +137,26 @@
     <!-- Rule dialogs -->
     <string name="advanced_configuration">Расширенная настройка</string>
     <string name="enable_rule">Включить правило</string>
-    <string name="enable_time_limit">Включить ограничение по времени</string>
-    <string name="start_time">Время начала:</string>
-    <string name="end_time">Время окончания:</string>
+    <string name="rule_options_conditions">Применять, только когда</string>
+    <string name="rule_options_actions">При совпадении</string>
+    <string name="rule_condition_time">Время суток</string>
+    <string name="time_range">%1$s – %2$s</string>
+    <string name="rule_condition_usage">Использование телефона</string>
+    <string name="rule_condition_usage_desc">Только когда вы пользуетесь телефоном или только когда не пользуетесь</string>
+    <string name="rule_condition_time_desc">Только в выбранные часы</string>
+    <string name="rule_time_start">Начало</string>
+    <string name="rule_time_end">Конец</string>
+    <string name="device_usage_in_use">Используется</string>
+    <string name="device_usage_not_in_use">Не используется</string>
+    <string name="device_usage_summary_in_use">Телефон используется</string>
+    <string name="device_usage_summary_not_in_use">Телефон не используется</string>
+    <string name="device_usage_help">«Используется» — экран включён и разблокирован.</string>
+    <string name="throttle_unit_seconds">сек</string>
+    <string name="throttle_unit_minutes">мин</string>
+    <string name="duration_seconds_short">%d с</string>
+    <string name="duration_minutes_short">%d мин</string>
     <string name="title_filter_optional">Фильтр заголовка (необязательно)</string>
     <string name="text_filter_optional">Фильтр текста (необязательно)</string>
-    <string name="save_rule">Сохранить правило</string>
-    <string name="add_rule_title">Новое правило (%s)</string>
     <string name="edit_rule_title">Изменить правило (%s)</string>
     <string name="rule_for">Правило для %s</string>
     <string name="blocked_notification_from">Заблокированное уведомление от %s</string>
@@ -242,6 +254,13 @@
     <string name="rule_type_desc_denylist">Блокирует все уведомления, соответствующие этому правилу.</string>
     <string name="rule_type_desc_allowlist">Разрешает только уведомления, соответствующие этому правилу. Все остальные из этого приложения блокируются.</string>
     <string name="rule_type_desc_stack">Группирует подходящие уведомления в одно сводное уведомление. Оригиналы удаляются.</string>
+    <string name="throttle">Ограничивать</string>
+    <string name="rule_type_desc_throttle">Пропускает одно подходящее уведомление, затем на время блокирует повторы. Длительность задаётся в разделе «Расширенная настройка».</string>
+    <string name="throttles_notifications_containing">Ограничивает уведомления, содержащие:</string>
+    <string name="rule_type_label">Тип правила</string>
+    <string name="throttle_duration">Длительность ограничения</string>
+    <string name="throttle_help">После подходящего уведомления следующие подходящие блокируются на это время.</string>
+    <string name="throttle_summary">Не чаще одного раза в %s</string>
 
     <!-- Rule creation wizard -->
     <string name="rule_wizard_step_app_title">Выберите приложение</string>
@@ -261,9 +280,12 @@
     <string name="rule_wizard_step_type_body">Что делать с подходящими уведомлениями?</string>
     <string name="rule_wizard_step_filters_title">Добавьте фильтры</string>
     <string name="rule_wizard_step_filters_body">Правило затронет только уведомления, соответствующие этим фильтрам.</string>
+    <string name="rule_wizard_example_label">Пример уведомления</string>
     <string name="rule_wizard_example_now">сейчас</string>
     <string name="rule_wizard_example_title">Ваш заказ доставлен</string>
     <string name="rule_wizard_example_text">Нажмите, чтобы посмотреть детали доставки</string>
+    <string name="rule_wizard_preview_latest_match">Последнее подходящее уведомление</string>
+    <string name="rule_wizard_preview_count">Подходят: %1$d из %2$d последних уведомлений этого приложения</string>
     <string name="rule_wizard_regex_help">Срабатывает, когда уведомление соответствует этому регулярному выражению.</string>
     <string name="rule_wizard_invalid_regex">Недопустимое регулярное выражение: %1$s</string>
     <string name="rule_wizard_matches_all_warning">Фильтры не заданы — правило будет применяться ко ВСЕМ уведомлениям от %1$s.</string>

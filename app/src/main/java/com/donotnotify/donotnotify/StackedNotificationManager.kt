@@ -189,6 +189,10 @@ object StackedNotificationManager {
             cfg?.startTimeMinute?.toString(),
             cfg?.endTimeHour?.toString(),
             cfg?.endTimeMinute?.toString()
+        ) + listOfNotNull(
+            // Options added later join the signature only when set, so existing rules keep
+            // their keys (and their live stacks) across the upgrade that introduced them.
+            cfg?.deviceUsage?.let { "deviceUsage=${it.name}" }
         )
         val canon = buildString {
             for (f in fields) {

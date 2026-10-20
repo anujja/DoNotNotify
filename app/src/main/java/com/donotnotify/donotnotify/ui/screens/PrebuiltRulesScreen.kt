@@ -258,6 +258,7 @@ private fun PrebuiltRuleCard(
         RuleType.DENYLIST -> stringResource(R.string.blocks_notifications_containing)
         RuleType.ALLOWLIST -> stringResource(R.string.allows_only_notifications_containing)
         RuleType.STACK -> stringResource(R.string.stacks_notifications_containing)
+        RuleType.THROTTLE -> stringResource(R.string.throttles_notifications_containing)
     }
 
     val unknownApp = stringResource(R.string.unknown_app)

@@ -1,5 +1,6 @@
 package com.donotnotify.donotnotify
 
+import android.app.KeyguardManager
 import android.app.Notification
 import android.content.ComponentName
 import android.content.Context
@@ -7,6 +8,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -24,6 +26,9 @@ class NotificationBlockerService : NotificationListenerService() {
     private lateinit var statsStorage: StatsStorage
     private lateinit var unmonitoredAppsStorage: UnmonitoredAppsStorage
     private lateinit var appInfoStorage: AppInfoStorage
+    private lateinit var throttleStorage: ThrottleStorage
+    private lateinit var powerManager: PowerManager
+    private lateinit var keyguardManager: KeyguardManager
 
     companion object {
         const val ACTION_HISTORY_UPDATED = "com.donotnotify.donotnotify.HISTORY_UPDATED"
@@ -74,7 +79,18 @@ class NotificationBlockerService : NotificationListenerService() {
         statsStorage = StatsStorage(this)
         unmonitoredAppsStorage = UnmonitoredAppsStorage(this)
         appInfoStorage = AppInfoStorage(this)
+        throttleStorage = ThrottleStorage(this)
+        powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
     }
+
+    /**
+     * In use = screen on and past the lock screen. Read at the moment of each notification rather
+     * than tracked via screen broadcasts, so there is no cached state to go stale. Always-on
+     * display counts as not interactive.
+     */
+    private fun isDeviceInUse(): Boolean =
+        powerManager.isInteractive && !keyguardManager.isKeyguardLocked
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         super.onNotificationPosted(sbn)
@@ -136,7 +152,10 @@ class NotificationBlockerService : NotificationListenerService() {
         // first enabled match wins; STACK never gates like allowlist).
         val rules = ruleStorage.getRules()
         val wasOngoing = (sbn.notification.flags and Notification.FLAG_ONGOING_EVENT) != 0
-        val decision = RuleMatcher.planNotificationDecision(rules, packageName, title, text, wasOngoing)
+        val matchContext = MatchContext.now(deviceInUse = isDeviceInUse())
+        val decision = RuleMatcher.planNotificationDecision(
+            rules, packageName, title, text, wasOngoing, matchContext
+        )
         val isBlocked = decision.isBlocked
         val matchedRule: BlockerRule? = decision.matchedDenylistRule
         val matchedRuleIndices = decision.matchedRuleIndices
@@ -145,12 +164,29 @@ class NotificationBlockerService : NotificationListenerService() {
             Log.i(TAG, "Blocking notification from $packageName because it did not match any allowlist rule.")
         }
 
+        // THROTTLE: the decision only lists matched throttle rules for notifications that weren't
+        // blocked and aren't ongoing. A suppression blocks like a rule (and so isn't stacked);
+        // a pass restarts every matched rule's window.
+        val throttleBlocked = if (decision.throttleRules.isNotEmpty()) {
+            val windows = ThrottleManager.windowsFor(decision.throttleRules)
+            val outcome = ThrottleManager.evaluate(windows, throttleStorage::lastPassAt, currentTime)
+            outcome.windowsToRecord.forEach { throttleStorage.recordPass(it, currentTime) }
+            if (outcome.suppress) {
+                Log.i(TAG, "Throttling notification from $packageName (${windows.joinToString { it.key }})")
+            }
+            outcome.suppress
+        } else {
+            false
+        }
+
         if (isBlocked) {
             // Cancel immediately on binder thread
             if (wasOngoing) {
                 Log.w(TAG, "Attempting to block an ongoing notification. Cancellation may not be possible.")
             }
             Log.i(TAG, "Blocking notification from $packageName")
+            cancelNotification(sbn.key)
+        } else if (throttleBlocked) {
             cancelNotification(sbn.key)
         } else if (decision.shouldStack) {
             // STACK: post the replacement FIRST; only cancel the source if the
@@ -215,7 +251,7 @@ class NotificationBlockerService : NotificationListenerService() {
                 }
             }
 
-            if (isBlocked) {
+            if (isBlocked || throttleBlocked) {
                 recentlyBlocked[notificationKey] = currentTime
             }
 
@@ -223,7 +259,7 @@ class NotificationBlockerService : NotificationListenerService() {
             historyExecutor.execute {
                 try {
                     ruleStorage.incrementHitCounts(hitRuleIds)
-                    if (isBlocked) {
+                    if (isBlocked || throttleBlocked) {
                         val isNew = blockedNotificationHistoryStorage.saveNotification(simpleNotification)
                         if (isNew) {
                             statsStorage.incrementBlockedNotificationsCount()

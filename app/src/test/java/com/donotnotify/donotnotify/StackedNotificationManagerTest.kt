@@ -103,6 +103,39 @@ class StackedNotificationManagerTest {
         assertNotEquals(k, StackedNotificationManager.groupKeyFor("p", deny))
     }
 
+    @Test
+    fun `keys of rules without newer options are unchanged`() {
+        // Golden values from before deviceUsage existed: adding a rule option must not re-key
+        // existing STACK groups, so new fields join the signature only when set.
+        val plain = BlockerRule(packageName = "p", titleFilter = "x", ruleType = RuleType.STACK)
+        val timed = plain.copy(
+            advancedConfig = AdvancedRuleConfig(isTimeLimitEnabled = true, startTimeHour = 22, endTimeHour = 7)
+        )
+        assertEquals("dnn_stack:p:d151ce31b2cd323b511ea12d8a739317234b4a8781d54dfcdf126d0afb960db6", StackedNotificationManager.groupKeyFor("p", plain))
+        assertEquals("dnn_stack:p:87450f29d7d20aba5a1dc5188ad8caa0f48252a5e8be71fd91d1b7bc1a8ceeb0", StackedNotificationManager.groupKeyFor("p", timed))
+    }
+
+    @Test
+    fun `device usage condition changes the key`() {
+        val base = BlockerRule(packageName = "p", titleFilter = "x", ruleType = RuleType.STACK)
+        val inUse = base.copy(advancedConfig = AdvancedRuleConfig(deviceUsage = DeviceUsage.IN_USE))
+        val notInUse = base.copy(advancedConfig = AdvancedRuleConfig(deviceUsage = DeviceUsage.NOT_IN_USE))
+        val keys = listOf(base, inUse, notInUse).map { StackedNotificationManager.groupKeyFor("p", it) }
+        assertEquals(3, keys.toSet().size)
+    }
+
+    @Test
+    fun `throttle length does not change the key`() {
+        // Only THROTTLE rules use it (it's cleared from other types on save), so it must not re-key.
+        val timed = AdvancedRuleConfig(isTimeLimitEnabled = true, startTimeHour = 22, endTimeHour = 7)
+        val rule = BlockerRule(packageName = "p", titleFilter = "x", ruleType = RuleType.STACK, advancedConfig = timed)
+        val withLength = rule.copy(advancedConfig = timed.copy(throttleSeconds = 30))
+        assertEquals(
+            StackedNotificationManager.groupKeyFor("p", rule),
+            StackedNotificationManager.groupKeyFor("p", withLength)
+        )
+    }
+
     // ---- planAbsorb (pure) ----------------------------------------------------
 
     private fun snapshot(

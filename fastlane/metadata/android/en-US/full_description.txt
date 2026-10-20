@@ -5,7 +5,8 @@ DoNotNotify lets you filter and block unwanted notifications using customizable 
 • <b>Notification Blocking</b> - Block notifications in real-time
 • <b>Flexible Rules</b> - Create denylist (block matching) or allowlist (allow only matching) rules
 • <b>Pattern Matching</b> - Match notification title/text using simple contains or regex patterns
-• <b>Time-Based Rules</b> - Schedule rules to activate only during specific time windows
+• <b>Conditional Rules</b> - Limit rules to specific hours, or to when your phone is (or isn't) in use
+• <b>Throttling</b> - Let one matching notification through, then block repeats for a set time
 • <b>Prebuilt Rules</b> - 40+ pre-configured rules for popular apps (e-commerce promos, social media, etc.)
 • <b>Auto-Install Rules</b> - Automatically adds relevant prebuilt rules when you install supported apps
 • <b>Notification History</b> - View all received notifications with configurable retention

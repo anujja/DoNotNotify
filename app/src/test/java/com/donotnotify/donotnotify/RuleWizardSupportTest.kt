@@ -219,4 +219,99 @@ class RuleWizardSupportTest {
         assertFalse(RuleWizardSupport.looksLikePackageName(".com.example"))
         assertFalse(RuleWizardSupport.looksLikePackageName("com.example."))
     }
+
+    // --- previewFilters ---
+
+    private fun n(title: String?, text: String?, at: Long, pkg: String = "com.a") =
+        SimpleNotification(appLabel = "A", packageName = pkg, title = title, text = text, timestamp = at)
+
+    private val history = listOf(
+        n("Sale ends tonight", "50% off everything", at = 3),
+        n("Your order shipped", "Arriving Friday", at = 2),
+        n("Sale ends tonight", "50% off everything", at = 1),
+        n("Flash sale", "Today only", at = 4, pkg = "com.other"),
+    )
+
+    @Test
+    fun `preview counts the app's distinct recent notifications and finds the latest match`() {
+        val p = RuleWizardSupport.previewFilters(history, "com.a", "sale", MatchType.CONTAINS, "", MatchType.CONTAINS)
+        assertEquals(2, p.recentCount)
+        assertEquals(1, p.matchCount)
+        assertEquals(3L, p.latestMatch?.timestamp)
+        assertEquals(RuleWizardSupport.PreviewField("Sale ends tonight", 0..3), p.latestMatch?.title)
+        assertTrue(p.latestMatch!!.text.match.isEmpty())
+    }
+
+    @Test
+    fun `preview with blank filters matches everything, and nothing when a filter misses`() {
+        val all = RuleWizardSupport.previewFilters(history, "com.a", " ", MatchType.CONTAINS, "", MatchType.REGEX)
+        assertEquals(2, all.matchCount)
+        assertEquals(3L, all.latestMatch?.timestamp)
+
+        val none = RuleWizardSupport.previewFilters(history, "com.a", "", MatchType.CONTAINS, "^Today", MatchType.REGEX)
+        assertEquals(2, none.recentCount)
+        assertEquals(0, none.matchCount)
+        assertNull(none.latestMatch)
+    }
+
+    @Test
+    fun `preview trims filters like the saved rule and shows text on one line`() {
+        val h = listOf(n("Delivery", "Out for\ndelivery today", at = 1))
+        val p = RuleWizardSupport.previewFilters(h, "com.a", "", MatchType.CONTAINS, "  delivery  ", MatchType.CONTAINS)
+        assertEquals(RuleWizardSupport.PreviewField("Out for delivery today", 8..15), p.latestMatch?.text)
+    }
+
+    @Test
+    fun `preview of an invalid regex matches nothing`() {
+        val p = RuleWizardSupport.previewFilters(history, "com.a", "(unclosed", MatchType.REGEX, "", MatchType.CONTAINS)
+        assertEquals(0, p.matchCount)
+    }
+
+    // --- snippetAround / exampleField ---
+
+    @Test
+    fun `snippet keeps an early match as is`() {
+        val field = RuleWizardSupport.PreviewField("Your code is 123456", 13..18)
+        assertEquals(field, RuleWizardSupport.snippetAround(field))
+    }
+
+    @Test
+    fun `snippet cuts at a word start so a late match ends the line`() {
+        val text = "Your verification code for signing in is 123456"
+        val shown = RuleWizardSupport.snippetAround(RuleWizardSupport.PreviewField(text, 41..46))
+        assertEquals("…code for signing in is 123456", shown.text)
+        assertEquals("123456", shown.text.substring(shown.match.first, shown.match.last + 1))
+    }
+
+    @Test
+    fun `snippet of a match longer than the line starts at the match`() {
+        val text = "Note: " + "a".repeat(40)
+        val shown = RuleWizardSupport.snippetAround(RuleWizardSupport.PreviewField(text, 6..45))
+        assertEquals("…" + "a".repeat(40), shown.text)
+        assertEquals(1..40, shown.match)
+    }
+
+    @Test
+    fun `snippet of a long match from the start is not cut`() {
+        val field = RuleWizardSupport.PreviewField("Flash sale: 50% off all sneakers, today only", 0..43)
+        assertEquals(field, RuleWizardSupport.snippetAround(field))
+    }
+
+    @Test
+    fun `example field highlights a filter it contains, else shows the filter`() {
+        val example = "Your order has been delivered"
+        assertEquals(
+            RuleWizardSupport.PreviewField(example, 5..9),
+            RuleWizardSupport.exampleField(example, "ORDER", MatchType.CONTAINS)
+        )
+        assertEquals(
+            RuleWizardSupport.PreviewField("…promo…", 1..5),
+            RuleWizardSupport.exampleField(example, " promo ", MatchType.CONTAINS)
+        )
+        assertEquals(
+            RuleWizardSupport.PreviewField("\\d{6}", 0..4),
+            RuleWizardSupport.exampleField(example, "\\d{6}", MatchType.REGEX)
+        )
+        assertTrue(RuleWizardSupport.exampleField(example, "", MatchType.REGEX).match.isEmpty())
+    }
 }

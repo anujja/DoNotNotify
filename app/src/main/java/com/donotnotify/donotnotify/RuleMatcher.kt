@@ -1,8 +1,5 @@
 package com.donotnotify.donotnotify
 
-import java.util.Calendar
-import java.util.regex.PatternSyntaxException
-
 object RuleMatcher {
     private const val MAX_CACHE_SIZE = 512
 
@@ -18,74 +15,66 @@ object RuleMatcher {
     // Google apps wrap notification strings in invisible bidi/format chars
     // (U+2066–U+2069 isolates, U+200E/F marks, zero-width chars). They survive
     // toString() but never render, so rules must match the visible text only.
-    private fun stripInvisibleFormatting(s: String?): String? =
+    internal fun stripInvisibleFormatting(s: String?): String? =
         s?.filterNot { it.category == CharCategory.FORMAT }
+
+    /**
+     * Where one filter matches one field: the matched range within the field's visible text
+     * ([stripInvisibleFormatting]), an empty range for a blank filter (it matches anything),
+     * or null for no match. [matches] is built on this, so the rule wizard's preview, which
+     * highlights these ranges, always agrees with what a rule actually does.
+     */
+    fun findMatch(filter: String?, matchType: MatchType, value: String?): IntRange? {
+        if (filter.isNullOrBlank()) return IntRange.EMPTY
+        val clean = stripInvisibleFormatting(value) ?: return null
+        return try {
+            when (matchType) {
+                MatchType.REGEX -> getCachedRegex(filter).find(clean)?.range
+                // Filters are stripped too: CONTAINS filters are often pasted from
+                // notification text and can carry the same invisible chars.
+                MatchType.CONTAINS -> {
+                    val needle = stripInvisibleFormatting(filter)!!
+                    clean.indexOf(needle, ignoreCase = true).takeIf { it >= 0 }
+                        ?.let { it until it + needle.length }
+                }
+            }
+        } catch (e: Exception) {
+            // In case of invalid regex or other errors, we assume no match
+            null
+        }
+    }
 
     fun matches(
         rule: BlockerRule,
         packageName: String?,
         title: String?,
-        text: String?
+        text: String?,
+        matchContext: MatchContext = MatchContext.now()
     ): Boolean {
-        // Check if the rule is active based on time settings
-        if (rule.advancedConfig?.isTimeLimitEnabled == true) {
-            val config = rule.advancedConfig
-            val now = Calendar.getInstance()
-            val currentHour = now.get(Calendar.HOUR_OF_DAY)
-            val currentMinute = now.get(Calendar.MINUTE)
-            val currentTotalMinutes = currentHour * 60 + currentMinute
-
-            val startTotalMinutes = config.startTimeHour * 60 + config.startTimeMinute
-            val endTotalMinutes = config.endTimeHour * 60 + config.endTimeMinute
-
-            val isActive = if (startTotalMinutes <= endTotalMinutes) {
-                currentTotalMinutes in startTotalMinutes..endTotalMinutes
-            } else {
-                // Spans midnight
-                currentTotalMinutes >= startTotalMinutes || currentTotalMinutes <= endTotalMinutes
-            }
-
-            if (!isActive) return false
-        }
+        // Conditions (time window, …) gate the rule before any filter is evaluated.
+        if (!RuleConditions.isActive(rule.advancedConfig, matchContext)) return false
 
         // If the rule has a package name, it must match.
         // Note: The caller usually filters by package name, but we check here to be safe.
         if (!rule.packageName.isNullOrEmpty() && rule.packageName != packageName) return false
 
-        try {
-            val cleanTitle = stripInvisibleFormatting(title)
-            val cleanText = stripInvisibleFormatting(text)
-
-            val titleMatch = when (rule.titleMatchType) {
-                MatchType.REGEX -> rule.titleFilter.isNullOrBlank() || (cleanTitle != null && getCachedRegex(rule.titleFilter).containsMatchIn(cleanTitle))
-                // Filters are stripped too: CONTAINS filters are often pasted from
-                // notification text and can carry the same invisible chars.
-                MatchType.CONTAINS -> rule.titleFilter.isNullOrBlank() || (cleanTitle?.contains(stripInvisibleFormatting(rule.titleFilter)!!, ignoreCase = true) ?: false)
-            }
-
-            val textMatch = when (rule.textMatchType) {
-                MatchType.REGEX -> rule.textFilter.isNullOrBlank() || (cleanText != null && getCachedRegex(rule.textFilter).containsMatchIn(cleanText))
-                MatchType.CONTAINS -> rule.textFilter.isNullOrBlank() || (cleanText?.contains(stripInvisibleFormatting(rule.textFilter)!!, ignoreCase = true) ?: false)
-            }
-
-            return titleMatch && textMatch
-        } catch (e: Exception) {
-            // In case of invalid regex or other errors, we assume no match
-            return false
-        }
+        return findMatch(rule.titleFilter, rule.titleMatchType, title) != null &&
+                findMatch(rule.textFilter, rule.textMatchType, text) != null
     }
 
     /**
      * Determines if a notification should be blocked based on the provided rules.
      * Logic:
-     * 1. If there are allowlist rules for the package, the notification MUST match at least one of them.
+     * 1. If there are active allowlist rules for the package, the notification MUST match at least one of them.
      * 2. If the notification matches any denylist rule, it IS blocked (even if it matched an allowlist rule).
+     * A rule whose conditions don't hold right now is skipped entirely.
      */
     fun shouldBlock(
         packageName: String,
         title: String?,
         text: String?,
-        rules: List<BlockerRule>
+        rules: List<BlockerRule>,
+        matchContext: MatchContext = MatchContext.now()
     ): Boolean {
         var hasAllowlistRules = false
         var matchesAllowlist = false
@@ -93,20 +82,21 @@ object RuleMatcher {
 
         for (rule in rules) {
             if (rule.packageName != packageName || !rule.isEnabled) continue
+            if (!RuleConditions.isActive(rule.advancedConfig, matchContext)) continue
             when (rule.ruleType) {
                 RuleType.ALLOWLIST -> {
                     hasAllowlistRules = true
-                    if (!matchesAllowlist && matches(rule, packageName, title, text)) {
+                    if (!matchesAllowlist && matches(rule, packageName, title, text, matchContext)) {
                         matchesAllowlist = true
                     }
                 }
                 RuleType.DENYLIST -> {
-                    if (!matchesDenylist && matches(rule, packageName, title, text)) {
+                    if (!matchesDenylist && matches(rule, packageName, title, text, matchContext)) {
                         matchesDenylist = true
                     }
                 }
-                RuleType.STACK -> {
-                    // Not a blocking type — STACK never blocks and never gates like allowlist.
+                RuleType.STACK, RuleType.THROTTLE -> {
+                    // Not blocking types: they never block outright and never gate like allowlist.
                 }
             }
         }
@@ -124,16 +114,22 @@ object RuleMatcher {
      * Precedence: `isBlocked` is unchanged
      * (`(hasAllowlistRules && !matchesAllowlist) || matchesDenylist`).
      * `shouldStack = !isBlocked && matchesStack && !wasOngoing`.
-     * STACK rules never set `hasAllowlistRules`. First enabled match wins for both
+     * STACK and THROTTLE rules never set `hasAllowlistRules`. Every matching THROTTLE rule (not
+     * just the first) is returned in `throttleRules` for [ThrottleManager], unless the
+     * notification is already blocked or is ongoing. A rule whose conditions (time window, phone
+     * usage) don't hold is skipped entirely, so an inactive ALLOWLIST rule doesn't gate the
+     * app's other notifications. First enabled match wins for both
      * DENYLIST and STACK (mirrors the existing short-circuit). Only matched rules'
-     * indices are returned (for hitCount increments).
+     * indices are returned (for hitCount increments). [matchContext] is snapshotted once
+     * so every rule is judged against the same time/device state.
      */
     fun planNotificationDecision(
         rules: List<BlockerRule>,
         packageName: String,
         title: String?,
         text: String?,
-        wasOngoing: Boolean
+        wasOngoing: Boolean,
+        matchContext: MatchContext = MatchContext.now()
     ): NotificationDecision {
         var hasAllowlistRules = false
         var matchesAllowlist = false
@@ -141,29 +137,37 @@ object RuleMatcher {
         var matchedDenylistRule: BlockerRule? = null
         var matchesStack = false
         var matchedStackRule: BlockerRule? = null
+        val matchedThrottleRules = mutableListOf<BlockerRule>()
         val matchedRuleIndices = mutableListOf<Int>()
 
         for ((index, rule) in rules.withIndex()) {
             if (rule.packageName != packageName || !rule.isEnabled) continue
+            if (!RuleConditions.isActive(rule.advancedConfig, matchContext)) continue
             when (rule.ruleType) {
                 RuleType.ALLOWLIST -> {
                     hasAllowlistRules = true
-                    if (!matchesAllowlist && matches(rule, packageName, title, text)) {
+                    if (!matchesAllowlist && matches(rule, packageName, title, text, matchContext)) {
                         matchesAllowlist = true
                         matchedRuleIndices.add(index)
                     }
                 }
                 RuleType.DENYLIST -> {
-                    if (!matchesDenylist && matches(rule, packageName, title, text)) {
+                    if (!matchesDenylist && matches(rule, packageName, title, text, matchContext)) {
                         matchesDenylist = true
                         matchedDenylistRule = rule
                         matchedRuleIndices.add(index)
                     }
                 }
                 RuleType.STACK -> {
-                    if (!matchesStack && matches(rule, packageName, title, text)) {
+                    if (!matchesStack && matches(rule, packageName, title, text, matchContext)) {
                         matchesStack = true
                         matchedStackRule = rule
+                        matchedRuleIndices.add(index)
+                    }
+                }
+                RuleType.THROTTLE -> {
+                    if (matches(rule, packageName, title, text, matchContext)) {
+                        matchedThrottleRules.add(rule)
                         matchedRuleIndices.add(index)
                     }
                 }
@@ -178,6 +182,8 @@ object RuleMatcher {
             shouldStack = shouldStack,
             // Only meaningful when the notification will actually be stacked.
             matchedStackRule = if (shouldStack) matchedStackRule else null,
+            // A blocked notification is gone anyway, and an ongoing one can't reliably be cancelled.
+            throttleRules = if (!isBlocked && !wasOngoing) matchedThrottleRules else emptyList(),
             matchedRuleIndices = matchedRuleIndices
         )
     }
@@ -189,6 +195,8 @@ object RuleMatcher {
  * @param matchedDenylistRule the first matched DENYLIST rule, or null.
  * @param matchedStackRule the first matched STACK rule (only meaningful when
  *   [shouldStack] is true), or null.
+ * @param throttleRules every matched THROTTLE rule; empty when the notification is blocked
+ *   or ongoing. A suppression by [ThrottleManager] takes precedence over stacking.
  * @param matchedRuleIndices indices (into the input list) of every rule that matched
  *   and should have its hitCount incremented.
  */
@@ -197,5 +205,6 @@ data class NotificationDecision(
     val matchedDenylistRule: BlockerRule?,
     val shouldStack: Boolean,
     val matchedStackRule: BlockerRule?,
+    val throttleRules: List<BlockerRule> = emptyList(),
     val matchedRuleIndices: List<Int>
 )

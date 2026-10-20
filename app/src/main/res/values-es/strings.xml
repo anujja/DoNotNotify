@@ -57,7 +57,6 @@
 
     <!-- Ongoing notification icon -->
     <string name="ongoing_notification">Notificación persistente</string>
-    <string name="time_limited_rule">Regla con límite de tiempo</string>
 
     <!-- Rules screen -->
     <string name="no_rules_created">No se han creado reglas</string>
@@ -96,6 +95,13 @@
     <string name="rule_type_desc_denylist">Bloquea todas las notificaciones que coincidan con esta regla.</string>
     <string name="rule_type_desc_allowlist">Solo permite las notificaciones que coincidan con esta regla. Todas las demás de esta aplicación se bloquean.</string>
     <string name="rule_type_desc_stack">Agrupa las notificaciones coincidentes en un único resumen. Las originales se descartan.</string>
+    <string name="throttle">Limitar</string>
+    <string name="rule_type_desc_throttle">Deja pasar una notificación que coincida y bloquea las repeticiones durante un tiempo. Ajusta la duración en Configuración avanzada.</string>
+    <string name="throttles_notifications_containing">Limita las notificaciones que contengan:</string>
+    <string name="rule_type_label">Tipo de regla</string>
+    <string name="throttle_duration">Duración del límite</string>
+    <string name="throttle_help">Cuando llega una notificación que coincide, las siguientes coincidencias se bloquean durante este tiempo.</string>
+    <string name="throttle_summary">Como máximo una cada %s</string>
 
     <!-- Rule creation wizard -->
     <string name="rule_wizard_step_app_title">Elige una aplicación</string>
@@ -115,9 +121,12 @@
     <string name="rule_wizard_step_type_body">¿Qué debe ocurrir con las notificaciones coincidentes?</string>
     <string name="rule_wizard_step_filters_title">Añade filtros</string>
     <string name="rule_wizard_step_filters_body">Solo se verán afectadas las notificaciones que coincidan con estos filtros.</string>
+    <string name="rule_wizard_example_label">Notificación de ejemplo</string>
     <string name="rule_wizard_example_now">ahora</string>
     <string name="rule_wizard_example_title">Tu pedido ha sido entregado</string>
     <string name="rule_wizard_example_text">Toca para ver los detalles de la entrega</string>
+    <string name="rule_wizard_preview_latest_match">Última notificación que coincide</string>
+    <string name="rule_wizard_preview_count">Coinciden: %1$d de %2$d notificaciones recientes de esta aplicación</string>
     <string name="rule_wizard_regex_help">Coincide cuando la notificación coincide con esta expresión regular.</string>
     <string name="rule_wizard_invalid_regex">Expresión regular no válida: %1$s</string>
     <string name="rule_wizard_matches_all_warning">Sin filtros: esta regla se aplicará a TODAS las notificaciones de %1$s.</string>
@@ -186,13 +195,26 @@
     <!-- Rule dialogs -->
     <string name="advanced_configuration">Configuración avanzada</string>
     <string name="enable_rule">Activar regla</string>
-    <string name="enable_time_limit">Activar límite de tiempo</string>
-    <string name="start_time">Hora de inicio:</string>
-    <string name="end_time">Hora de fin:</string>
+    <string name="rule_options_conditions">Aplicar solo cuando</string>
+    <string name="rule_options_actions">Al coincidir</string>
+    <string name="rule_condition_time">Hora del día</string>
+    <string name="time_range">%1$s – %2$s</string>
+    <string name="rule_condition_usage">Uso del teléfono</string>
+    <string name="rule_condition_usage_desc">Solo mientras usas el teléfono, o solo mientras no lo usas</string>
+    <string name="rule_condition_time_desc">Solo durante el horario que elijas</string>
+    <string name="rule_time_start">Inicio</string>
+    <string name="rule_time_end">Fin</string>
+    <string name="device_usage_in_use">En uso</string>
+    <string name="device_usage_not_in_use">Sin usar</string>
+    <string name="device_usage_summary_in_use">Teléfono en uso</string>
+    <string name="device_usage_summary_not_in_use">Teléfono sin usar</string>
+    <string name="device_usage_help">En uso significa que la pantalla está encendida y desbloqueada.</string>
+    <string name="throttle_unit_seconds">seg</string>
+    <string name="throttle_unit_minutes">min</string>
+    <string name="duration_seconds_short">%d s</string>
+    <string name="duration_minutes_short">%d min</string>
     <string name="title_filter_optional">Filtro de título (opcional)</string>
     <string name="text_filter_optional">Filtro de texto (opcional)</string>
-    <string name="save_rule">Guardar regla</string>
-    <string name="add_rule_title">Añadir nueva regla (%s)</string>
     <string name="edit_rule_title">Editar regla (%s)</string>
     <string name="rule_for">Regla para %s</string>
     <string name="blocked_notification_from">Notificación bloqueada de %s</string>

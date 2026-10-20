@@ -57,7 +57,6 @@
 
     <!-- Ongoing notification icon -->
     <string name="ongoing_notification">Devam Eden Bildirim</string>
-    <string name="time_limited_rule">Zaman sınırlı kural</string>
 
     <!-- Rules screen -->
     <string name="no_rules_created">Kural Oluşturulmadı</string>
@@ -96,6 +95,13 @@
     <string name="rule_type_desc_denylist">Bu kuralla eşleşen tüm bildirimleri engelle.</string>
     <string name="rule_type_desc_allowlist">Yalnızca bu kuralla eşleşen bildirimlere izin ver. Bu uygulamadan gelen diğer tüm bildirimler engellenir.</string>
     <string name="rule_type_desc_stack">Eşleşen bildirimleri tek bir özet altında grupla. Orijinalleri kapatılır.</string>
+    <string name="throttle">Sınırla</string>
+    <string name="rule_type_desc_throttle">Eşleşen bir bildirimi geçirir, ardından tekrarları bir süre engeller. Süreyi Gelişmiş Yapılandırma\'dan ayarlayın.</string>
+    <string name="throttles_notifications_containing">Şunları içeren bildirimleri sınırlar:</string>
+    <string name="rule_type_label">Kural türü</string>
+    <string name="throttle_duration">Sınırlama süresi</string>
+    <string name="throttle_help">Eşleşen bir bildirim geldikten sonra, bu süre boyunca eşleşen diğer bildirimler engellenir.</string>
+    <string name="throttle_summary">%s içinde en fazla bir</string>
 
     <!-- Rule creation wizard -->
     <string name="rule_wizard_step_app_title">Bir uygulama seçin</string>
@@ -115,9 +121,12 @@
     <string name="rule_wizard_step_type_body">Eşleşen bildirimlere ne olsun?</string>
     <string name="rule_wizard_step_filters_title">Filtre ekleyin</string>
     <string name="rule_wizard_step_filters_body">Yalnızca bu filtrelerle eşleşen bildirimler etkilenir.</string>
+    <string name="rule_wizard_example_label">Örnek bildirim</string>
     <string name="rule_wizard_example_now">şimdi</string>
     <string name="rule_wizard_example_title">Siparişiniz teslim edildi</string>
     <string name="rule_wizard_example_text">Teslimat ayrıntıları için dokunun</string>
+    <string name="rule_wizard_preview_latest_match">Eşleşen en son bildirim</string>
+    <string name="rule_wizard_preview_count">Bu uygulamanın son %2$d bildiriminden %1$d tanesi eşleşiyor</string>
     <string name="rule_wizard_regex_help">Bildirim bu düzenli ifadeyle eşleştiğinde uygulanır.</string>
     <string name="rule_wizard_invalid_regex">Geçersiz düzenli ifade: %1$s</string>
     <string name="rule_wizard_matches_all_warning">Filtre ayarlanmadı — bu kural %1$s uygulamasının TÜM bildirimlerine uygulanır.</string>
@@ -189,13 +198,26 @@
     <!-- Rule dialogs -->
     <string name="advanced_configuration">Gelişmiş Yapılandırma</string>
     <string name="enable_rule">Kuralı Etkinleştir</string>
-    <string name="enable_time_limit">Zaman Sınırını Etkinleştir</string>
-    <string name="start_time">Başlangıç Saati:</string>
-    <string name="end_time">Bitiş Saati:</string>
+    <string name="rule_options_conditions">Yalnızca şu durumda uygula</string>
+    <string name="rule_options_actions">Eşleştiğinde</string>
+    <string name="rule_condition_time">Günün saati</string>
+    <string name="time_range">%1$s – %2$s</string>
+    <string name="rule_condition_usage">Telefon kullanımı</string>
+    <string name="rule_condition_usage_desc">Yalnızca telefonunuzu kullanırken veya yalnızca kullanmazken</string>
+    <string name="rule_condition_time_desc">Yalnızca seçtiğiniz saatlerde</string>
+    <string name="rule_time_start">Başlangıç</string>
+    <string name="rule_time_end">Bitiş</string>
+    <string name="device_usage_in_use">Kullanımda</string>
+    <string name="device_usage_not_in_use">Kullanımda değil</string>
+    <string name="device_usage_summary_in_use">Telefon kullanımda</string>
+    <string name="device_usage_summary_not_in_use">Telefon kullanımda değil</string>
+    <string name="device_usage_help">Kullanımda: ekran açık ve kilidi açılmış.</string>
+    <string name="throttle_unit_seconds">sn</string>
+    <string name="throttle_unit_minutes">dk</string>
+    <string name="duration_seconds_short">%d sn</string>
+    <string name="duration_minutes_short">%d dk</string>
     <string name="title_filter_optional">Başlık Filtresi (İsteğe Bağlı)</string>
     <string name="text_filter_optional">Metin Filtresi (İsteğe Bağlı)</string>
-    <string name="save_rule">Kuralı Kaydet</string>
-    <string name="add_rule_title">Yeni Kural Ekle (%s)</string>
     <string name="edit_rule_title">Kuralı Düzenle (%s)</string>
     <string name="rule_for">%s için kural</string>
     <string name="blocked_notification_from">%s uygulamasından engellenen bildirim</string>

@@ -103,6 +103,92 @@ object RuleWizardSupport {
         matchType == MatchType.REGEX && filter.isNotBlank() && runCatching { filter.toRegex() }.isFailure
 
     /**
+     * One notification field as the filter step's preview shows it: the visible text on one
+     * line, and the range the filter matched (empty when the filter is blank).
+     */
+    data class PreviewField(val text: String, val match: IntRange)
+
+    /** A recent notification that matches the filters being typed. */
+    data class PreviewMatch(val timestamp: Long, val title: PreviewField, val text: PreviewField)
+
+    /**
+     * What the filter step previews: how many of the app's recent notifications match
+     * the filters, out of how many, and the latest that does. Repeats of the same title
+     * and text count once.
+     */
+    data class FilterPreview(val recentCount: Int, val matchCount: Int, val latestMatch: PreviewMatch?)
+
+    /**
+     * Matches [history] against the filters the way the saved rule will: trimmed, as the
+     * wizard saves them, and through [RuleMatcher.findMatch]. Conditions from Advanced
+     * Configuration are not applied: the preview is about which notifications match.
+     */
+    fun previewFilters(
+        history: List<SimpleNotification>,
+        packageName: String,
+        titleFilter: String,
+        titleMatchType: MatchType,
+        textFilter: String,
+        textMatchType: MatchType
+    ): FilterPreview {
+        val recent = history
+            .filter { it.packageName == packageName }
+            .sortedByDescending { it.timestamp }
+            .distinctBy { it.title to it.text }
+        var matchCount = 0
+        var latestMatch: PreviewMatch? = null
+        for (notification in recent) {
+            val titleMatch = RuleMatcher.findMatch(titleFilter.trim(), titleMatchType, notification.title) ?: continue
+            val textMatch = RuleMatcher.findMatch(textFilter.trim(), textMatchType, notification.text) ?: continue
+            matchCount++
+            if (latestMatch == null) {
+                latestMatch = PreviewMatch(
+                    timestamp = notification.timestamp,
+                    title = PreviewField(oneLine(notification.title), titleMatch),
+                    text = PreviewField(oneLine(notification.text), textMatch)
+                )
+            }
+        }
+        return FilterPreview(recent.size, matchCount, latestMatch)
+    }
+
+    /**
+     * A field of the example notification, for when no recent notification matches: as is
+     * if [filter] matches it, otherwise the CONTAINS text between ellipses, or the REGEX
+     * pattern itself.
+     */
+    fun exampleField(example: String, filter: String, matchType: MatchType): PreviewField {
+        val trimmed = filter.trim()
+        RuleMatcher.findMatch(trimmed, matchType, example)?.let { return PreviewField(example, it) }
+        return when (matchType) {
+            MatchType.CONTAINS -> PreviewField("…$trimmed…", 1..trimmed.length)
+            MatchType.REGEX -> PreviewField(trimmed, trimmed.indices)
+        }
+    }
+
+    // Same length as the matched text, so match ranges still apply.
+    private fun oneLine(s: String?): String =
+        RuleMatcher.stripInvisibleFormatting(s).orEmpty().replace('\n', ' ').replace('\r', ' ')
+
+    /**
+     * Keeps a match visible when the field is shown on one line of about [lineChars]
+     * characters: if the match ends past that, the text is cut at a word start so the match
+     * ends the line, keeping as much of what precedes it as fits, and prefixed with an
+     * ellipsis. The match's range is shifted to match.
+     */
+    fun snippetAround(field: PreviewField, lineChars: Int = 32): PreviewField {
+        val match = field.match
+        if (match.isEmpty() || match.last < lineChars) return field
+        // One character of the line goes to the ellipsis.
+        val cutFrom = (match.last + 2 - lineChars).coerceAtMost(match.first)
+        if (cutFrom <= 0) return field
+        val space = field.text.indexOf(' ', cutFrom)
+        val start = if (space in cutFrom until match.first) space + 1 else cutFrom
+        val shift = start - 1
+        return PreviewField("…" + field.text.substring(start), (match.first - shift)..(match.last - shift))
+    }
+
+    /**
      * Same rule identity the prebuilt browser uses to hide already-added rules
      * (packageName + both filters), narrowed by ruleType since the wizard lets the
      * user pick it explicitly.

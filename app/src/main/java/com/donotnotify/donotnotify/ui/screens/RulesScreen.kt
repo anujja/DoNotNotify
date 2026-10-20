@@ -13,11 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Block
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.AccessAlarms
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.automirrored.outlined.Rule
 import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedCard
@@ -73,7 +69,10 @@ import com.donotnotify.donotnotify.RuleType
 import com.donotnotify.donotnotify.StackChannels
 import com.donotnotify.donotnotify.StackedNotificationManager
 import com.donotnotify.donotnotify.ui.components.EmptyState
+import com.donotnotify.donotnotify.ui.components.RuleOptionIcons
+import com.donotnotify.donotnotify.ui.components.icon
 import com.donotnotify.donotnotify.ui.components.label
+import com.donotnotify.donotnotify.ui.components.throttleSummary
 
 @Composable
 fun RulesScreen(
@@ -364,6 +363,13 @@ private fun RuleCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                if (rule.ruleType == RuleType.THROTTLE) {
+                    Text(
+                        text = throttleSummary(rule.advancedConfig),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 if (rule.ruleType == RuleType.STACK) {
                     val context = LocalContext.current
                     // Re-query when the user returns from system settings — otherwise a warning
@@ -420,25 +426,14 @@ private fun RuleCard(
                     }
                 }
             }
-            if (rule.advancedConfig?.isTimeLimitEnabled == true) {
-                Icon(
-                    imageVector = Icons.Filled.AccessAlarms,
-                    contentDescription = stringResource(R.string.time_limited_rule),
-                    modifier = Modifier.padding(start = 8.dp, end = 8.dp)
-                )
-            }
+            RuleOptionIcons(rule)
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.padding(horizontal = 8.dp)
             ) {
-                val icon = when (rule.ruleType) {
-                    RuleType.DENYLIST -> Icons.Filled.Block
-                    RuleType.ALLOWLIST -> Icons.Filled.CheckCircle
-                    RuleType.STACK -> Icons.Filled.Layers
-                }
                 Icon(
-                    imageVector = icon,
+                    imageVector = rule.ruleType.icon(),
                     contentDescription = rule.ruleType.label()
                 )
                 if (rule.hitCount > 0) {

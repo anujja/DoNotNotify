@@ -2,6 +2,7 @@ package com.donotnotify.donotnotify.ui.screens
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.text.format.DateUtils
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -36,13 +38,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -89,6 +94,8 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -97,21 +104,29 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.donotnotify.donotnotify.AdvancedRuleConfig
 import com.donotnotify.donotnotify.AppInfoStorage
 import com.donotnotify.donotnotify.BlockerRule
 import com.donotnotify.donotnotify.KnownApp
 import com.donotnotify.donotnotify.MatchType
 import com.donotnotify.donotnotify.PrebuiltRulesRepository
 import com.donotnotify.donotnotify.R
+import com.donotnotify.donotnotify.RuleMatcher
 import com.donotnotify.donotnotify.RuleType
 import com.donotnotify.donotnotify.RuleWizardSupport
 import com.donotnotify.donotnotify.SimpleNotification
+import com.donotnotify.donotnotify.ui.components.AdvancedRuleConfigDialog
 import com.donotnotify.donotnotify.ui.components.EmptyState
 import com.donotnotify.donotnotify.ui.components.KeywordChip
 import com.donotnotify.donotnotify.ui.components.RuleTypeBadge
 import com.donotnotify.donotnotify.ui.components.accentColor
+import com.donotnotify.donotnotify.ui.components.description
 import com.donotnotify.donotnotify.ui.components.icon
 import com.donotnotify.donotnotify.ui.components.label
+import com.donotnotify.donotnotify.ui.components.ruleOptionsSummary
+import com.donotnotify.donotnotify.ui.components.suggestedStackRuleName
+import com.donotnotify.donotnotify.ui.components.throttleSummary
+import com.donotnotify.donotnotify.ui.components.withOnlyOptionsFor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -121,9 +136,11 @@ import java.util.regex.PatternSyntaxException
 private enum class RuleWizardStep { APP, TYPE, FILTERS, SUMMARY }
 
 /**
- * Full-screen 4-step flow for creating a rule from scratch: pick an app, pick a
- * rule type, set text filters, review and create. Launched from the Rules tab's
- * "Add a New Rule" button; the caller persists the emitted rule.
+ * Full-screen 4-step flow for creating a rule: pick an app, pick a rule type, set
+ * text filters, review and create. Launched from the Rules tab's "Add a New Rule"
+ * button, or from a History notification's "Create Rule": then [initialNotification]
+ * fills in its app, title and text, and the wizard opens on the rule type step.
+ * The caller persists the emitted rule.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -133,21 +150,29 @@ fun RuleWizardScreen(
     blockedNotifications: List<SimpleNotification>,
     onClose: () -> Unit,
     onCreateRule: (BlockerRule) -> Unit,
+    initialNotification: SimpleNotification? = null,
 ) {
     val context = LocalContext.current
     val view = LocalView.current
     val appInfoStorage = remember { AppInfoStorage(context) }
     val scope = rememberCoroutineScope()
 
-    var selectedPackage by rememberSaveable { mutableStateOf<String?>(null) }
-    var selectedAppName by rememberSaveable { mutableStateOf<String?>(null) }
+    val initialPackage = initialNotification?.packageName?.takeIf { it.isNotBlank() }
+    var selectedPackage by rememberSaveable { mutableStateOf(initialPackage) }
+    var selectedAppName by rememberSaveable {
+        mutableStateOf(initialNotification?.appLabel?.takeIf { initialPackage != null && it.isNotBlank() })
+    }
     var manualEntry by rememberSaveable { mutableStateOf(false) }
     var manualPackage by rememberSaveable { mutableStateOf("") }
     var ruleType by rememberSaveable { mutableStateOf(RuleType.DENYLIST) }
-    var titleFilter by rememberSaveable { mutableStateOf("") }
+    var titleFilter by rememberSaveable { mutableStateOf(prefilledFilter(initialNotification?.title)) }
     var titleMatchType by rememberSaveable { mutableStateOf(MatchType.CONTAINS) }
-    var textFilter by rememberSaveable { mutableStateOf("") }
+    var textFilter by rememberSaveable { mutableStateOf(prefilledFilter(initialNotification?.text)) }
     var textMatchType by rememberSaveable { mutableStateOf(MatchType.CONTAINS) }
+    var advancedConfig by rememberSaveable { mutableStateOf(AdvancedRuleConfig()) }
+    var isEnabled by rememberSaveable { mutableStateOf(true) }
+    var ruleName by rememberSaveable { mutableStateOf("") }
+    var showAdvancedDialog by rememberSaveable { mutableStateOf(false) }
 
     val effectivePackage = if (manualEntry) manualPackage.trim() else selectedPackage.orEmpty()
     val effectiveAppName =
@@ -160,7 +185,11 @@ fun RuleWizardScreen(
     }
 
     val steps = RuleWizardStep.entries
-    val pagerState = rememberPagerState(pageCount = { steps.size })
+    // With the app already known, start on choosing what the rule does.
+    val pagerState = rememberPagerState(
+        initialPage = if (initialPackage != null) RuleWizardStep.TYPE.ordinal else 0,
+        pageCount = { steps.size },
+    )
 
     fun hideIme() {
         ViewCompat.getWindowInsetsController(view)?.hide(WindowInsetsCompat.Type.ime())
@@ -192,7 +221,30 @@ fun RuleWizardScreen(
         }
     }
 
+    if (showAdvancedDialog) {
+        AdvancedRuleConfigDialog(
+            ruleType = ruleType,
+            initialConfig = advancedConfig,
+            initialIsEnabled = isEnabled,
+            initialName = ruleName,
+            suggestedName = suggestedStackRuleName(effectiveAppName, titleFilter, textFilter),
+            // The rule's channel is created when the rule is saved, so there is nothing to link to yet.
+            soundChannelId = null,
+            onDismiss = { showAdvancedDialog = false },
+            onSave = { config, enabled, name ->
+                advancedConfig = config
+                isEnabled = enabled
+                ruleName = name
+                showAdvancedDialog = false
+            }
+        )
+    }
+
     val filterCheck = RuleWizardSupport.checkFilters(titleFilter, titleMatchType, textFilter, textMatchType)
+    val history = remember(pastNotifications, blockedNotifications) { pastNotifications + blockedNotifications }
+    val filterPreview = remember(history, effectivePackage, titleFilter, titleMatchType, textFilter, textMatchType) {
+        RuleWizardSupport.previewFilters(history, effectivePackage, titleFilter, titleMatchType, textFilter, textMatchType)
+    }
     val canAdvance = when (steps[pagerState.currentPage]) {
         RuleWizardStep.APP -> effectivePackage.isNotBlank()
         RuleWizardStep.TYPE -> true
@@ -212,11 +264,23 @@ fun RuleWizardScreen(
                 .safeDrawingPadding()
                 .padding(16.dp),
         ) {
-            LinearProgressIndicator(
-                progress = { (pagerState.currentPage + 1f) / steps.size },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(Modifier.height(8.dp))
+            // Leaves the wizard from any step; back only goes one step at a time.
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(
+                    onClick = {
+                        hideIme()
+                        onClose()
+                    },
+                    // Lines the icon up with the content edge, like the step label below it.
+                    modifier = Modifier.offset(x = (-12).dp),
+                ) {
+                    Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.close))
+                }
+                LinearProgressIndicator(
+                    progress = { (pagerState.currentPage + 1f) / steps.size },
+                    modifier = Modifier.weight(1f),
+                )
+            }
             Text(
                 text = stringResource(R.string.setup_step_indicator, pagerState.currentPage + 1, steps.size),
                 style = MaterialTheme.typography.labelMedium,
@@ -261,6 +325,7 @@ fun RuleWizardScreen(
                         textMatchType = textMatchType,
                         onTextMatchTypeChange = { textMatchType = it },
                         filterCheck = filterCheck,
+                        preview = filterPreview,
                     )
                     RuleWizardStep.SUMMARY -> SummaryStep(
                         appInfoStorage = appInfoStorage,
@@ -272,6 +337,12 @@ fun RuleWizardScreen(
                         titleMatchType = titleMatchType,
                         textFilter = textFilter,
                         textMatchType = textMatchType,
+                        advancedSummary = listOf(
+                            if (ruleType == RuleType.THROTTLE) throttleSummary(advancedConfig) else "",
+                            ruleOptionsSummary(ruleType, advancedConfig),
+                            ruleName.takeIf { ruleType == RuleType.STACK }.orEmpty()
+                        ).filter { it.isNotBlank() }.joinToString(" · "),
+                        onAdvancedClick = { showAdvancedDialog = true },
                         isDuplicate = RuleWizardSupport.isDuplicate(
                             existingRules,
                             effectivePackage,
@@ -305,6 +376,11 @@ fun RuleWizardScreen(
                                     textFilter = textFilter.trim().ifBlank { null },
                                     textMatchType = textMatchType,
                                     ruleType = ruleType,
+                                    isEnabled = isEnabled,
+                                    // Untouched settings stay null, as for rules made before the wizard offered them.
+                                    advancedConfig = advancedConfig.withOnlyOptionsFor(ruleType)
+                                        .takeUnless { it == AdvancedRuleConfig() },
+                                    name = ruleName.ifBlank { null },
                                 )
                             )
                         } else {
@@ -322,6 +398,13 @@ fun RuleWizardScreen(
         }
     }
 }
+
+/**
+ * A notification's title or text as a starting filter: its visible text, without the
+ * invisible formatting characters some apps add, which the matcher ignores anyway.
+ */
+private fun prefilledFilter(field: String?): String =
+    RuleMatcher.stripInvisibleFormatting(field).orEmpty().trim()
 
 /** Title + explanation header shown at the top of each step. */
 @Composable
@@ -686,6 +769,7 @@ private fun RuleTypeCard(
         RuleType.DENYLIST -> MaterialTheme.colorScheme.errorContainer
         RuleType.ALLOWLIST -> MaterialTheme.colorScheme.primaryContainer
         RuleType.STACK -> MaterialTheme.colorScheme.secondaryContainer
+        RuleType.THROTTLE -> MaterialTheme.colorScheme.tertiaryContainer
     }
     Card(
         modifier = Modifier
@@ -739,15 +823,6 @@ private fun RuleTypeCard(
     }
 }
 
-@Composable
-private fun RuleType.description(): String = stringResource(
-    when (this) {
-        RuleType.DENYLIST -> R.string.rule_type_desc_denylist
-        RuleType.ALLOWLIST -> R.string.rule_type_desc_allowlist
-        RuleType.STACK -> R.string.rule_type_desc_stack
-    }
-)
-
 // ---------------------------------------------------------------------------
 // Step 3 — text filters
 // ---------------------------------------------------------------------------
@@ -765,6 +840,7 @@ private fun FiltersStep(
     textMatchType: MatchType,
     onTextMatchTypeChange: (MatchType) -> Unit,
     filterCheck: RuleWizardSupport.FilterCheck,
+    preview: RuleWizardSupport.FilterPreview,
 ) {
     val invalid = filterCheck as? RuleWizardSupport.FilterCheck.InvalidRegex
 
@@ -779,7 +855,14 @@ private fun FiltersStep(
             body = stringResource(R.string.rule_wizard_step_filters_body),
         )
 
-        ExampleNotificationCard(appName = appName)
+        FilterPreviewCard(
+            appName = appName,
+            preview = preview,
+            titleFilter = titleFilter,
+            titleMatchType = titleMatchType,
+            textFilter = textFilter,
+            textMatchType = textMatchType,
+        )
         Spacer(Modifier.height(20.dp))
 
         FilterField(
@@ -832,11 +915,37 @@ private fun FiltersStep(
 }
 
 /**
- * A mock notification annotated with Title/Text tags, so the user can see exactly
- * which part of a notification each filter applies to.
+ * A notification annotated with Title/Text tags, so the user sees which part each filter
+ * applies to and, as they type, what the rule matches: the latest of the app's recent
+ * notifications that matches, with the matched words highlighted. When none does, an
+ * example notification adjusted to the filters, labelled as an example, since with the
+ * chosen app's name on it, it otherwise reads like one of that app's real notifications.
  */
 @Composable
-private fun ExampleNotificationCard(appName: String) {
+private fun FilterPreviewCard(
+    appName: String,
+    preview: RuleWizardSupport.FilterPreview,
+    titleFilter: String,
+    titleMatchType: MatchType,
+    textFilter: String,
+    textMatchType: MatchType,
+) {
+    val latest = preview.latestMatch
+    val exampleTitle = stringResource(R.string.rule_wizard_example_title)
+    val exampleText = stringResource(R.string.rule_wizard_example_text)
+    val title = latest?.title ?: RuleWizardSupport.exampleField(exampleTitle, titleFilter, titleMatchType)
+    val text = latest?.text ?: RuleWizardSupport.exampleField(exampleText, textFilter, textMatchType)
+    val time = latest?.let { DateUtils.getRelativeTimeSpanString(it.timestamp).toString() }
+        ?: stringResource(R.string.rule_wizard_example_now)
+
+    Text(
+        text = stringResource(
+            if (latest != null) R.string.rule_wizard_preview_latest_match else R.string.rule_wizard_example_label
+        ),
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 8.dp, bottom = 6.dp),
+    )
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -862,7 +971,7 @@ private fun ExampleNotificationCard(appName: String) {
                 }
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = "$appName · ${stringResource(R.string.rule_wizard_example_now)}",
+                    text = "$appName · $time",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -871,9 +980,9 @@ private fun ExampleNotificationCard(appName: String) {
             }
             Spacer(Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = stringResource(R.string.rule_wizard_example_title),
-                    style = MaterialTheme.typography.bodyMedium,
+                PreviewFieldText(
+                    field = title,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f),
                 )
@@ -882,10 +991,10 @@ private fun ExampleNotificationCard(appName: String) {
             }
             Spacer(Modifier.height(4.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = stringResource(R.string.rule_wizard_example_text),
-                    style = MaterialTheme.typography.bodyMedium,
+                PreviewFieldText(
+                    field = text,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = null,
                     modifier = Modifier.weight(1f),
                 )
                 Spacer(Modifier.width(8.dp))
@@ -893,6 +1002,41 @@ private fun ExampleNotificationCard(appName: String) {
             }
         }
     }
+    if (preview.recentCount > 0) {
+        Text(
+            text = stringResource(R.string.rule_wizard_preview_count, preview.matchCount, preview.recentCount),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 6.dp),
+        )
+    }
+}
+
+/** One line of a previewed field, with the filter's match highlighted like the field's tag. */
+@Composable
+private fun PreviewFieldText(
+    field: RuleWizardSupport.PreviewField,
+    color: Color,
+    fontWeight: FontWeight?,
+    modifier: Modifier,
+) {
+    val shown = RuleWizardSupport.snippetAround(field)
+    val highlight = SpanStyle(
+        background = MaterialTheme.colorScheme.primaryContainer,
+        color = MaterialTheme.colorScheme.onPrimaryContainer,
+    )
+    Text(
+        text = buildAnnotatedString {
+            append(shown.text)
+            if (!shown.match.isEmpty()) addStyle(highlight, shown.match.first, shown.match.last + 1)
+        },
+        style = MaterialTheme.typography.bodyMedium,
+        color = color,
+        fontWeight = fontWeight,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier,
+    )
 }
 
 /** Small label pill marking a region of the example notification. */
@@ -936,7 +1080,8 @@ private fun FilterField(
         onValueChange = onValueChange,
         modifier = Modifier.fillMaxWidth(),
         label = { Text(label) },
-        singleLine = true,
+        // Not single-line: a filter taken from a notification can be long or span lines.
+        maxLines = 4,
         isError = showRegexError,
         supportingText = if (showRegexError && regexErrorDetail != null) {
             {
@@ -990,6 +1135,9 @@ private fun SummaryStep(
     titleMatchType: MatchType,
     textFilter: String,
     textMatchType: MatchType,
+    /** What Advanced Configuration has set, e.g. "22:00 – 07:00 · Phone in use"; empty when nothing. */
+    advancedSummary: String,
+    onAdvancedClick: () -> Unit,
     isDuplicate: Boolean,
 ) {
     val isQueryableInstalled =
@@ -1070,6 +1218,9 @@ private fun SummaryStep(
                     ruleType = ruleType,
                 )
 
+                Spacer(Modifier.height(16.dp))
+                AdvancedConfigRow(summary = advancedSummary, onClick = onAdvancedClick)
+
                 if (isDuplicate) {
                     Spacer(Modifier.height(16.dp))
                     Row(
@@ -1103,6 +1254,42 @@ private fun SummaryStep(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+        }
+    }
+}
+
+/** Opens Advanced Configuration; shows what it has set, if anything. */
+@Composable
+private fun AdvancedConfigRow(summary: String, onClick: () -> Unit) {
+    OutlinedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Tune,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.advanced_configuration),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                if (summary.isNotEmpty()) {
+                    Text(
+                        text = summary,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

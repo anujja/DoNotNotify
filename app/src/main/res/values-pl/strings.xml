@@ -57,7 +57,6 @@
 
     <!-- Ongoing notification icon -->
     <string name="ongoing_notification">Trwałe powiadomienie</string>
-    <string name="time_limited_rule">Reguła z ograniczeniem czasowym</string>
 
     <!-- Rules screen -->
     <string name="no_rules_created">Brak reguł</string>
@@ -138,13 +137,26 @@
     <!-- Rule dialogs -->
     <string name="advanced_configuration">Zaawansowana konfiguracja</string>
     <string name="enable_rule">Włącz regułę</string>
-    <string name="enable_time_limit">Włącz ograniczenie czasowe</string>
-    <string name="start_time">Czas rozpoczęcia:</string>
-    <string name="end_time">Czas zakończenia:</string>
+    <string name="rule_options_conditions">Stosuj tylko, gdy</string>
+    <string name="rule_options_actions">Po dopasowaniu</string>
+    <string name="rule_condition_time">Pora dnia</string>
+    <string name="time_range">%1$s – %2$s</string>
+    <string name="rule_condition_usage">Używanie telefonu</string>
+    <string name="rule_condition_usage_desc">Tylko gdy używasz telefonu albo tylko gdy go nie używasz</string>
+    <string name="rule_condition_time_desc">Tylko w wybranych godzinach</string>
+    <string name="rule_time_start">Początek</string>
+    <string name="rule_time_end">Koniec</string>
+    <string name="device_usage_in_use">W użyciu</string>
+    <string name="device_usage_not_in_use">Nieużywany</string>
+    <string name="device_usage_summary_in_use">Telefon w użyciu</string>
+    <string name="device_usage_summary_not_in_use">Telefon nieużywany</string>
+    <string name="device_usage_help">W użyciu oznacza, że ekran jest włączony i odblokowany.</string>
+    <string name="throttle_unit_seconds">sek</string>
+    <string name="throttle_unit_minutes">min</string>
+    <string name="duration_seconds_short">%d s</string>
+    <string name="duration_minutes_short">%d min</string>
     <string name="title_filter_optional">Filtr tytułu (opcjonalny)</string>
     <string name="text_filter_optional">Filtr treści (opcjonalny)</string>
-    <string name="save_rule">Zapisz regułę</string>
-    <string name="add_rule_title">Nowa reguła (%s)</string>
     <string name="edit_rule_title">Edytuj regułę (%s)</string>
     <string name="rule_for">Reguła dla %s</string>
     <string name="blocked_notification_from">Zablokowane powiadomienie od %s</string>
@@ -242,6 +254,13 @@
     <string name="rule_type_desc_denylist">Blokuje wszystkie powiadomienia pasujące do tej reguły.</string>
     <string name="rule_type_desc_allowlist">Zezwala tylko na powiadomienia pasujące do tej reguły. Wszystkie inne z tej aplikacji są blokowane.</string>
     <string name="rule_type_desc_stack">Grupuje pasujące powiadomienia w jedno podsumowanie. Oryginały są odrzucane.</string>
+    <string name="throttle">Ograniczaj</string>
+    <string name="rule_type_desc_throttle">Przepuszcza jedno pasujące powiadomienie, a potem przez jakiś czas blokuje powtórzenia. Czas ustawisz w sekcji Zaawansowana konfiguracja.</string>
+    <string name="throttles_notifications_containing">Ogranicza powiadomienia zawierające:</string>
+    <string name="rule_type_label">Typ reguły</string>
+    <string name="throttle_duration">Czas ograniczenia</string>
+    <string name="throttle_help">Gdy dotrze pasujące powiadomienie, kolejne pasujące są blokowane przez ten czas.</string>
+    <string name="throttle_summary">Najwyżej jedno co %s</string>
 
     <!-- Rule creation wizard -->
     <string name="rule_wizard_step_app_title">Wybierz aplikację</string>
@@ -261,9 +280,12 @@
     <string name="rule_wizard_step_type_body">Co ma się stać z pasującymi powiadomieniami?</string>
     <string name="rule_wizard_step_filters_title">Dodaj filtry</string>
     <string name="rule_wizard_step_filters_body">Reguła obejmie tylko powiadomienia pasujące do tych filtrów.</string>
+    <string name="rule_wizard_example_label">Przykładowe powiadomienie</string>
     <string name="rule_wizard_example_now">teraz</string>
     <string name="rule_wizard_example_title">Twoje zamówienie zostało dostarczone</string>
     <string name="rule_wizard_example_text">Dotknij, aby zobaczyć szczegóły dostawy</string>
+    <string name="rule_wizard_preview_latest_match">Najnowsze pasujące powiadomienie</string>
+    <string name="rule_wizard_preview_count">Pasuje: %1$d z %2$d ostatnich powiadomień z tej aplikacji</string>
     <string name="rule_wizard_regex_help">Pasuje, gdy powiadomienie pasuje do tego wyrażenia regularnego.</string>
     <string name="rule_wizard_invalid_regex">Nieprawidłowe wyrażenie regularne: %1$s</string>
     <string name="rule_wizard_matches_all_warning">Brak filtrów — ta reguła obejmie WSZYSTKIE powiadomienia z aplikacji %1$s.</string>

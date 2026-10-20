@@ -1,0 +1,4 @@
+• New: Throttle rules let one matching notification through, then block repeats for a set time. Thanks to nkay08!
+• New: Rules can apply only while your phone is in use (screen on and unlocked), or only while it isn't.
+• New: Creating a rule from History opens the wizard, already filled in. As you type, it shows which notifications your filters match.
+• Changed: An AllowList rule limited to certain hours no longer blocks the app's other notifications outside them.

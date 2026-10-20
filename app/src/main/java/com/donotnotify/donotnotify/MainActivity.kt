@@ -45,7 +45,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import com.donotnotify.donotnotify.ui.components.AddRuleDialog
 import com.donotnotify.donotnotify.ui.components.AutoAddedRulesDialog
 import com.donotnotify.donotnotify.ui.components.DeleteConfirmationDialog
 import com.donotnotify.donotnotify.ui.components.EditRuleDialog
@@ -80,6 +79,8 @@ class MainActivity : ComponentActivity() {
     private var showSettingsScreen by mutableStateOf(false)
     private var showPrebuiltRulesScreen by mutableStateOf(false)
     private var showRuleWizard by mutableStateOf(false)
+    // The History notification the wizard was opened from, to prefill it; null from the Rules tab.
+    private var ruleWizardNotification by mutableStateOf<SimpleNotification?>(null)
     private var autoAddedApps by mutableStateOf<List<String>>(emptyList())
     private var showAutoAddedDialog by mutableStateOf(false)
     private var showSetupWizard by mutableStateOf(false)
@@ -168,7 +169,6 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun MainScreen() {
         val context = LocalContext.current
-        var notificationToShowAddDialog by remember { mutableStateOf<SimpleNotification?>(null) }
         var notificationToShowDetailsDialog by remember { mutableStateOf<SimpleNotification?>(null) }
         var notificationToShowHistoryDetailsDialog by remember { mutableStateOf<SimpleNotification?>(null) }
         var ruleToEdit by remember { mutableStateOf<BlockerRule?>(null) }
@@ -255,7 +255,8 @@ class MainActivity : ComponentActivity() {
                     showRuleWizard = false
                     Toast.makeText(context, context.getString(R.string.toast_rule_added), Toast.LENGTH_SHORT).show()
                     coroutineScope.launch { pagerState.animateScrollToPage(1) }
-                }
+                },
+                initialNotification = ruleWizardNotification,
             )
         } else {
             TabbedScreen(
@@ -280,7 +281,10 @@ class MainActivity : ComponentActivity() {
                     Toast.makeText(context, context.getString(R.string.toast_blocked_history_cleared), Toast.LENGTH_SHORT).show()
                 },
                 onRuleClick = { rule -> ruleToEdit = rule },
-                onCreateRuleClick = { showRuleWizard = true },
+                onCreateRuleClick = {
+                    ruleWizardNotification = null
+                    showRuleWizard = true
+                },
                 onDeleteNotificationClick = { notification -> notificationToDelete = notification },
                 onDeleteHistoryNotificationClick = { notification ->
                     notificationHistoryStorage.deleteNotification(notification)
@@ -309,25 +313,12 @@ class MainActivity : ComponentActivity() {
             )
         }
 
-        notificationToShowAddDialog?.let { notification ->
-            AddRuleDialog(
-                notification = notification,
-                onDismiss = { notificationToShowAddDialog = null },
-                onAddRule = { rule ->
-                    rules = ruleStorage.addRules(listOf(rule))
-                    StackChannelsAndroid.sync(context)
-                    notificationToShowAddDialog = null
-                    Toast.makeText(context, context.getString(R.string.toast_rule_added), Toast.LENGTH_SHORT).show()
-                    coroutineScope.launch { pagerState.animateScrollToPage(1) }
-                }
-            )
-        }
-
         notificationToShowDetailsDialog?.let { notification ->
             val actualBlockingRule = remember(notification, rules) {
                 val rulesForPackage = rules.filter { it.packageName == notification.packageName && it.isEnabled }
                 // STACK rules are intentionally excluded: they do not block, so a
                 // stack-only match correctly leaves the blocking-rule resolution null.
+                // THROTTLE rules come last: they only block repeats.
                 val allowlistRules = rulesForPackage.filter { it.ruleType == RuleType.ALLOWLIST }
                 val denylistRules = rulesForPackage.filter { it.ruleType == RuleType.DENYLIST }
 
@@ -344,6 +335,14 @@ class MainActivity : ComponentActivity() {
                 // If not blocked by a denylist rule, and there are allowlist rules, show the first allowlist rule.
                 if (result == null && allowlistRules.isNotEmpty()) {
                     result = allowlistRules.firstOrNull()
+                }
+
+                // Otherwise it was a repeat held back by a THROTTLE rule.
+                if (result == null) {
+                    result = rulesForPackage.firstOrNull {
+                        it.ruleType == RuleType.THROTTLE &&
+                            RuleMatcher.matches(it, notification.packageName, notification.title, notification.text)
+                    }
                 }
                 result
             }
@@ -393,7 +392,8 @@ class MainActivity : ComponentActivity() {
                 },
                 onCreateRule = {
                     notificationToShowHistoryDetailsDialog = null
-                    notificationToShowAddDialog = notification
+                    ruleWizardNotification = notification
+                    showRuleWizard = true
                 }
             )
         }

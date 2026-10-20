@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.HourglassTop
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -20,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.donotnotify.donotnotify.R
 import com.donotnotify.donotnotify.RuleType
@@ -30,6 +30,7 @@ fun RuleType.icon(): ImageVector = when (this) {
     RuleType.DENYLIST -> Icons.Filled.Block
     RuleType.ALLOWLIST -> Icons.Filled.CheckCircle
     RuleType.STACK -> Icons.Filled.Layers
+    RuleType.THROTTLE -> Icons.Filled.HourglassTop
 }
 
 /** The app-wide accent color for a rule type. */
@@ -38,6 +39,7 @@ fun RuleType.accentColor(): Color = when (this) {
     RuleType.DENYLIST -> MaterialTheme.colorScheme.error
     RuleType.ALLOWLIST -> MaterialTheme.colorScheme.primary
     RuleType.STACK -> MaterialTheme.colorScheme.secondary
+    RuleType.THROTTLE -> MaterialTheme.colorScheme.tertiary
 }
 
 /** Compact icon + label badge identifying a rule type, colored by its accent. */
@@ -45,11 +47,7 @@ fun RuleType.accentColor(): Color = when (this) {
 fun RuleTypeBadge(ruleType: RuleType) {
     val icon = ruleType.icon()
     val color = ruleType.accentColor()
-    val text = when (ruleType) {
-        RuleType.DENYLIST -> stringResource(R.string.denylist)
-        RuleType.ALLOWLIST -> stringResource(R.string.allowlist)
-        RuleType.STACK -> stringResource(R.string.stack)
-    }
+    val text = ruleType.label()
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -77,11 +75,13 @@ fun KeywordChip(keyword: String, ruleType: RuleType) {
         RuleType.DENYLIST -> MaterialTheme.colorScheme.errorContainer
         RuleType.ALLOWLIST -> MaterialTheme.colorScheme.primaryContainer
         RuleType.STACK -> MaterialTheme.colorScheme.secondaryContainer
+        RuleType.THROTTLE -> MaterialTheme.colorScheme.tertiaryContainer
     }
     val textColor = when (ruleType) {
         RuleType.DENYLIST -> MaterialTheme.colorScheme.onErrorContainer
         RuleType.ALLOWLIST -> MaterialTheme.colorScheme.onPrimaryContainer
         RuleType.STACK -> MaterialTheme.colorScheme.onSecondaryContainer
+        RuleType.THROTTLE -> MaterialTheme.colorScheme.onTertiaryContainer
     }
 
     Box(

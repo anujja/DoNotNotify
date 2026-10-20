@@ -57,7 +57,6 @@
 
     <!-- Ongoing notification icon -->
     <string name="ongoing_notification">常驻通知</string>
-    <string name="time_limited_rule">限时规则</string>
 
     <!-- Rules screen -->
     <string name="no_rules_created">尚未创建规则</string>
@@ -96,6 +95,13 @@
     <string name="rule_type_desc_denylist">拦截所有符合此规则的通知。</string>
     <string name="rule_type_desc_allowlist">仅允许符合此规则的通知。该应用的所有其他通知都将被拦截。</string>
     <string name="rule_type_desc_stack">将匹配的通知归并为一条摘要。原始通知将被移除。</string>
+    <string name="throttle">限频</string>
+    <string name="rule_type_desc_throttle">放行一条符合的通知，然后在一段时间内屏蔽重复通知。时长可在“高级配置”中设置。</string>
+    <string name="throttles_notifications_containing">限频包含以下内容的通知：</string>
+    <string name="rule_type_label">规则类型</string>
+    <string name="throttle_duration">限频时长</string>
+    <string name="throttle_help">收到一条符合的通知后，在这段时间内后续符合的通知都会被屏蔽。</string>
+    <string name="throttle_summary">每 %s 最多一条</string>
 
     <!-- Rule creation wizard -->
     <string name="rule_wizard_step_app_title">选择应用</string>
@@ -115,9 +121,12 @@
     <string name="rule_wizard_step_type_body">如何处理匹配的通知？</string>
     <string name="rule_wizard_step_filters_title">添加筛选条件</string>
     <string name="rule_wizard_step_filters_body">仅与这些筛选条件匹配的通知会受影响。</string>
+    <string name="rule_wizard_example_label">通知示例</string>
     <string name="rule_wizard_example_now">现在</string>
     <string name="rule_wizard_example_title">您的订单已送达</string>
     <string name="rule_wizard_example_text">点按即可查看配送详情</string>
+    <string name="rule_wizard_preview_latest_match">最新的匹配通知</string>
+    <string name="rule_wizard_preview_count">此应用最近的 %2$d 条通知中有 %1$d 条匹配</string>
     <string name="rule_wizard_regex_help">当通知匹配此正则表达式时匹配。</string>
     <string name="rule_wizard_invalid_regex">无效的正则表达式：%1$s</string>
     <string name="rule_wizard_matches_all_warning">未设置筛选条件 — 此规则将应用于 %1$s 的所有通知。</string>
@@ -186,13 +195,26 @@
     <!-- Rule dialogs -->
     <string name="advanced_configuration">高级配置</string>
     <string name="enable_rule">启用规则</string>
-    <string name="enable_time_limit">启用时间限制</string>
-    <string name="start_time">开始时间：</string>
-    <string name="end_time">结束时间：</string>
+    <string name="rule_options_conditions">仅在以下情况生效</string>
+    <string name="rule_options_actions">匹配时</string>
+    <string name="rule_condition_time">时间段</string>
+    <string name="time_range">%1$s – %2$s</string>
+    <string name="rule_condition_usage">手机使用状态</string>
+    <string name="rule_condition_usage_desc">仅在你使用手机时，或仅在不使用时</string>
+    <string name="rule_condition_time_desc">仅在你设定的时段内</string>
+    <string name="rule_time_start">开始</string>
+    <string name="rule_time_end">结束</string>
+    <string name="device_usage_in_use">使用中</string>
+    <string name="device_usage_not_in_use">未使用</string>
+    <string name="device_usage_summary_in_use">手机使用中</string>
+    <string name="device_usage_summary_not_in_use">手机未使用</string>
+    <string name="device_usage_help">“使用中”指屏幕已亮起且已解锁。</string>
+    <string name="throttle_unit_seconds">秒</string>
+    <string name="throttle_unit_minutes">分钟</string>
+    <string name="duration_seconds_short">%d秒</string>
+    <string name="duration_minutes_short">%d分钟</string>
     <string name="title_filter_optional">标题筛选（可选）</string>
     <string name="text_filter_optional">内容筛选（可选）</string>
-    <string name="save_rule">保存规则</string>
-    <string name="add_rule_title">添加新规则 (%s)</string>
     <string name="edit_rule_title">编辑规则 (%s)</string>
     <string name="rule_for">%s 的规则</string>
     <string name="blocked_notification_from">已拦截来自 %s 的通知</string>

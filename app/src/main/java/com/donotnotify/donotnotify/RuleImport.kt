@@ -169,13 +169,19 @@ object RuleImport {
         if (titleMatch == MatchType.REGEX && title != null && !isRegexSafe(title)) return null
         if (textMatch == MatchType.REGEX && text != null && !isRegexSafe(text)) return null
 
+        // An out-of-range throttle length falls back to the default.
+        val throttleSeconds = raw.advancedConfig?.throttleSeconds
+            ?.takeIf { it > 0 }
+            ?.coerceAtMost(ThrottleManager.MAX_SECONDS)
+
         return raw.copy(
             packageName = pkg,
             titleFilter = title,
             textFilter = text,
             titleMatchType = titleMatch,
             textMatchType = textMatch,
-            ruleType = ruleType
+            ruleType = ruleType,
+            advancedConfig = raw.advancedConfig?.copy(throttleSeconds = throttleSeconds)
         )
     }
 

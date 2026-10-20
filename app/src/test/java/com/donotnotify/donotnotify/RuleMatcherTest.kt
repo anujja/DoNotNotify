@@ -334,4 +334,12 @@ class RuleMatcherTest {
         assertEquals(listOf(0), decision.matchedRuleIndices)
     }
 
+    @Test
+    fun `findMatch returns the matched range in the visible text`() {
+        assertEquals(4..8, RuleMatcher.findMatch("promo", MatchType.CONTAINS, "Big PROMO deal"))
+        assertEquals(0..1, RuleMatcher.findMatch("^-.", MatchType.REGEX, "\u2068-task\u2069"))
+        assertTrue(RuleMatcher.findMatch("", MatchType.REGEX, null)!!.isEmpty())
+        assertEquals(null, RuleMatcher.findMatch("promo", MatchType.CONTAINS, null))
+        assertEquals(null, RuleMatcher.findMatch("(unclosed", MatchType.REGEX, "(unclosed"))
+    }
 }

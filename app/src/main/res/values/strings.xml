@@ -57,7 +57,6 @@
 
     <!-- Ongoing notification icon -->
     <string name="ongoing_notification">Ongoing Notification</string>
-    <string name="time_limited_rule">Time limited rule</string>
 
     <!-- Rules screen -->
     <string name="no_rules_created">No Rules Created</string>
@@ -96,6 +95,13 @@
     <string name="rule_type_desc_denylist">Block all notifications matching this rule.</string>
     <string name="rule_type_desc_allowlist">Only allow notifications matching this rule. All others from this app are blocked.</string>
     <string name="rule_type_desc_stack">Group matching notifications into one summary. The originals are dismissed.</string>
+    <string name="throttle">Throttle</string>
+    <string name="rule_type_desc_throttle">Let one matching notification through, then block repeats for a while. Set how long in Advanced Configuration.</string>
+    <string name="throttles_notifications_containing">Throttles notifications containing:</string>
+    <string name="rule_type_label">Rule type</string>
+    <string name="throttle_duration">Throttle duration</string>
+    <string name="throttle_help">After a matching notification comes through, further matches are blocked for this long.</string>
+    <string name="throttle_summary">At most one every %s</string>
 
     <!-- Rule creation wizard -->
     <string name="rule_wizard_step_app_title">Choose an app</string>
@@ -115,9 +121,12 @@
     <string name="rule_wizard_step_type_body">What should happen to matching notifications?</string>
     <string name="rule_wizard_step_filters_title">Add filters</string>
     <string name="rule_wizard_step_filters_body">Only notifications that match these filters are affected.</string>
+    <string name="rule_wizard_example_label">Example notification</string>
     <string name="rule_wizard_example_now">now</string>
     <string name="rule_wizard_example_title">Your order has been delivered</string>
     <string name="rule_wizard_example_text">Tap to see the delivery details</string>
+    <string name="rule_wizard_preview_latest_match">Latest matching notification</string>
+    <string name="rule_wizard_preview_count">Matches %1$d of %2$d recent notifications from this app</string>
     <string name="rule_wizard_regex_help">Matches when the notification matches this regular expression.</string>
     <string name="rule_wizard_invalid_regex">Invalid regular expression: %1$s</string>
     <string name="rule_wizard_matches_all_warning">No filters set — this rule will apply to ALL notifications from %1$s.</string>
@@ -189,13 +198,26 @@
     <!-- Rule dialogs -->
     <string name="advanced_configuration">Advanced Configuration</string>
     <string name="enable_rule">Enable Rule</string>
-    <string name="enable_time_limit">Enable Time Limit</string>
-    <string name="start_time">Start Time:</string>
-    <string name="end_time">End Time:</string>
+    <string name="rule_options_conditions">Only apply when</string>
+    <string name="rule_options_actions">When matched</string>
+    <string name="rule_condition_time">Time of day</string>
+    <string name="time_range">%1$s – %2$s</string>
+    <string name="rule_condition_usage">Phone usage</string>
+    <string name="rule_condition_usage_desc">Only while you\'re using your phone, or only while you aren\'t</string>
+    <string name="rule_condition_time_desc">Only during the hours you set</string>
+    <string name="rule_time_start">Start</string>
+    <string name="rule_time_end">End</string>
+    <string name="device_usage_in_use">In use</string>
+    <string name="device_usage_not_in_use">Not in use</string>
+    <string name="device_usage_summary_in_use">Phone in use</string>
+    <string name="device_usage_summary_not_in_use">Phone not in use</string>
+    <string name="device_usage_help">In use means the screen is on and unlocked.</string>
+    <string name="throttle_unit_seconds">sec</string>
+    <string name="throttle_unit_minutes">min</string>
+    <string name="duration_seconds_short">%d s</string>
+    <string name="duration_minutes_short">%d min</string>
     <string name="title_filter_optional">Title Filter (Optional)</string>
     <string name="text_filter_optional">Text Filter (Optional)</string>
-    <string name="save_rule">Save Rule</string>
-    <string name="add_rule_title">Add New Rule (%s)</string>
     <string name="edit_rule_title">Edit Rule (%s)</string>
     <string name="rule_for">Rule for %s</string>
     <string name="blocked_notification_from">Blocked notification from %s</string>

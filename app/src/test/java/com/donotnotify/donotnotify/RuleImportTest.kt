@@ -66,6 +66,37 @@ class RuleImportTest {
     }
 
     @Test
+    fun `device usage condition imports, and is off when absent or unknown`() {
+        val s = successOf(
+            """[
+                {"packageName":"a","textFilter":"x","advancedConfig":{"deviceUsage":"NOT_IN_USE"}},
+                {"packageName":"b","textFilter":"x","advancedConfig":{"isTimeLimitEnabled":true}},
+                {"packageName":"c","textFilter":"x","advancedConfig":{"deviceUsage":"SOME_FUTURE_STATE"}}
+            ]"""
+        )
+        assertEquals(DeviceUsage.NOT_IN_USE, s.rules[0].advancedConfig?.deviceUsage)
+        assertEquals(null, s.rules[1].advancedConfig?.deviceUsage)
+        assertEquals(null, s.rules[2].advancedConfig?.deviceUsage)
+    }
+
+    @Test
+    fun `throttle rules import, and an invalid length falls back to the default`() {
+        val s = successOf(
+            """[
+                {"packageName":"a","textFilter":"x","ruleType":"THROTTLE","advancedConfig":{"throttleSeconds":20}},
+                {"packageName":"b","textFilter":"x","ruleType":"THROTTLE","advancedConfig":{"throttleSeconds":0}},
+                {"packageName":"c","textFilter":"x","ruleType":"THROTTLE","advancedConfig":{"throttleSeconds":999999999}},
+                {"packageName":"d","textFilter":"x","ruleType":"THROTTLE"}
+            ]"""
+        )
+        assertTrue(s.rules.all { it.ruleType == RuleType.THROTTLE })
+        assertEquals(20, s.rules[0].advancedConfig?.throttleSeconds)
+        assertEquals(null, s.rules[1].advancedConfig?.throttleSeconds)
+        assertEquals(ThrottleManager.MAX_SECONDS, s.rules[2].advancedConfig?.throttleSeconds)
+        assertEquals(ThrottleManager.DEFAULT_SECONDS, ThrottleManager.secondsFor(s.rules[3].advancedConfig))
+    }
+
+    @Test
     fun `unknown future version is best-effort parsed`() {
         val s = successOf("""{"version":99,"rules":[{"packageName":"com.x","textFilter":"foo"}]}""")
         assertEquals(1, s.rules.size)

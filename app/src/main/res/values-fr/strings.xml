@@ -57,7 +57,6 @@
 
     <!-- Ongoing notification icon -->
     <string name="ongoing_notification">Notification persistante</string>
-    <string name="time_limited_rule">Règle avec limite de temps</string>
 
     <!-- Rules screen -->
     <string name="no_rules_created">Aucune règle créée</string>
@@ -138,13 +137,26 @@
     <!-- Rule dialogs -->
     <string name="advanced_configuration">Configuration avancée</string>
     <string name="enable_rule">Activer la règle</string>
-    <string name="enable_time_limit">Activer la limite de temps</string>
-    <string name="start_time">Heure de début :</string>
-    <string name="end_time">Heure de fin :</string>
+    <string name="rule_options_conditions">Appliquer uniquement si</string>
+    <string name="rule_options_actions">En cas de correspondance</string>
+    <string name="rule_condition_time">Heure de la journée</string>
+    <string name="time_range">%1$s – %2$s</string>
+    <string name="rule_condition_usage">Utilisation du téléphone</string>
+    <string name="rule_condition_usage_desc">Uniquement quand vous utilisez votre téléphone, ou uniquement quand vous ne l\'utilisez pas</string>
+    <string name="rule_condition_time_desc">Uniquement pendant les heures choisies</string>
+    <string name="rule_time_start">Début</string>
+    <string name="rule_time_end">Fin</string>
+    <string name="device_usage_in_use">Utilisé</string>
+    <string name="device_usage_not_in_use">Non utilisé</string>
+    <string name="device_usage_summary_in_use">Téléphone utilisé</string>
+    <string name="device_usage_summary_not_in_use">Téléphone non utilisé</string>
+    <string name="device_usage_help">« Utilisé » signifie que l’écran est allumé et déverrouillé.</string>
+    <string name="throttle_unit_seconds">sec</string>
+    <string name="throttle_unit_minutes">min</string>
+    <string name="duration_seconds_short">%d s</string>
+    <string name="duration_minutes_short">%d min</string>
     <string name="title_filter_optional">Filtre de titre (Optionnel)</string>
     <string name="text_filter_optional">Filtre de texte (Optionnel)</string>
-    <string name="save_rule">Enregistrer la règle</string>
-    <string name="add_rule_title">Nouvelle règle (%s)</string>
     <string name="edit_rule_title">Modifier la règle (%s)</string>
     <string name="rule_for">Règle pour %s</string>
     <string name="blocked_notification_from">Notification bloquée de %s</string>
@@ -242,6 +254,13 @@
     <string name="rule_type_desc_denylist">Bloque toutes les notifications correspondant à cette règle.</string>
     <string name="rule_type_desc_allowlist">N\'autorise que les notifications correspondant à cette règle. Toutes les autres de cette application sont bloquées.</string>
     <string name="rule_type_desc_stack">Regroupe les notifications correspondantes en un seul résumé. Les originaux sont supprimés.</string>
+    <string name="throttle">Limiter</string>
+    <string name="rule_type_desc_throttle">Laisse passer une notification correspondante, puis bloque les répétitions pendant un moment. Réglez la durée dans Configuration avancée.</string>
+    <string name="throttles_notifications_containing">Limite les notifications contenant :</string>
+    <string name="rule_type_label">Type de règle</string>
+    <string name="throttle_duration">Durée de la limitation</string>
+    <string name="throttle_help">Après une notification correspondante, les suivantes qui correspondent sont bloquées pendant cette durée.</string>
+    <string name="throttle_summary">Au plus une toutes les %s</string>
 
     <!-- Rule creation wizard -->
     <string name="rule_wizard_step_app_title">Choisissez une application</string>
@@ -261,9 +280,12 @@
     <string name="rule_wizard_step_type_body">Que faire des notifications correspondantes ?</string>
     <string name="rule_wizard_step_filters_title">Ajoutez des filtres</string>
     <string name="rule_wizard_step_filters_body">Seules les notifications correspondant à ces filtres sont concernées.</string>
+    <string name="rule_wizard_example_label">Exemple de notification</string>
     <string name="rule_wizard_example_now">maintenant</string>
     <string name="rule_wizard_example_title">Votre commande a été livrée</string>
     <string name="rule_wizard_example_text">Appuyez pour voir les détails de la livraison</string>
+    <string name="rule_wizard_preview_latest_match">Dernière notification correspondante</string>
+    <string name="rule_wizard_preview_count">Correspondent : %1$d sur %2$d notifications récentes de cette application</string>
     <string name="rule_wizard_regex_help">Correspond lorsque la notification correspond à cette expression régulière.</string>
     <string name="rule_wizard_invalid_regex">Expression régulière non valide : %1$s</string>
     <string name="rule_wizard_matches_all_warning">Aucun filtre défini — cette règle s\'appliquera à TOUTES les notifications de %1$s.</string>
