@@ -31,7 +31,9 @@ longer needs to be linked to a Cloud project.
    `com.donotnotify.donotnotify` → **Invite user**.
 
 Step 5 is the only Play Console step, and it needs account-owner or admin
-rights. Permissions can take a few hours to propagate;
+rights. Release manager covers releases only: for the store-listing workflow
+below, also give the account the **Store presence → Manage store presence**
+permission, or Play answers "The caller does not have permission". Permissions can take a few hours to propagate;
 `bundle exec fastlane android validate` is the cheapest way to check whether
 they have.
 
