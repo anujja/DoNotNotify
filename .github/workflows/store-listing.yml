@@ -1,0 +1,71 @@
+name: Update Play Store listing
+
+# Pushes the store listing in fastlane/metadata (title, descriptions, and optionally
+# the icon and screenshots) to Play. Release builds never touch the listing; this is
+# the "run on purpose" path described in docs/play-publishing.md.
+on:
+  workflow_dispatch:
+    inputs:
+      with_images:
+        description: 'Also upload the icon and screenshots'
+        required: false
+        default: true
+        type: boolean
+      dry_run:
+        description: 'Dry run - validate against Play, change nothing'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  listing:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Check Play credentials
+        env:
+          PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$PLAY_JSON" ]; then
+            echo "::error::PLAY_SERVICE_ACCOUNT_JSON is not configured. See docs/play-publishing.md"
+            exit 1
+          fi
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: false
+
+      - name: Install fastlane
+        run: bundle install --jobs 4 --retry 3
+
+      - name: Write service account
+        env:
+          PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: printf '%s' "$PLAY_JSON" > "${{ runner.temp }}/play-service-account.json"
+
+      - name: Push listing to Play
+        env:
+          SUPPLY_JSON_KEY: ${{ runner.temp }}/play-service-account.json
+        run: |
+          # The lane treats any value it is given as "on", so only pass the flags that are.
+          ARGS=()
+          if [ "${{ inputs.with_images }}" = "true" ]; then
+            ARGS+=(with_images:true)
+          fi
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "::notice::Dry run - validating against Play, changing nothing"
+            ARGS+=(validate_only:true)
+          fi
+          bundle exec fastlane android metadata "${ARGS[@]}"
+
+      - name: Clean up credentials
+        if: always()
+        run: rm -f "${{ runner.temp }}/play-service-account.json"

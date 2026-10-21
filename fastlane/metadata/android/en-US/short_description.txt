@@ -1,1 +1,1 @@
-Block unwanted notifications with customizable rules
+Block unwanted notifications. Fast, private, and fully offline.

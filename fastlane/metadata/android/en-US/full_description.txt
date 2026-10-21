@@ -1,25 +1,31 @@
-DoNotNotify lets you filter and block unwanted notifications using customizable rules.
+Take control of your Android notifications with DoNotNotify — the simple, privacy-first way to block unwanted alerts and focus on what matters.
 
-<b>Features:</b>
+Tired of constant pings, spam, and clutter? DoNotNotify lets you create powerful yet easy rules to block notifications from specific apps or by matching text — even using regular expressions. No ads. No accounts. No tracking. Everything runs locally on your device.
 
-• <b>Notification Blocking</b> - Block notifications in real-time
-• <b>Flexible Rules</b> - Create denylist (block matching) or allowlist (allow only matching) rules
-• <b>Pattern Matching</b> - Match notification title/text using simple contains or regex patterns
-• <b>Conditional Rules</b> - Limit rules to specific hours, or to when your phone is (or isn't) in use
-• <b>Throttling</b> - Let one matching notification through, then block repeats for a set time
-• <b>Prebuilt Rules</b> - 40+ pre-configured rules for popular apps (e-commerce promos, social media, etc.)
-• <b>Auto-Install Rules</b> - Automatically adds relevant prebuilt rules when you install supported apps
-• <b>Notification History</b> - View all received notifications with configurable retention
-• <b>Blocked History</b> - Track which notifications were blocked and by which rules
-• <b>Import/Export</b> - Backup and restore your rules as JSON files
-• <b>Fully Offline</b> - No network permissions, no data collection
+Key features:
 
-<b>How It Works:</b>
+🛑 Block by app or by text: Silence a whole app, or only the notifications that contain certain words or match a regular expression. Or allow only the ones you care about and block the rest.
 
-1. Grant notification listener permission when prompted
-2. View incoming notifications in the History tab
-3. Long-press a notification to create a blocking rule, or browse prebuilt rules
-4. Blocked notifications appear in the Blocked tab
-5. Tap any blocked notification to view details or edit the rule that blocked it
+📚 Stack: Gather a chatty app's notifications into one tidy group you can expand, instead of a constant stream.
 
-This app requires notification listener permission to function. It has no network access. Notification history is stored locally and excluded from Android backups. Android may back up your rules and settings when system backup is enabled.
+⏳ Throttle: Let the first notification through, then block repeats for as long as you choose. Perfect for apps that ping you every few seconds.
+
+🕒 Right time, right place: Limit any rule to certain hours, or to when you're (or aren't) using your phone.
+
+✨ Easy rule wizard: Tap a notification in your history to create a rule for it. As you type, DoNotNotify shows which of that app's notifications your rule will match.
+
+📦 Pre-built rules: Ready-made rules for popular apps are added automatically, and more are shared by the community.
+
+📜 View notification history: See all notifications your device has received, even the ones that were dismissed or blocked — so you never miss anything important.
+
+🔒 100% private: All processing happens on your phone — no internet required.
+
+⚡ Lightweight & battery-friendly: Runs silently in the background without draining power.
+
+Privacy by design:
+
+DoNotNotify never collects or shares your data. There are no analytics, ads, or cloud servers — your notification data never leaves your device. Notification history is kept only on your phone and is never included in backups; Android may back up your rules and settings if system backup is turned on.
+
+DoNotNotify is open source (MIT License): https://github.com/anujja/DoNotNotify
+
+Whether you want fewer distractions, better focus, or simply a cleaner notification shade, DoNotNotify gives you peace and control — effortlessly.

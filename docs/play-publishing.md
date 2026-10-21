@@ -117,7 +117,21 @@ bundle exec fastlane android metadata with_images:true  # ...and screenshots/ico
 
 Release uploads set `skip_upload_metadata`, `skip_upload_images` and
 `skip_upload_screenshots`. Store listing text in `fastlane/metadata/` is only
-pushed by the `metadata` lane, run on purpose.
+pushed by the `metadata` lane, run on purpose — locally (above) or from CI with
+the **Update Play Store listing** workflow (`store-listing.yml`, manual only;
+it defaults to a dry run and to including the icon and screenshots):
+
+```bash
+gh workflow run store-listing.yml                  # dry run
+gh workflow run store-listing.yml -f dry_run=false # push to Play
+```
+
+The same `fastlane/metadata/` files are F-Droid's listing too, so one edit
+updates both stores; F-Droid reads them from the commit it builds, so its
+listing changes with the next release.
+
+Keep phone screenshots 9:16 (e.g. 1080×1920), the shape Play asks for when
+featuring apps.
 
 This matters if you ever run a **store listing experiment**: applying a winning
 variant edits the listing in the Console, and a release that also synced
