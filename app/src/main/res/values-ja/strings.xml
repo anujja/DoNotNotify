@@ -2,9 +2,9 @@
     <string name="app_name">DoNotNotify</string>
 
     <!-- Tabs -->
-    <string name="tab_history">履歴 (%d)</string>
-    <string name="tab_rules">ルール (%d)</string>
-    <string name="tab_blocked">ブロック済み (%d)</string>
+    <string name="tab_history">履歴</string>
+    <string name="tab_rules">ルール</string>
+    <string name="tab_blocked">ブロック済み</string>
 
     <!-- Common actions -->
     <string name="cancel">キャンセル</string>
@@ -52,8 +52,6 @@
     <string name="expand">展開する</string>
 
     <!-- Notification labels in list cards -->
-    <string name="notification_title_prefix">タイトル: %s</string>
-    <string name="notification_text_prefix">テキスト: %s</string>
 
     <!-- Ongoing notification icon -->
     <string name="ongoing_notification">常駐通知</string>
@@ -62,7 +60,13 @@
     <string name="no_rules_created">ルールが作成されていません</string>
     <string name="no_rules_created_desc">不要な通知を自動的にブロックするルールを作成しましょう。「履歴」タブで通知をタップしてルールを作成するか、プリセットルールを利用してください。</string>
     <string name="rules_auto_block_desc">以下のルールに一致する通知は、各ルールに従って自動的に処理されます。</string>
-    <string name="rules_master_switch_label">すべてのルールを有効にする</string>
+    <string name="rules_master_switch_label">ルールを有効にする</string>
+    <string name="more_options">その他のオプション</string>
+    <string name="rule_card_title_contains">タイトルに「%1$s」を含む</string>
+    <string name="rule_card_title_regex">タイトルが %1$s に一致</string>
+    <string name="rule_card_text_contains">本文に「%1$s」を含む</string>
+    <string name="rule_card_text_regex">本文が %1$s に一致</string>
+    <string name="rule_card_all_notifications">すべての通知</string>
     <string name="add_new_rule">新しいルールを追加</string>
     <string name="browse_prebuilt_rules">プリセットルールを閲覧</string>
     <string name="hits_count">ヒット数: %d</string>
@@ -100,7 +104,7 @@
     <string name="history_retention_days">履歴の保持期間（日数）:</string>
     <string name="export_import_rules">ルールのエクスポート/インポート</string>
     <string name="choose_action">操作を選択</string>
-    <string name="support_this_app">寄付・サポート</string>
+    <string name="support_this_app">コーヒーをおごる</string>
     <string name="report_an_issue">問題を報告</string>
     <string name="app_version">DoNotNotify v%s</string>
     <string name="settings_section_general">一般</string>
@@ -233,9 +237,6 @@
     <string name="health_notification_body">端末がDoNotNotifyを終了しました。タップして再度有効にし、省電力設定を確認してください。</string>
 
     <!-- Main screen -->
-    <string name="service_active">サービス稼働中</string>
-    <string name="toast_service_enabled">通知サービスが有効です</string>
-    <string name="toast_service_disabled">通知サービスが無効です</string>
     <string name="toast_rule_added">ルールを追加しました</string>
     <string name="toast_rule_deleted">ルールを削除しました</string>
     <string name="toast_rule_updated">ルールを更新しました</string>

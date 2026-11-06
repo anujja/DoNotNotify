@@ -2,9 +2,9 @@
     <string name="app_name">DoNotNotify</string>
 
     <!-- Tabs -->
-    <string name="tab_history">Historique (%d)</string>
-    <string name="tab_rules">Règles (%d)</string>
-    <string name="tab_blocked">Bloquées (%d)</string>
+    <string name="tab_history">Historique</string>
+    <string name="tab_rules">Règles</string>
+    <string name="tab_blocked">Bloquées</string>
 
     <!-- Common actions -->
     <string name="cancel">Annuler</string>
@@ -52,8 +52,6 @@
     <string name="expand">Développer</string>
 
     <!-- Notification labels in list cards -->
-    <string name="notification_title_prefix">Titre : %s</string>
-    <string name="notification_text_prefix">Texte : %s</string>
 
     <!-- Ongoing notification icon -->
     <string name="ongoing_notification">Notification persistante</string>
@@ -62,7 +60,13 @@
     <string name="no_rules_created">Aucune règle créée</string>
     <string name="no_rules_created_desc">Créez des règles pour bloquer automatiquement les notifications indésirables. Appuyez sur une notification dans l\'onglet Historique pour créer une règle, ou parcourez les règles prédéfinies.</string>
     <string name="rules_auto_block_desc">Les notifications correspondant aux règles ci-dessous sont traitées automatiquement selon chaque règle.</string>
-    <string name="rules_master_switch_label">Toutes les règles actives</string>
+    <string name="rules_master_switch_label">Règles actives</string>
+    <string name="more_options">Plus d\'options</string>
+    <string name="rule_card_title_contains">Le titre contient \"%1$s\"</string>
+    <string name="rule_card_title_regex">Le titre correspond à %1$s</string>
+    <string name="rule_card_text_contains">Le texte contient \"%1$s\"</string>
+    <string name="rule_card_text_regex">Le texte correspond à %1$s</string>
+    <string name="rule_card_all_notifications">Toutes les notifications</string>
     <string name="add_new_rule">Ajouter une nouvelle règle</string>
     <string name="browse_prebuilt_rules">Parcourir les règles prédéfinies</string>
     <string name="hits_count">Correspondances : %d</string>
@@ -100,7 +104,7 @@
     <string name="history_retention_days">Conservation de l\'historique (jours) :</string>
     <string name="export_import_rules">Exporter/Importer les règles</string>
     <string name="choose_action">Choisir une action</string>
-    <string name="support_this_app">Faire un don &amp; soutenir</string>
+    <string name="support_this_app">Offrez-moi un café</string>
     <string name="report_an_issue">Signaler un problème</string>
     <string name="app_version">DoNotNotify v%s</string>
     <string name="settings_section_general">Général</string>
@@ -233,9 +237,6 @@
     <string name="health_notification_body">Votre téléphone a fermé DoNotNotify. Appuyez pour le réactiver et vérifier les paramètres d\'économie d\'énergie.</string>
 
     <!-- Main screen -->
-    <string name="service_active">Service actif</string>
-    <string name="toast_service_enabled">Le service de notifications est activé</string>
-    <string name="toast_service_disabled">Le service de notifications est désactivé</string>
     <string name="toast_rule_added">Règle ajoutée</string>
     <string name="toast_rule_deleted">Règle supprimée</string>
     <string name="toast_rule_updated">Règle mise à jour</string>

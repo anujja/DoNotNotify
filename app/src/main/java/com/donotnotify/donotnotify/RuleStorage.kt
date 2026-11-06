@@ -162,9 +162,6 @@ class RuleStorage(private val context: Context) {
     fun setEnabledByIds(ruleIds: Set<String>, enabled: Boolean): List<BlockerRule> =
         mutate { RuleMutations.applySetEnabled(it, ruleIds, enabled) }!!
 
-    fun setAllEnabled(enabled: Boolean): List<BlockerRule> =
-        mutate { RuleMutations.applySetAllEnabled(it, enabled) }!!
-
     fun resetHitCounts() {
         mutate { RuleMutations.applyResetHitCounts(it) }
     }

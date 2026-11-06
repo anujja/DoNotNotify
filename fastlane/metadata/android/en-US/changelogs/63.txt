@@ -1,0 +1,5 @@
+• New: Tab counts are shown in pills.
+• Changed: Notification cards show title and text without labels; rule cards describe their filters in plain words.
+• Changed: The Blocked tab now has search and groups notifications by app, like History.
+• Changed: Clear History and Clear Blocked History moved to the top-bar menu.
+• Changed: The "Rules active" switch pauses all rules without touching each rule's own setting.

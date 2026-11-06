@@ -62,9 +62,6 @@ object RuleMutations {
         if (ruleIds.isEmpty()) current
         else current.map { if (it.id in ruleIds) it.copy(isEnabled = enabled) else it }
 
-    fun applySetAllEnabled(current: List<BlockerRule>, enabled: Boolean): List<BlockerRule> =
-        current.map { it.copy(isEnabled = enabled) }
-
     fun applyResetHitCounts(current: List<BlockerRule>): List<BlockerRule> =
         current.map { it.copy(hitCount = 0) }
 }

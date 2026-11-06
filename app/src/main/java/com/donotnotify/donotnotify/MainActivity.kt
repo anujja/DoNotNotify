@@ -19,8 +19,10 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton // Import IconButton
@@ -46,11 +48,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.donotnotify.donotnotify.ui.components.AutoAddedRulesDialog
+import com.donotnotify.donotnotify.ui.components.ConfirmationDialog
 import com.donotnotify.donotnotify.ui.components.DeleteConfirmationDialog
 import com.donotnotify.donotnotify.ui.components.EditRuleDialog
 import com.donotnotify.donotnotify.ui.components.HistoryNotificationDetailsDialog
 import com.donotnotify.donotnotify.health.HealthCheckWorker
 import com.donotnotify.donotnotify.ui.components.NotificationDetailsDialog
+import com.donotnotify.donotnotify.ui.components.TabTitleWithCount
 import com.donotnotify.donotnotify.setup.SetupState
 import com.donotnotify.donotnotify.ui.screens.BlockedScreen
 import com.donotnotify.donotnotify.ui.screens.HistoryScreen
@@ -72,6 +76,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var prebuiltRulesRepository: PrebuiltRulesRepository
     private lateinit var appInfoStorage: AppInfoStorage
     private var isServiceEnabled by mutableStateOf(false)
+    private var rulesPaused by mutableStateOf(false)
     private var pastNotifications by mutableStateOf<List<SimpleNotification>>(emptyList())
     private var blockedNotifications by mutableStateOf<List<SimpleNotification>>(emptyList())
     private var rules by mutableStateOf<List<BlockerRule>>(emptyList())
@@ -90,6 +95,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         ruleStorage = RuleStorage(this)
+        rulesPaused = RulesPause.isPaused(this)
         notificationHistoryStorage = NotificationHistoryStorage(this)
         blockedNotificationHistoryStorage = BlockedNotificationHistoryStorage(this)
         unmonitoredAppsStorage = UnmonitoredAppsStorage(this)
@@ -291,11 +297,12 @@ class MainActivity : ComponentActivity() {
                     pastNotifications = notificationHistoryStorage.getHistory()
                     Toast.makeText(context, context.getString(R.string.toast_notification_deleted), Toast.LENGTH_SHORT).show()
                 },
-                isServiceEnabled = isServiceEnabled, // Pass isServiceEnabled
                 onSettingsClick = { showSettingsScreen = true },
                 onBrowsePrebuiltRulesClick = { showPrebuiltRulesScreen = true },
-                onToggleAllRules = { enabled ->
-                    rules = ruleStorage.setAllEnabled(enabled)
+                rulesPaused = rulesPaused,
+                onRulesPausedChange = { paused ->
+                    RulesPause.setPaused(context, paused)
+                    rulesPaused = paused
                 },
                 onStopMonitoring = { packageName, appName ->
                     unmonitoredAppsStorage.addApp(packageName)
@@ -468,19 +475,47 @@ class MainActivity : ComponentActivity() {
         onCreateRuleClick: () -> Unit,
         onDeleteNotificationClick: (SimpleNotification) -> Unit,
         onDeleteHistoryNotificationClick: (SimpleNotification) -> Unit,
-        isServiceEnabled: Boolean, // Pass isServiceEnabled
         onSettingsClick: () -> Unit,
         onBrowsePrebuiltRulesClick: () -> Unit,
-        onToggleAllRules: (Boolean) -> Unit,
+        rulesPaused: Boolean,
+        onRulesPausedChange: (Boolean) -> Unit,
         onStopMonitoring: (String, String) -> Unit,
         onResumeMonitoring: (String) -> Unit
     ) {
-        val context = LocalContext.current // Get context inside Composable
         val coroutineScope = rememberCoroutineScope()
-        val tabTitles = listOf(
-            stringResource(R.string.tab_history, pastNotifications.size),
-            stringResource(R.string.tab_rules, rules.count { it.isEnabled }),
-            stringResource(R.string.tab_blocked, blockedNotifications.size)
+        var menuExpanded by remember { mutableStateOf(false) }
+        var showClearHistoryDialog by remember { mutableStateOf(false) }
+        var showClearBlockedHistoryDialog by remember { mutableStateOf(false) }
+
+        if (showClearHistoryDialog) {
+            ConfirmationDialog(
+                title = stringResource(R.string.clear_history_title),
+                text = stringResource(R.string.clear_history_confirm),
+                confirmLabel = stringResource(R.string.clear),
+                onConfirm = {
+                    onClearHistory()
+                    showClearHistoryDialog = false
+                },
+                onDismiss = { showClearHistoryDialog = false }
+            )
+        }
+        if (showClearBlockedHistoryDialog) {
+            ConfirmationDialog(
+                title = stringResource(R.string.clear_blocked_history_title),
+                text = stringResource(R.string.clear_blocked_history_confirm),
+                confirmLabel = stringResource(R.string.clear),
+                onConfirm = {
+                    onClearBlockedHistory()
+                    showClearBlockedHistoryDialog = false
+                },
+                onDismiss = { showClearBlockedHistoryDialog = false }
+            )
+        }
+
+        val tabs = listOf(
+            stringResource(R.string.tab_history) to pastNotifications.size,
+            stringResource(R.string.tab_rules) to rules.count { it.isEnabled },
+            stringResource(R.string.tab_blocked) to blockedNotifications.size
         )
 
         Scaffold(
@@ -490,22 +525,37 @@ class MainActivity : ComponentActivity() {
                 TopAppBar(
                     title = { Text(stringResource(R.string.app_name)) },
                     actions = {
-                        IconButton(onClick = {
-                            val status = if (isServiceEnabled)
-                                context.getString(R.string.toast_service_enabled)
-                            else
-                                context.getString(R.string.toast_service_disabled)
-                            Toast.makeText(context, status, Toast.LENGTH_SHORT).show()
-                        }) {
-                            Icon(
-                                Icons.Default.CheckCircle,
-                                contentDescription = stringResource(R.string.service_active),
-                            )
-                        }
                         IconButton(onClick = onSettingsClick) {
                             Icon(
                                 Icons.Default.Settings,
                                 contentDescription = stringResource(R.string.settings)
+                            )
+                        }
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(
+                                Icons.Default.MoreVert,
+                                contentDescription = stringResource(R.string.more_options)
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.clear_history)) },
+                                enabled = pastNotifications.isNotEmpty(),
+                                onClick = {
+                                    menuExpanded = false
+                                    showClearHistoryDialog = true
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.clear_blocked_history)) },
+                                enabled = blockedNotifications.isNotEmpty(),
+                                onClick = {
+                                    menuExpanded = false
+                                    showClearBlockedHistoryDialog = true
+                                }
                             )
                         }
                     }
@@ -520,11 +570,12 @@ class MainActivity : ComponentActivity() {
                     PrimaryTabRow(
                         selectedTabIndex = pagerState.currentPage,
                     ) {
-                        tabTitles.forEachIndexed { index, title ->
+                        tabs.forEachIndexed { index, (title, count) ->
+                            val selected = pagerState.currentPage == index
                             Tab(
-                                selected = pagerState.currentPage == index,
+                                selected = selected,
                                 onClick = { coroutineScope.launch { pagerState.animateScrollToPage(index) } },
-                                text = { Text(title) },
+                                text = { TabTitleWithCount(title, count, selected) },
                                 selectedContentColor = MaterialTheme.colorScheme.onSurface,
                                 unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) // Adjust alpha for unselected tab text
                             )
@@ -539,14 +590,13 @@ class MainActivity : ComponentActivity() {
                             unmonitoredApps = unmonitoredApps,
                             onNotificationClick = onNotificationClick,
                             onBlockedNotificationClick = onBlockedNotificationClick,
-                            onClearHistory = onClearHistory,
-                            onClearBlockedHistory = onClearBlockedHistory,
                             onRuleClick = onRuleClick,
                             onCreateRuleClick = onCreateRuleClick,
                             onDeleteNotificationClick = onDeleteNotificationClick,
                             onDeleteHistoryNotificationClick = onDeleteHistoryNotificationClick,
                             onBrowsePrebuiltRulesClick = onBrowsePrebuiltRulesClick,
-                            onToggleAllRules = onToggleAllRules,
+                            rulesPaused = rulesPaused,
+                            onRulesPausedChange = onRulesPausedChange,
                             onStopMonitoring = onStopMonitoring,
                             onResumeMonitoring = onResumeMonitoring
                         )
@@ -565,14 +615,13 @@ class MainActivity : ComponentActivity() {
         unmonitoredApps: Set<String>,
         onNotificationClick: (SimpleNotification) -> Unit,
         onBlockedNotificationClick: (SimpleNotification) -> Unit,
-        onClearHistory: () -> Unit,
-        onClearBlockedHistory: () -> Unit,
         onRuleClick: (BlockerRule) -> Unit,
         onCreateRuleClick: () -> Unit,
         onDeleteNotificationClick: (SimpleNotification) -> Unit,
         onDeleteHistoryNotificationClick: (SimpleNotification) -> Unit,
         onBrowsePrebuiltRulesClick: () -> Unit,
-        onToggleAllRules: (Boolean) -> Unit,
+        rulesPaused: Boolean,
+        onRulesPausedChange: (Boolean) -> Unit,
         onStopMonitoring: (String, String) -> Unit,
         onResumeMonitoring: (String) -> Unit
     ) {
@@ -581,16 +630,14 @@ class MainActivity : ComponentActivity() {
                 pastNotifications,
                 unmonitoredApps,
                 onNotificationClick,
-                onClearHistory,
                 onDeleteHistoryNotificationClick,
                 onStopMonitoring,
                 onResumeMonitoring
             )
 
-            1 -> RulesScreen(rules, onRuleClick, onCreateRuleClick, onBrowsePrebuiltRulesClick, onToggleAllRules)
+            1 -> RulesScreen(rules, onRuleClick, onCreateRuleClick, onBrowsePrebuiltRulesClick, rulesPaused, onRulesPausedChange)
             2 -> BlockedScreen(
                 blockedNotifications,
-                onClearBlockedHistory,
                 onBlockedNotificationClick,
                 onDeleteNotificationClick
             )

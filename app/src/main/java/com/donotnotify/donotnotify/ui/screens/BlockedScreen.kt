@@ -1,90 +1,47 @@
 package com.donotnotify.donotnotify.ui.screens
 
-import android.widget.Toast
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.NotificationsOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
+import com.donotnotify.donotnotify.AppInfoStorage
 import com.donotnotify.donotnotify.R
 import com.donotnotify.donotnotify.SimpleNotification
 import com.donotnotify.donotnotify.ui.components.EmptyState
+import com.donotnotify.donotnotify.ui.components.NotificationSearchField
+import com.donotnotify.donotnotify.ui.components.filterNotifications
+import com.donotnotify.donotnotify.ui.components.groupNotificationsByApp
+import com.donotnotify.donotnotify.ui.components.notificationGroups
 
 @Composable
 fun BlockedScreen(
     notifications: List<SimpleNotification>,
-    onClearBlockedHistory: () -> Unit,
     onNotificationClick: (SimpleNotification) -> Unit,
     onDeleteNotificationClick: (SimpleNotification) -> Unit
 ) {
-    val context = LocalContext.current
-    var showClearBlockedHistoryDialog by remember { mutableStateOf(false) }
+    var expandedApps by remember { mutableStateOf(setOf<String>()) }
+    var searchQuery by remember { mutableStateOf("") }
 
-    if (showClearBlockedHistoryDialog) {
-        Dialog(onDismissRequest = { showClearBlockedHistoryDialog = false }) {
-            Card {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = stringResource(R.string.clear_blocked_history_title),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    Text(
-                        text = stringResource(R.string.clear_blocked_history_confirm),
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        Button(onClick = { showClearBlockedHistoryDialog = false }, modifier = Modifier.padding(end = 8.dp)) {
-                            Text(stringResource(R.string.cancel))
-                        }
-                        Button(onClick = {
-                            onClearBlockedHistory()
-                            showClearBlockedHistoryDialog = false
-                        }) {
-                            Text(stringResource(R.string.clear))
-                        }
-                    }
-                }
-            }
-        }
-    }
+    val filtered = remember(notifications, searchQuery) { filterNotifications(notifications, searchQuery) }
+    val groups = remember(filtered) { groupNotificationsByApp(filtered) }
+    val context = LocalContext.current
+    val appInfoStorage = remember { AppInfoStorage(context) }
+    val ongoingMessage = stringResource(R.string.ongoing_notification_partially_blocked)
+    val deleteDescription = stringResource(R.string.delete_blocked_notification)
 
     LazyColumn(
         modifier = Modifier
@@ -92,72 +49,39 @@ fun BlockedScreen(
             .padding(horizontal = 16.dp),
         contentPadding = WindowInsets.navigationBars.asPaddingValues()
     ) {
+        item(contentType = "search") {
+            NotificationSearchField(query = searchQuery, onQueryChange = { searchQuery = it })
+        }
+
         if (notifications.isEmpty()) {
-            item {
+            item(contentType = "emptyMessage") {
                 EmptyState(
                     icon = Icons.Outlined.NotificationsOff,
                     title = stringResource(R.string.no_blocked_notifications),
                     description = stringResource(R.string.no_blocked_notifications_desc)
                 )
             }
+        } else if (filtered.isEmpty()) {
+            item(contentType = "emptyMessage") {
+                EmptyState(
+                    icon = Icons.Outlined.SearchOff,
+                    title = stringResource(R.string.no_results_found),
+                    description = stringResource(R.string.no_results_found_desc)
+                )
+            }
         } else {
-            itemsIndexed(notifications, key = { index, it -> "blocked_${index}_${it.id ?: it.timestamp}" }) { _, notification ->
-                ElevatedCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .clickable { onNotificationClick(notification) }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(start = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier
-                            .weight(1f)
-                            .padding(vertical = 12.dp)) {
-                            Text(
-                                text = (notification.appLabel ?: notification.packageName).orEmpty(),
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            Text(
-                                text = stringResource(R.string.notification_title_prefix, notification.title.orEmpty()),
-                                style = MaterialTheme.typography.bodyMedium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            Text(
-                                text = stringResource(R.string.notification_text_prefix, notification.text.orEmpty()),
-                                style = MaterialTheme.typography.bodyMedium,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                        if (notification.wasOngoing) {
-                            IconButton(onClick = {
-                                Toast.makeText(context, context.getString(R.string.ongoing_notification_partially_blocked), Toast.LENGTH_LONG).show()
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Default.Warning,
-                                    contentDescription = stringResource(R.string.ongoing_notification),
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        }
-                        IconButton(onClick = { onDeleteNotificationClick(notification) }) {
-                            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete_blocked_notification))
-                        }
-                    }
-                }
-            }
-            item {
-                Row(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp), horizontalArrangement = Arrangement.Center) {
-                    Button(onClick = { showClearBlockedHistoryDialog = true }) { Text(stringResource(R.string.clear_blocked_history)) }
-                }
-            }
+            notificationGroups(
+                groups = groups,
+                expandedApps = expandedApps,
+                onToggleApp = { app ->
+                    expandedApps = if (app in expandedApps) expandedApps - app else expandedApps + app
+                },
+                appInfoStorage = appInfoStorage,
+                ongoingMessage = ongoingMessage,
+                deleteContentDescription = deleteDescription,
+                onNotificationClick = onNotificationClick,
+                onDeleteNotification = onDeleteNotificationClick,
+            )
         }
     }
 }

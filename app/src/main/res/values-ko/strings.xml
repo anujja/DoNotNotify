@@ -2,9 +2,9 @@
     <string name="app_name">DoNotNotify</string>
 
     <!-- Tabs -->
-    <string name="tab_history">기록 (%d)</string>
-    <string name="tab_rules">규칙 (%d)</string>
-    <string name="tab_blocked">차단됨 (%d)</string>
+    <string name="tab_history">기록</string>
+    <string name="tab_rules">규칙</string>
+    <string name="tab_blocked">차단됨</string>
 
     <!-- Common actions -->
     <string name="cancel">취소</string>
@@ -52,8 +52,6 @@
     <string name="expand">펼치기</string>
 
     <!-- Notification labels in list cards -->
-    <string name="notification_title_prefix">제목: %s</string>
-    <string name="notification_text_prefix">내용: %s</string>
 
     <!-- Ongoing notification icon -->
     <string name="ongoing_notification">진행 중인 알림</string>
@@ -62,7 +60,13 @@
     <string name="no_rules_created">생성된 규칙이 없습니다</string>
     <string name="no_rules_created_desc">원치 않는 알림을 자동으로 차단하는 규칙을 만드세요. 기록 탭에서 알림을 탭하여 규칙을 만들거나 미리 만들어진 규칙을 살펴보세요.</string>
     <string name="rules_auto_block_desc">아래 규칙과 일치하는 알림은 각 규칙에 따라 자동으로 처리됩니다.</string>
-    <string name="rules_master_switch_label">모든 규칙 활성화</string>
+    <string name="rules_master_switch_label">규칙 활성화</string>
+    <string name="more_options">더보기</string>
+    <string name="rule_card_title_contains">제목에 \"%1$s\" 포함</string>
+    <string name="rule_card_title_regex">제목이 %1$s 와 일치</string>
+    <string name="rule_card_text_contains">내용에 \"%1$s\" 포함</string>
+    <string name="rule_card_text_regex">내용이 %1$s 와 일치</string>
+    <string name="rule_card_all_notifications">모든 알림</string>
     <string name="add_new_rule">새 규칙 추가</string>
     <string name="browse_prebuilt_rules">미리 만들어진 규칙 보기</string>
     <string name="hits_count">적중: %d</string>
@@ -157,7 +161,7 @@
     <string name="history_retention_days">기록 보관 기간(일):</string>
     <string name="export_import_rules">규칙 내보내기/가져오기</string>
     <string name="choose_action">작업 선택</string>
-    <string name="support_this_app">후원 및 지원</string>
+    <string name="support_this_app">커피 한 잔 사주기</string>
     <string name="report_an_issue">문제 신고</string>
     <string name="app_version">DoNotNotify v%s</string>
     <!-- Settings sections and descriptions -->
@@ -296,9 +300,6 @@
     <string name="health_notification_body">휴대전화가 DoNotNotify를 종료했습니다. 탭하여 다시 활성화하고 절전 설정을 확인하세요.</string>
 
     <!-- Main screen -->
-    <string name="service_active">서비스 작동 중</string>
-    <string name="toast_service_enabled">알림 서비스가 활성화되었습니다</string>
-    <string name="toast_service_disabled">알림 서비스가 비활성화되었습니다</string>
     <string name="toast_rule_added">규칙이 추가되었습니다</string>
     <string name="toast_rule_deleted">규칙이 삭제되었습니다</string>
     <string name="toast_rule_updated">규칙이 업데이트되었습니다</string>

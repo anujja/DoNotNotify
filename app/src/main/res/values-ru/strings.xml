@@ -2,9 +2,9 @@
     <string name="app_name">DoNotNotify</string>
 
     <!-- Tabs -->
-    <string name="tab_history">История (%d)</string>
-    <string name="tab_rules">Правила (%d)</string>
-    <string name="tab_blocked">Заблокированные (%d)</string>
+    <string name="tab_history">История</string>
+    <string name="tab_rules">Правила</string>
+    <string name="tab_blocked">Заблокированные</string>
 
     <!-- Common actions -->
     <string name="cancel">Отмена</string>
@@ -52,8 +52,6 @@
     <string name="expand">Развернуть</string>
 
     <!-- Notification labels in list cards -->
-    <string name="notification_title_prefix">Заголовок: %s</string>
-    <string name="notification_text_prefix">Текст: %s</string>
 
     <!-- Ongoing notification icon -->
     <string name="ongoing_notification">Постоянное уведомление</string>
@@ -62,7 +60,13 @@
     <string name="no_rules_created">Правила не созданы</string>
     <string name="no_rules_created_desc">Создайте правила для автоматической блокировки нежелательных уведомлений. Нажмите на уведомление на вкладке «История», чтобы создать правило, или просмотрите готовые правила.</string>
     <string name="rules_auto_block_desc">Уведомления, соответствующие приведённым ниже правилам, обрабатываются автоматически согласно каждому правилу.</string>
-    <string name="rules_master_switch_label">Все правила активны</string>
+    <string name="rules_master_switch_label">Правила активны</string>
+    <string name="more_options">Ещё</string>
+    <string name="rule_card_title_contains">Заголовок содержит \"%1$s\"</string>
+    <string name="rule_card_title_regex">Заголовок соответствует %1$s</string>
+    <string name="rule_card_text_contains">Текст содержит \"%1$s\"</string>
+    <string name="rule_card_text_regex">Текст соответствует %1$s</string>
+    <string name="rule_card_all_notifications">Все уведомления</string>
     <string name="add_new_rule">Добавить новое правило</string>
     <string name="browse_prebuilt_rules">Просмотр готовых правил</string>
     <string name="hits_count">Совпадений: %d</string>
@@ -100,7 +104,7 @@
     <string name="history_retention_days">Хранение истории (дней):</string>
     <string name="export_import_rules">Экспорт/Импорт правил</string>
     <string name="choose_action">Выберите действие</string>
-    <string name="support_this_app">Пожертвовать и поддержать</string>
+    <string name="support_this_app">Угостить меня кофе</string>
     <string name="report_an_issue">Сообщить о проблеме</string>
     <string name="app_version">DoNotNotify v%s</string>
     <string name="settings_section_general">Общие</string>
@@ -233,9 +237,6 @@
     <string name="health_notification_body">Ваш телефон отключил DoNotNotify. Нажмите, чтобы снова включить и проверить настройки энергосбережения.</string>
 
     <!-- Main screen -->
-    <string name="service_active">Служба активна</string>
-    <string name="toast_service_enabled">Служба уведомлений включена</string>
-    <string name="toast_service_disabled">Служба уведомлений отключена</string>
     <string name="toast_rule_added">Правило добавлено</string>
     <string name="toast_rule_deleted">Правило удалено</string>
     <string name="toast_rule_updated">Правило обновлено</string>

@@ -2,9 +2,9 @@
     <string name="app_name">DoNotNotify</string>
 
     <!-- Tabs -->
-    <string name="tab_history">Geçmiş (%d)</string>
-    <string name="tab_rules">Kurallar (%d)</string>
-    <string name="tab_blocked">Engellenen (%d)</string>
+    <string name="tab_history">Geçmiş</string>
+    <string name="tab_rules">Kurallar</string>
+    <string name="tab_blocked">Engellenen</string>
 
     <!-- Common actions -->
     <string name="cancel">İptal</string>
@@ -52,8 +52,6 @@
     <string name="expand">Genişlet</string>
 
     <!-- Notification labels in list cards -->
-    <string name="notification_title_prefix">Başlık: %s</string>
-    <string name="notification_text_prefix">Metin: %s</string>
 
     <!-- Ongoing notification icon -->
     <string name="ongoing_notification">Devam Eden Bildirim</string>
@@ -62,7 +60,13 @@
     <string name="no_rules_created">Kural Oluşturulmadı</string>
     <string name="no_rules_created_desc">İstenmeyen bildirimleri otomatik olarak engellemek için kurallar oluşturun. Kural oluşturmak üzere Geçmiş sekmesindeki bir bildirime dokunun veya hazır kurallara göz atın.</string>
     <string name="rules_auto_block_desc">Aşağıdaki kurallarla eşleşen bildirimler, her kurala göre otomatik olarak işlenir.</string>
-    <string name="rules_master_switch_label">Tüm kurallar etkin</string>
+    <string name="rules_master_switch_label">Kurallar etkin</string>
+    <string name="more_options">Diğer seçenekler</string>
+    <string name="rule_card_title_contains">Başlık \"%1$s\" içeriyor</string>
+    <string name="rule_card_title_regex">Başlık %1$s ile eşleşiyor</string>
+    <string name="rule_card_text_contains">Metin \"%1$s\" içeriyor</string>
+    <string name="rule_card_text_regex">Metin %1$s ile eşleşiyor</string>
+    <string name="rule_card_all_notifications">Tüm bildirimler</string>
     <string name="add_new_rule">Yeni Kural Ekle</string>
     <string name="browse_prebuilt_rules">Hazır Kurallara Göz At</string>
     <string name="hits_count">Eşleşme: %d</string>
@@ -157,7 +161,7 @@
     <string name="history_retention_days">Geçmişi Saklama (Gün):</string>
     <string name="export_import_rules">Kuralları Dışa/İçe Aktar</string>
     <string name="choose_action">Bir işlem seçin</string>
-    <string name="support_this_app">Bağış &amp; Destek</string>
+    <string name="support_this_app">Bana Bir Kahve Ismarla</string>
     <string name="report_an_issue">Sorun Bildir</string>
     <string name="app_version">DoNotNotify v%s</string>
     <!-- Settings sections and descriptions -->
@@ -299,9 +303,6 @@
     <string name="health_notification_body">Telefonunuz DoNotNotify\'ı kapattı. Yeniden etkinleştirmek ve güç tasarrufu ayarlarını gözden geçirmek için dokunun.</string>
 
     <!-- Main screen -->
-    <string name="service_active">Servis Etkin</string>
-    <string name="toast_service_enabled">Bildirim servisi etkin</string>
-    <string name="toast_service_disabled">Bildirim servisi devre dışı</string>
     <string name="toast_rule_added">Kural eklendi</string>
     <string name="toast_rule_deleted">Kural silindi</string>
     <string name="toast_rule_updated">Kural güncellendi</string>

@@ -2,9 +2,9 @@
     <string name="app_name">DoNotNotify</string>
 
     <!-- Tabs -->
-    <string name="tab_history">历史 (%d)</string>
-    <string name="tab_rules">规则 (%d)</string>
-    <string name="tab_blocked">已拦截 (%d)</string>
+    <string name="tab_history">历史</string>
+    <string name="tab_rules">规则</string>
+    <string name="tab_blocked">已拦截</string>
 
     <!-- Common actions -->
     <string name="cancel">取消</string>
@@ -52,8 +52,6 @@
     <string name="expand">展开</string>
 
     <!-- Notification labels in list cards -->
-    <string name="notification_title_prefix">标题：%s</string>
-    <string name="notification_text_prefix">内容：%s</string>
 
     <!-- Ongoing notification icon -->
     <string name="ongoing_notification">常驻通知</string>
@@ -62,7 +60,13 @@
     <string name="no_rules_created">尚未创建规则</string>
     <string name="no_rules_created_desc">创建规则以自动拦截不需要的通知。在历史标签页中点按通知即可创建规则，或浏览预设规则。</string>
     <string name="rules_auto_block_desc">符合以下规则的通知将根据每条规则自动处理。</string>
-    <string name="rules_master_switch_label">所有规则均启用</string>
+    <string name="rules_master_switch_label">规则已启用</string>
+    <string name="more_options">更多选项</string>
+    <string name="rule_card_title_contains">标题包含“%1$s”</string>
+    <string name="rule_card_title_regex">标题匹配 %1$s</string>
+    <string name="rule_card_text_contains">内容包含“%1$s”</string>
+    <string name="rule_card_text_regex">内容匹配 %1$s</string>
+    <string name="rule_card_all_notifications">所有通知</string>
     <string name="add_new_rule">添加新规则</string>
     <string name="browse_prebuilt_rules">浏览预设规则</string>
     <string name="hits_count">命中：%d</string>
@@ -157,7 +161,7 @@
     <string name="history_retention_days">历史保留天数：</string>
     <string name="export_import_rules">导出/导入规则</string>
     <string name="choose_action">选择操作</string>
-    <string name="support_this_app">捐赠与支持</string>
+    <string name="support_this_app">请我喝杯咖啡</string>
     <string name="report_an_issue">报告问题</string>
     <string name="app_version">DoNotNotify v%s</string>
     <!-- Settings sections and descriptions -->
@@ -296,9 +300,6 @@
     <string name="health_notification_body">您的手机关闭了 DoNotNotify。点按以重新启用它并检查省电设置。</string>
 
     <!-- Main screen -->
-    <string name="service_active">服务运行中</string>
-    <string name="toast_service_enabled">通知服务已启用</string>
-    <string name="toast_service_disabled">通知服务已停用</string>
     <string name="toast_rule_added">规则已添加</string>
     <string name="toast_rule_deleted">规则已删除</string>
     <string name="toast_rule_updated">规则已更新</string>

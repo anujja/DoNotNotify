@@ -150,7 +150,9 @@ class NotificationBlockerService : NotificationListenerService() {
 
         // Pure precedence resolution (DENYLIST/allowlist-gating wins over STACK;
         // first enabled match wins; STACK never gates like allowlist).
-        val rules = ruleStorage.getRules()
+        // A paused rule set behaves like an empty one: nothing is blocked, stacked or
+        // throttled, history is still recorded, and each rule keeps its own enabled flag.
+        val rules = if (RulesPause.isPaused(this)) emptyList() else ruleStorage.getRules()
         val wasOngoing = (sbn.notification.flags and Notification.FLAG_ONGOING_EVENT) != 0
         val matchContext = MatchContext.now(deviceInUse = isDeviceInUse())
         val decision = RuleMatcher.planNotificationDecision(

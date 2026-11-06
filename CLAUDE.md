@@ -40,6 +40,7 @@ DoNotNotify is an Android app that filters and blocks unwanted notifications usi
 - `ThrottleManager.kt` — Pure THROTTLE planning: `secondsFor()`, `windowsFor()` (one window per matched rule), `shouldSuppress()`, `evaluate()` → suppress or windows to restart. JVM-tested in `ThrottleManagerTest`; which rules match is in `planNotificationDecision().throttleRules`
 - `ui/components/RuleOptions.kt` — `RuleOption` registry (`RULE_OPTIONS`): each condition/action declares its section, icon, applicable rule types, summary and editor; the same registry drives the rule card's icons. Adding an option = one object in the list
 - `ui/components/AdvancedRuleConfigDialog.kt` — the Advanced Configuration dialog (Enable Rule, the registry's options, then type-specific settings: THROTTLE duration, STACK channel name + sound link), opened from the rule editor (`Dialogs.kt`, whose type picker is a dropdown) and the new-rule wizard's review step
+- `ui/components/NotificationList.kt` — the list shared by the History and Blocked tabs: search field, grouping by app under collapsible headers, and the notification card (title, text, relative time; no field labels). `ConfirmationDialog.kt` is the one confirm/cancel dialog (text buttons) every destructive action uses
 - `StackedNotificationManager.kt` — STACK registry + transactional re-post engine. Pure `planAbsorb()` → `AbsorbPlan`, the `StackPoster` side-effect seam, hex SHA-256 `groupKeyFor()`, eviction caps, privacy redaction, restart reconciliation
 - `BlockerRule.kt` — Data models: `BlockerRule`, `AdvancedRuleConfig`, `MatchType`, `RuleType` (`DENYLIST`/`ALLOWLIST`/`STACK`/`THROTTLE`)
 - `SimpleNotification.kt` — Notification data model with Parcelable support
@@ -56,10 +57,11 @@ DoNotNotify is an Android app that filters and blocks unwanted notifications usi
 | `UnmonitoredAppsStorage` | SharedPreferences | Apps excluded from monitoring |
 | `StatsStorage` | SharedPreferences | Blocked notification counts |
 | `ThrottleStorage` | SharedPreferences | THROTTLE last-pass timestamps per rule (`rule:<id>`), so a restart can't reopen a burst |
+| `RulesPause` | SharedPreferences | The Rules tab's master switch. Paused = the listener treats the rule set as empty (history still recorded) while every rule keeps its own enabled flag |
 | `NotificationActionRepository` | In-memory ConcurrentHashMap | Cached notification action intents |
 | `StackedNotificationManager` | In-memory ConcurrentHashMap (volatile) | STACK group registry — entries, summary ids, cumulative counts; cleared/reconciled on listener (re)connect |
 | `PrebuiltRulesRepository` | Assets JSON (`prebuilt_rules.json`) | Pre-configured rules for popular apps |
 
 ### UI Structure
 
-Compose screens in `ui/screens/`, dialogs in `ui/components/`. Main UI is a `HorizontalPager` with three tabs. New rules are made in the full-screen `RuleWizardScreen`, opened from the Rules tab or from a History notification's details (then prefilled with its app, title and text, starting on the rule type step); existing rules are edited in `EditRuleDialog`. Prebuilt rules auto-install when corresponding apps are detected (package queries declared in manifest).
+Compose screens in `ui/screens/`, dialogs in `ui/components/`. Main UI is a `HorizontalPager` with three tabs; the top bar holds Settings and an overflow menu with Clear History / Clear Blocked History. New rules are made in the full-screen `RuleWizardScreen`, opened from the Rules tab or from a History notification's details (then prefilled with its app, title and text, starting on the rule type step); existing rules are edited in `EditRuleDialog`. Prebuilt rules auto-install when corresponding apps are detected (package queries declared in manifest).

@@ -2,9 +2,9 @@
     <string name="app_name">DoNotNotify</string>
 
     <!-- Tabs -->
-    <string name="tab_history">History (%d)</string>
-    <string name="tab_rules">Rules (%d)</string>
-    <string name="tab_blocked">Blocked (%d)</string>
+    <string name="tab_history">History</string>
+    <string name="tab_rules">Rules</string>
+    <string name="tab_blocked">Blocked</string>
 
     <!-- Common actions -->
     <string name="cancel">Cancel</string>
@@ -52,8 +52,6 @@
     <string name="expand">Expand</string>
 
     <!-- Notification labels in list cards -->
-    <string name="notification_title_prefix">Title: %s</string>
-    <string name="notification_text_prefix">Text: %s</string>
 
     <!-- Ongoing notification icon -->
     <string name="ongoing_notification">Ongoing Notification</string>
@@ -62,7 +60,13 @@
     <string name="no_rules_created">No Rules Created</string>
     <string name="no_rules_created_desc">Create rules to automatically block unwanted notifications. Tap a notification in the History tab to create a rule, or browse pre-built rules.</string>
     <string name="rules_auto_block_desc">Notifications matching the rules below are handled automatically according to each rule.</string>
-    <string name="rules_master_switch_label">All rules active</string>
+    <string name="rules_master_switch_label">Rules active</string>
+    <string name="more_options">More options</string>
+    <string name="rule_card_title_contains">Title contains \"%1$s\"</string>
+    <string name="rule_card_title_regex">Title matches %1$s</string>
+    <string name="rule_card_text_contains">Text contains \"%1$s\"</string>
+    <string name="rule_card_text_regex">Text matches %1$s</string>
+    <string name="rule_card_all_notifications">All notifications</string>
     <string name="add_new_rule">Add a New Rule</string>
     <string name="browse_prebuilt_rules">Browse Pre-built Rules</string>
     <string name="hits_count">Hits: %d</string>
@@ -157,7 +161,7 @@
     <string name="history_retention_days">History Retention (Days):</string>
     <string name="export_import_rules">Export/Import Rules</string>
     <string name="choose_action">Choose an action</string>
-    <string name="support_this_app">Donate &amp; Support</string>
+    <string name="support_this_app">Buy Me a Coffee</string>
     <string name="report_an_issue">Report an Issue</string>
     <string name="app_version">DoNotNotify v%s</string>
     <!-- Settings sections and descriptions -->
@@ -299,9 +303,6 @@
     <string name="health_notification_body">Your phone shut DoNotNotify down. Tap to re-enable it and review power-saving settings.</string>
 
     <!-- Main screen -->
-    <string name="service_active">Service Active</string>
-    <string name="toast_service_enabled">Notification service is enabled</string>
-    <string name="toast_service_disabled">Notification service is disabled</string>
     <string name="toast_rule_added">Rule added</string>
     <string name="toast_rule_deleted">Rule deleted</string>
     <string name="toast_rule_updated">Rule updated</string>

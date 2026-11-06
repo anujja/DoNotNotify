@@ -60,6 +60,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.ui.text.font.FontFamily
 import com.donotnotify.donotnotify.BlockerRule
+import com.donotnotify.donotnotify.MatchType
 import com.donotnotify.donotnotify.CommunityShare
 import com.donotnotify.donotnotify.ExternalLinks
 import com.donotnotify.donotnotify.PrebuiltRuleReconciler
@@ -80,7 +81,8 @@ fun RulesScreen(
     onRuleClick: (BlockerRule) -> Unit,
     onCreateRuleClick: () -> Unit,
     onBrowsePrebuiltRulesClick: () -> Unit,
-    onToggleAllRules: (Boolean) -> Unit
+    paused: Boolean,
+    onPausedChange: (Boolean) -> Unit
 ) {
     // Group rules by packageName; apps with multiple rules get a section header
     val grouped = rules.groupBy { it.packageName ?: it.appName ?: "" }
@@ -153,8 +155,8 @@ fun RulesScreen(
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     Switch(
-                        checked = rules.all { it.isEnabled },
-                        onCheckedChange = onToggleAllRules
+                        checked = !paused,
+                        onCheckedChange = { onPausedChange(!it) }
                     )
                 }
                 HorizontalDivider()
@@ -174,6 +176,7 @@ fun RulesScreen(
                         RuleCard(
                             rule = appRules[0],
                             showAppName = true,
+                            dimmed = paused,
                             showCommunityNudge = CommunityShare.isNudgeEligible(appRules[0], nudgeDismissed, prebuiltSignatures),
                             onShareToCommunity = { shareDialogRule = appRules[0] },
                             onDismissNudge = { dismissNudge(appRules[0].id) },
@@ -203,6 +206,7 @@ fun RulesScreen(
                         RuleCard(
                             rule = rule,
                             showAppName = false,
+                            dimmed = paused,
                             modifier = Modifier.padding(start = 8.dp),
                             showCommunityNudge = CommunityShare.isNudgeEligible(rule, nudgeDismissed, prebuiltSignatures),
                             onShareToCommunity = { shareDialogRule = rule },
@@ -317,6 +321,7 @@ private fun CommunitySharePreviewDialog(
 private fun RuleCard(
     rule: BlockerRule,
     showAppName: Boolean,
+    dimmed: Boolean = false,
     modifier: Modifier = Modifier,
     showCommunityNudge: Boolean = false,
     onShareToCommunity: () -> Unit = {},
@@ -327,7 +332,7 @@ private fun RuleCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .alpha(if (rule.isEnabled) 1f else 0.5f)
+            .alpha(if (rule.isEnabled && !dimmed) 1f else 0.5f)
             .clickable { onClick() }
     ) {
         Row(
@@ -348,21 +353,7 @@ private fun RuleCard(
                         textDecoration = if (rule.isEnabled) null else TextDecoration.LineThrough
                     )
                 }
-                val notApplicable = stringResource(R.string.not_applicable)
-                val titleFilterText = if (rule.titleFilter.isNullOrBlank()) notApplicable else rule.titleFilter.orEmpty()
-                Text(
-                    text = stringResource(R.string.notification_title_prefix, titleFilterText),
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                val textFilterText = if (rule.textFilter.isNullOrBlank()) notApplicable else rule.textFilter.orEmpty()
-                Text(
-                    text = stringResource(R.string.notification_text_prefix, textFilterText),
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                RuleFilterLines(rule)
                 if (rule.ruleType == RuleType.THROTTLE) {
                     Text(
                         text = throttleSummary(rule.advancedConfig),
@@ -473,6 +464,45 @@ private fun RuleCard(
                     )
                 }
             }
+        }
+    }
+}
+
+/**
+ * One line per set filter, phrased as a sentence so the field and match type read without
+ * labels; a rule with no filters covers every notification from its app.
+ */
+@Composable
+private fun RuleFilterLines(rule: BlockerRule) {
+    val titleLine = rule.titleFilter?.takeIf { it.isNotBlank() }?.let { filter ->
+        stringResource(
+            if (rule.titleMatchType == MatchType.REGEX) R.string.rule_card_title_regex
+            else R.string.rule_card_title_contains,
+            filter
+        )
+    }
+    val textLine = rule.textFilter?.takeIf { it.isNotBlank() }?.let { filter ->
+        stringResource(
+            if (rule.textMatchType == MatchType.REGEX) R.string.rule_card_text_regex
+            else R.string.rule_card_text_contains,
+            filter
+        )
+    }
+    val lines = listOfNotNull(titleLine, textLine)
+    if (lines.isEmpty()) {
+        Text(
+            text = stringResource(R.string.rule_card_all_notifications),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    } else {
+        lines.forEach { line ->
+            Text(
+                text = line,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
