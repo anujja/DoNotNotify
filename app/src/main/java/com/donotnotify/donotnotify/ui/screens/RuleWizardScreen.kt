@@ -82,6 +82,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -113,6 +114,7 @@ import com.donotnotify.donotnotify.PrebuiltRulesRepository
 import com.donotnotify.donotnotify.R
 import com.donotnotify.donotnotify.RuleMatcher
 import com.donotnotify.donotnotify.RuleType
+import com.donotnotify.donotnotify.isAllowedForAllApps
 import com.donotnotify.donotnotify.RuleWizardSupport
 import com.donotnotify.donotnotify.SimpleNotification
 import com.donotnotify.donotnotify.ui.components.AdvancedRuleConfigDialog
@@ -136,8 +138,8 @@ import java.util.regex.PatternSyntaxException
 private enum class RuleWizardStep { APP, TYPE, FILTERS, SUMMARY }
 
 /**
- * Full-screen 4-step flow for creating a rule: pick an app, pick a rule type, set
- * text filters, review and create. Launched from the Rules tab's "Add a New Rule"
+ * Full-screen 4-step flow for creating a rule: pick an app (or all apps), pick a rule type,
+ * set text filters, review and create. Launched from the Rules tab's "Add a New Rule"
  * button, or from a History notification's "Create Rule": then [initialNotification]
  * fills in its app, title and text, and the wizard opens on the rule type step.
  * The caller persists the emitted rule.
@@ -164,6 +166,8 @@ fun RuleWizardScreen(
     }
     var manualEntry by rememberSaveable { mutableStateOf(false) }
     var manualPackage by rememberSaveable { mutableStateOf("") }
+    // A rule for every app: saved with no package (see BlockerRule.isAllApps).
+    var allApps by rememberSaveable { mutableStateOf(false) }
     var ruleType by rememberSaveable { mutableStateOf(RuleType.DENYLIST) }
     var titleFilter by rememberSaveable { mutableStateOf(prefilledFilter(initialNotification?.title)) }
     var titleMatchType by rememberSaveable { mutableStateOf(MatchType.CONTAINS) }
@@ -175,8 +179,13 @@ fun RuleWizardScreen(
     var showAdvancedDialog by rememberSaveable { mutableStateOf(false) }
 
     val effectivePackage = if (manualEntry) manualPackage.trim() else selectedPackage.orEmpty()
-    val effectiveAppName =
-        if (manualEntry) manualPackage.trim() else (selectedAppName ?: selectedPackage.orEmpty())
+    // What the rule is saved with: null for all apps.
+    val rulePackage: String? = if (allApps) null else effectivePackage
+    val effectiveAppName = when {
+        allApps -> stringResource(R.string.all_apps)
+        manualEntry -> manualPackage.trim()
+        else -> selectedAppName ?: selectedPackage.orEmpty()
+    }
 
     val knownApps by produceState<List<KnownApp>?>(initialValue = null) {
         value = withContext(Dispatchers.IO) {
@@ -242,13 +251,15 @@ fun RuleWizardScreen(
 
     val filterCheck = RuleWizardSupport.checkFilters(titleFilter, titleMatchType, textFilter, textMatchType)
     val history = remember(pastNotifications, blockedNotifications) { pastNotifications + blockedNotifications }
-    val filterPreview = remember(history, effectivePackage, titleFilter, titleMatchType, textFilter, textMatchType) {
-        RuleWizardSupport.previewFilters(history, effectivePackage, titleFilter, titleMatchType, textFilter, textMatchType)
+    val filterPreview = remember(history, rulePackage, titleFilter, titleMatchType, textFilter, textMatchType) {
+        RuleWizardSupport.previewFilters(history, rulePackage, titleFilter, titleMatchType, textFilter, textMatchType)
     }
     val canAdvance = when (steps[pagerState.currentPage]) {
-        RuleWizardStep.APP -> effectivePackage.isNotBlank()
-        RuleWizardStep.TYPE -> true
-        RuleWizardStep.FILTERS -> filterCheck !is RuleWizardSupport.FilterCheck.InvalidRegex
+        RuleWizardStep.APP -> allApps || effectivePackage.isNotBlank()
+        RuleWizardStep.TYPE -> !allApps || ruleType.isAllowedForAllApps
+        // An all-apps rule needs a filter, or it would act on every notification on the phone.
+        RuleWizardStep.FILTERS -> filterCheck !is RuleWizardSupport.FilterCheck.InvalidRegex &&
+            !(allApps && filterCheck is RuleWizardSupport.FilterCheck.MatchesEverything)
         RuleWizardStep.SUMMARY -> true
     }
 
@@ -300,22 +311,35 @@ fun RuleWizardScreen(
                         knownApps = knownApps,
                         appInfoStorage = appInfoStorage,
                         selectedPackage = selectedPackage,
+                        allApps = allApps,
                         manualEntry = manualEntry,
                         manualPackage = manualPackage,
+                        onAllAppsSelected = {
+                            allApps = true
+                            manualEntry = false
+                            // The type step may already have been visited with an app chosen.
+                            if (!ruleType.isAllowedForAllApps) ruleType = RuleType.DENYLIST
+                        },
                         onAppSelected = { app ->
                             selectedPackage = app.packageName
                             selectedAppName = app.appName
+                            allApps = false
                             manualEntry = false
                         },
-                        onManualEntryChange = { expanded -> manualEntry = expanded },
+                        onManualEntryChange = { expanded ->
+                            manualEntry = expanded
+                            if (expanded) allApps = false
+                        },
                         onManualPackageChange = { manualPackage = it },
                     )
                     RuleWizardStep.TYPE -> TypeStep(
                         selected = ruleType,
+                        allApps = allApps,
                         onSelected = { ruleType = it },
                     )
                     RuleWizardStep.FILTERS -> FiltersStep(
                         appName = effectiveAppName,
+                        allApps = allApps,
                         titleFilter = titleFilter,
                         onTitleFilterChange = { titleFilter = it },
                         titleMatchType = titleMatchType,
@@ -330,7 +354,7 @@ fun RuleWizardScreen(
                     RuleWizardStep.SUMMARY -> SummaryStep(
                         appInfoStorage = appInfoStorage,
                         knownApps = knownApps,
-                        packageName = effectivePackage,
+                        packageName = rulePackage,
                         appName = effectiveAppName,
                         ruleType = ruleType,
                         titleFilter = titleFilter,
@@ -345,7 +369,7 @@ fun RuleWizardScreen(
                         onAdvancedClick = { showAdvancedDialog = true },
                         isDuplicate = RuleWizardSupport.isDuplicate(
                             existingRules,
-                            effectivePackage,
+                            rulePackage,
                             titleFilter.trim().ifBlank { null },
                             textFilter.trim().ifBlank { null },
                             ruleType
@@ -369,8 +393,9 @@ fun RuleWizardScreen(
                         if (pagerState.currentPage == steps.lastIndex) {
                             onCreateRule(
                                 BlockerRule(
-                                    appName = effectiveAppName.ifBlank { effectivePackage },
-                                    packageName = effectivePackage,
+                                    // An all-apps rule carries no app: its label is resolved when shown.
+                                    appName = if (allApps) null else effectiveAppName.ifBlank { effectivePackage },
+                                    packageName = rulePackage,
                                     titleFilter = titleFilter.trim().ifBlank { null },
                                     titleMatchType = titleMatchType,
                                     textFilter = textFilter.trim().ifBlank { null },
@@ -432,8 +457,10 @@ private fun AppStep(
     knownApps: List<KnownApp>?,
     appInfoStorage: AppInfoStorage,
     selectedPackage: String?,
+    allApps: Boolean,
     manualEntry: Boolean,
     manualPackage: String,
+    onAllAppsSelected: () -> Unit,
     onAppSelected: (KnownApp) -> Unit,
     onManualEntryChange: (Boolean) -> Unit,
     onManualPackageChange: (String) -> Unit,
@@ -534,6 +561,19 @@ private fun AppStep(
                 .imePadding(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            // Always offered, even with no known apps: a keyword rule for every app needs none.
+            if (searchQuery.isBlank()) {
+                item(key = "all_apps") {
+                    Column {
+                        AllAppsRow(selected = allApps, onClick = onAllAppsSelected)
+                        // The one choice that isn't an app sits apart from the apps below it.
+                        if (knownApps.isNotEmpty()) {
+                            HorizontalDivider(modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
+                        }
+                    }
+                }
+            }
+
             if (knownApps.isEmpty()) {
                 item(key = "empty") {
                     EmptyState(
@@ -548,7 +588,7 @@ private fun AppStep(
                 AppRow(
                     app = app,
                     appInfoStorage = appInfoStorage,
-                    selected = !manualEntry && app.packageName == selectedPackage,
+                    selected = !manualEntry && !allApps && app.packageName == selectedPackage,
                     onClick = { onAppSelected(app) },
                 )
             }
@@ -562,6 +602,85 @@ private fun AppStep(
                 )
             }
         }
+    }
+}
+
+/**
+ * The picker's first choice: a rule for every app, for keywords like "Sale" that many apps'
+ * promotions share. Laid out like [AppRow] but in the primary container colour with a
+ * primary-filled glyph where the app icon goes: it is the one choice that isn't an app and it
+ * reaches every notification on the phone, so it must not read as just another row.
+ */
+@Composable
+private fun AllAppsRow(selected: Boolean, onClick: () -> Unit) {
+    val shape = MaterialTheme.shapes.medium
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (selected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, shape)
+                else Modifier
+            ),
+        shape = shape,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        ),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(horizontal = 12.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            AllAppsIcon(size = 40.dp)
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.all_apps),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = stringResource(R.string.all_apps_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            if (selected) {
+                Spacer(Modifier.width(8.dp))
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = stringResource(R.string.rule_wizard_selected),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Stands in for the app icon of an all-apps rule: the same circle [AppIcon] draws its fallbacks
+ * in, filled with the primary colour so the rule's reach shows at a glance.
+ */
+@Composable
+private fun AllAppsIcon(size: Dp) {
+    Box(
+        modifier = Modifier
+            .size(size)
+            .background(color = MaterialTheme.colorScheme.primary, shape = CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.Apps,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier.size(size * 0.55f),
+        )
     }
 }
 
@@ -731,9 +850,11 @@ private fun ManualEntryCard(
 // Step 2 — pick a rule type
 // ---------------------------------------------------------------------------
 
+/** [allApps]: the rule is for all apps, so the types not allowed for all apps are shown disabled. */
 @Composable
 private fun TypeStep(
     selected: RuleType,
+    allApps: Boolean,
     onSelected: (RuleType) -> Unit,
 ) {
     Column(
@@ -751,6 +872,7 @@ private fun TypeStep(
                 RuleTypeCard(
                     type = type,
                     selected = type == selected,
+                    enabled = !allApps || type.isAllowedForAllApps,
                     onClick = { onSelected(type) },
                 )
             }
@@ -758,10 +880,15 @@ private fun TypeStep(
     }
 }
 
+/**
+ * [enabled] false: the type can't be picked for this rule (an ALLOWLIST for all apps). The card
+ * is dimmed, says why, and doesn't respond to taps.
+ */
 @Composable
 private fun RuleTypeCard(
     type: RuleType,
     selected: Boolean,
+    enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
     val shape = MaterialTheme.shapes.medium
@@ -786,13 +913,14 @@ private fun RuleTypeCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onClick)
+                .clickable(enabled = enabled, onClick = onClick)
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
                 modifier = Modifier
                     .size(40.dp)
+                    .alpha(if (enabled) 1f else 0.38f)
                     .background(color = containerColor, shape = CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
@@ -809,16 +937,26 @@ private fun RuleTypeCard(
                     text = type.label(),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
+                    modifier = Modifier.alpha(if (enabled) 1f else 0.38f),
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
                     text = type.description(),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.alpha(if (enabled) 1f else 0.38f),
                 )
+                if (!enabled) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(R.string.rule_wizard_allowlist_not_for_all_apps),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
             }
             Spacer(Modifier.width(8.dp))
-            RadioButton(selected = selected, onClick = onClick)
+            RadioButton(selected = selected, enabled = enabled, onClick = onClick)
         }
     }
 }
@@ -831,6 +969,7 @@ private fun RuleTypeCard(
 @Composable
 private fun FiltersStep(
     appName: String,
+    allApps: Boolean,
     titleFilter: String,
     onTitleFilterChange: (String) -> Unit,
     titleMatchType: MatchType,
@@ -856,7 +995,9 @@ private fun FiltersStep(
         )
 
         FilterPreviewCard(
-            appName = appName,
+            // For all apps, the preview is headed by the app the shown notification came from.
+            appName = if (allApps) preview.latestMatch?.appLabel ?: appName else appName,
+            allApps = allApps,
             preview = preview,
             titleFilter = titleFilter,
             titleMatchType = titleMatchType,
@@ -887,26 +1028,28 @@ private fun FiltersStep(
 
         Spacer(Modifier.height(16.dp))
 
+        // No filters: a note for one app, where it is allowed; for all apps it blocks Next.
         AnimatedVisibility(visible = filterCheck is RuleWizardSupport.FilterCheck.MatchesEverything) {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                ),
-            ) {
+            val containerColor =
+                if (allApps) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.tertiaryContainer
+            val contentColor =
+                if (allApps) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onTertiaryContainer
+            Card(colors = CardDefaults.cardColors(containerColor = containerColor)) {
                 Row(
                     modifier = Modifier.padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.Info,
+                        imageVector = if (allApps) Icons.Outlined.Warning else Icons.Outlined.Info,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                        tint = contentColor,
                     )
                     Spacer(Modifier.width(12.dp))
                     Text(
-                        text = stringResource(R.string.rule_wizard_matches_all_warning, appName),
+                        text = if (allApps) stringResource(R.string.rule_wizard_all_apps_needs_filter)
+                        else stringResource(R.string.rule_wizard_matches_all_warning, appName),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        color = contentColor,
                     )
                 }
             }
@@ -924,6 +1067,7 @@ private fun FiltersStep(
 @Composable
 private fun FilterPreviewCard(
     appName: String,
+    allApps: Boolean,
     preview: RuleWizardSupport.FilterPreview,
     titleFilter: String,
     titleMatchType: MatchType,
@@ -1004,7 +1148,11 @@ private fun FilterPreviewCard(
     }
     if (preview.recentCount > 0) {
         Text(
-            text = stringResource(R.string.rule_wizard_preview_count, preview.matchCount, preview.recentCount),
+            text = stringResource(
+                if (allApps) R.string.rule_wizard_preview_count_all_apps else R.string.rule_wizard_preview_count,
+                preview.matchCount,
+                preview.recentCount
+            ),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 6.dp),
@@ -1128,7 +1276,8 @@ private fun FilterField(
 private fun SummaryStep(
     appInfoStorage: AppInfoStorage,
     knownApps: List<KnownApp>?,
-    packageName: String,
+    /** Null for a rule for all apps. */
+    packageName: String?,
     appName: String,
     ruleType: RuleType,
     titleFilter: String,
@@ -1162,25 +1311,35 @@ private fun SummaryStep(
                 Spacer(Modifier.height(16.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    AppIcon(
-                        packageName = packageName,
-                        isQueryableInstalled = isQueryableInstalled,
-                        fallbackLetterSource = appName.ifBlank { packageName },
-                        appInfoStorage = appInfoStorage,
-                        size = 48.dp,
-                    )
+                    if (packageName == null) {
+                        AllAppsIcon(size = 48.dp)
+                    } else {
+                        AppIcon(
+                            packageName = packageName,
+                            isQueryableInstalled = isQueryableInstalled,
+                            fallbackLetterSource = appName.ifBlank { packageName },
+                            appInfoStorage = appInfoStorage,
+                            size = 48.dp,
+                        )
+                    }
                     Spacer(Modifier.width(16.dp))
                     Column {
                         Text(
-                            text = appName.ifBlank { packageName },
+                            text = appName.ifBlank { packageName.orEmpty() },
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
-                        if (appName.isNotBlank() && appName != packageName) {
+                        // Second line: the package under an app's name, or what "All apps" means.
+                        val subtitle = when {
+                            packageName == null -> stringResource(R.string.all_apps_desc)
+                            appName.isNotBlank() && appName != packageName -> packageName
+                            else -> null
+                        }
+                        if (subtitle != null) {
                             Text(
-                                text = packageName,
+                                text = subtitle,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,

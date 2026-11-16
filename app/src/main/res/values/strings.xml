@@ -120,6 +120,11 @@
     <string name="rule_wizard_package_warning">This doesn\'t look like a package name, but you can still use it.</string>
     <string name="rule_wizard_no_known_apps_title">No apps to show yet</string>
     <string name="rule_wizard_no_known_apps_desc">Apps show up here once they post a notification. You can still enter a package name below.</string>
+    <string name="all_apps">All apps</string>
+    <string name="all_apps_desc">Notifications from every app</string>
+    <string name="rule_wizard_preview_count_all_apps">Matches %1$d of %2$d recent notifications from all apps</string>
+    <string name="rule_wizard_all_apps_needs_filter">A rule for all apps needs a title or text filter. Without one it would apply to every notification on this phone.</string>
+    <string name="rule_wizard_allowlist_not_for_all_apps">Allowlist isn\'t available for all apps: it would block every notification on this phone that doesn\'t match.</string>
     <string name="rule_wizard_selected">Selected</string>
     <string name="rule_wizard_step_type_title">Choose a rule type</string>
     <string name="rule_wizard_step_type_body">What should happen to matching notifications?</string>

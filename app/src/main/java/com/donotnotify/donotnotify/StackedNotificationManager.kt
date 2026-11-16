@@ -212,6 +212,30 @@ object StackedNotificationManager {
         return "$GROUP_KEY_PREFIX$packageName:$hex"
     }
 
+    /** The source package a group key was built for, or null for a key not in our format. */
+    internal fun sourcePackageOf(groupKey: String): String? {
+        if (!groupKey.startsWith(GROUP_KEY_PREFIX)) return null
+        val body = groupKey.substring(GROUP_KEY_PREFIX.length)
+        val sep = body.lastIndexOf(':')
+        return if (sep > 0) body.substring(0, sep) else null
+    }
+
+    /**
+     * Those of [keys] that are stacks of [rule]. A rule for one app has at most one; an all-apps
+     * rule has one per source app it has stacked, so each key's source package is read back out
+     * and the key recomputed for [rule]. Pure, so the matching is JVM-testable.
+     */
+    fun groupKeysOf(rule: BlockerRule, keys: Collection<String>): List<String> =
+        keys.filter { key -> sourcePackageOf(key)?.let { groupKeyFor(it, rule) == key } == true }
+
+    /**
+     * Whether editing [before] into [after] moves the rule's stacks to a new group key, i.e.
+     * changes any field the key is derived from. The source package is the same on both sides,
+     * so a fixed one serves for the comparison.
+     */
+    fun stackKeyChanged(before: BlockerRule, after: BlockerRule): Boolean =
+        groupKeyFor("", before) != groupKeyFor("", after)
+
     // ---- visibility helpers ---------------------------------------------------
 
     /** Normalize an unknown/out-of-range visibility to the conservative PRIVATE. */
@@ -447,8 +471,32 @@ object StackedNotificationManager {
      */
     @Synchronized
     fun cancelStackForRule(context: Context, packageName: String, rule: BlockerRule) {
-        val groupKey = groupKeyFor(packageName, rule)
+        cancelGroup(NotificationManagerCompat.from(context), groupKeyFor(packageName, rule))
+    }
+
+    /**
+     * Tears down every stack [rule] has posted: the one for its app, or, for an all-apps rule,
+     * one per source app ([groupKeysOf]). As above, [rule] must be the pre-edit rule.
+     */
+    @Synchronized
+    fun cancelStacksForRule(context: Context, rule: BlockerRule) {
         val nmc = NotificationManagerCompat.from(context)
+        for (groupKey in groupKeysOf(rule, groups.keys + summaryIds.keys)) {
+            cancelGroup(nmc, groupKey)
+        }
+    }
+
+    /** [StackPoster] variant of [cancelStacksForRule], for the listener process and JVM tests. */
+    @Synchronized
+    fun cancelStacksForRule(poster: StackPoster, rule: BlockerRule) {
+        for (groupKey in groupKeysOf(rule, groups.keys + summaryIds.keys)) {
+            summaryIds[groupKey]?.let { safeCancel(poster, it) }
+            groups[groupKey]?.forEach { safeCancel(poster, it.childId) }
+            forgetGroup(groupKey)
+        }
+    }
+
+    private fun cancelGroup(nmc: NotificationManagerCompat, groupKey: String) {
         val ids = buildList {
             summaryIds[groupKey]?.let { add(it) }
             groups[groupKey]?.forEach { add(it.childId) }

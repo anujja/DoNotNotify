@@ -276,6 +276,11 @@
     <string name="rule_wizard_package_warning">Cela ne ressemble pas à un nom de paquet, mais vous pouvez quand même l\'utiliser.</string>
     <string name="rule_wizard_no_known_apps_title">Aucune application à afficher pour l\'instant</string>
     <string name="rule_wizard_no_known_apps_desc">Les applications apparaîtront ici dès qu\'elles auront affiché une notification. Vous pouvez aussi saisir un nom de paquet ci-dessous.</string>
+    <string name="all_apps">Toutes les applications</string>
+    <string name="all_apps_desc">Notifications de toutes les applications</string>
+    <string name="rule_wizard_preview_count_all_apps">Correspondent : %1$d sur %2$d notifications récentes de toutes les applications</string>
+    <string name="rule_wizard_all_apps_needs_filter">Une règle pour toutes les applications nécessite un filtre de titre ou de texte. Sans cela, elle s\'appliquerait à toutes les notifications de ce téléphone.</string>
+    <string name="rule_wizard_allowlist_not_for_all_apps">La liste d\'autorisation n\'est pas disponible pour toutes les applications : elle bloquerait toutes les notifications de ce téléphone qui ne correspondent pas.</string>
     <string name="rule_wizard_selected">Sélectionnée</string>
     <string name="rule_wizard_step_type_title">Choisissez un type de règle</string>
     <string name="rule_wizard_step_type_body">Que faire des notifications correspondantes ?</string>

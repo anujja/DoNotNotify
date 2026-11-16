@@ -106,7 +106,8 @@ object StackChannelsAndroid {
 
     private fun namingOf(context: Context) = StackChannels.ChannelNaming(
         appRuleFormat = context.getString(R.string.stack_channel_name_app_rule),
-        unnamedFormat = context.getString(R.string.stack_channel_name_unnamed)
+        unnamedFormat = context.getString(R.string.stack_channel_name_unnamed),
+        allAppsLabel = context.getString(R.string.all_apps)
     )
 
     /**

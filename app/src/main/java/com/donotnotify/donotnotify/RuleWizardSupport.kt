@@ -108,13 +108,21 @@ object RuleWizardSupport {
      */
     data class PreviewField(val text: String, val match: IntRange)
 
-    /** A recent notification that matches the filters being typed. */
-    data class PreviewMatch(val timestamp: Long, val title: PreviewField, val text: PreviewField)
+    /**
+     * A recent notification that matches the filters being typed. [appLabel] is the app it came
+     * from, shown when the rule is for all apps.
+     */
+    data class PreviewMatch(
+        val timestamp: Long,
+        val title: PreviewField,
+        val text: PreviewField,
+        val appLabel: String? = null
+    )
 
     /**
-     * What the filter step previews: how many of the app's recent notifications match
-     * the filters, out of how many, and the latest that does. Repeats of the same title
-     * and text count once.
+     * What the filter step previews: how many of the app's recent notifications (every app's,
+     * for an all-apps rule) match the filters, out of how many, and the latest that does.
+     * Repeats of the same title and text count once.
      */
     data class FilterPreview(val recentCount: Int, val matchCount: Int, val latestMatch: PreviewMatch?)
 
@@ -122,19 +130,20 @@ object RuleWizardSupport {
      * Matches [history] against the filters the way the saved rule will: trimmed, as the
      * wizard saves them, and through [RuleMatcher.findMatch]. Conditions from Advanced
      * Configuration are not applied: the preview is about which notifications match.
+     * A null [packageName] is a rule for all apps: the whole history is considered.
      */
     fun previewFilters(
         history: List<SimpleNotification>,
-        packageName: String,
+        packageName: String?,
         titleFilter: String,
         titleMatchType: MatchType,
         textFilter: String,
         textMatchType: MatchType
     ): FilterPreview {
         val recent = history
-            .filter { it.packageName == packageName }
+            .filter { packageName == null || it.packageName == packageName }
             .sortedByDescending { it.timestamp }
-            .distinctBy { it.title to it.text }
+            .distinctBy { Triple(it.packageName, it.title, it.text) }
         var matchCount = 0
         var latestMatch: PreviewMatch? = null
         for (notification in recent) {
@@ -145,7 +154,8 @@ object RuleWizardSupport {
                 latestMatch = PreviewMatch(
                     timestamp = notification.timestamp,
                     title = PreviewField(oneLine(notification.title), titleMatch),
-                    text = PreviewField(oneLine(notification.text), textMatch)
+                    text = PreviewField(oneLine(notification.text), textMatch),
+                    appLabel = notification.appLabel?.takeIf { it.isNotBlank() } ?: notification.packageName
                 )
             }
         }
@@ -191,16 +201,16 @@ object RuleWizardSupport {
     /**
      * Same rule identity the prebuilt browser uses to hide already-added rules
      * (packageName + both filters), narrowed by ruleType since the wizard lets the
-     * user pick it explicitly.
+     * user pick it explicitly. A null [packageName] is a rule for all apps.
      */
     fun isDuplicate(
         existingRules: List<BlockerRule>,
-        packageName: String,
+        packageName: String?,
         titleFilter: String?,
         textFilter: String?,
         ruleType: RuleType
     ): Boolean = existingRules.any {
-        it.packageName == packageName &&
+        it.packageName?.takeIf { p -> p.isNotBlank() } == packageName &&
                 it.titleFilter == titleFilter &&
                 it.textFilter == textFilter &&
                 it.ruleType == ruleType

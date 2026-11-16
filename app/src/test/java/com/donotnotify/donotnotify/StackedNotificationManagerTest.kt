@@ -11,6 +11,7 @@ import com.donotnotify.donotnotify.StackedNotificationManager.StackPoster
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -383,5 +384,57 @@ class StackedNotificationManagerTest {
         val after = FakeStackPoster()
         StackedNotificationManager.absorbAndPost(after, gk, channel, "App", entry("c"), null)
         assertEquals(1, after.children[0].cumulativeCount)
+    }
+
+    // ---- all-apps rules -------------------------------------------------------
+
+    @Test
+    fun `groupKeysOf finds an all-apps rule's stack for every source app and nothing else`() {
+        val allApps = BlockerRule(titleFilter = "News", ruleType = RuleType.STACK)
+        val own = stackRule("News")
+        val keys = listOf(
+            StackedNotificationManager.groupKeyFor("p", allApps),
+            StackedNotificationManager.groupKeyFor("q", allApps),
+            StackedNotificationManager.groupKeyFor("p", own),
+            "not_ours"
+        )
+        assertEquals(keys.take(2), StackedNotificationManager.groupKeysOf(allApps, keys))
+        assertEquals(listOf(keys[2]), StackedNotificationManager.groupKeysOf(own, keys))
+    }
+
+    @Test
+    fun `sourcePackageOf reads the source app back out of a group key`() {
+        val rule = stackRule("x")
+        assertEquals("com.some.app", StackedNotificationManager.sourcePackageOf(StackedNotificationManager.groupKeyFor("com.some.app", rule)))
+        assertNull(StackedNotificationManager.sourcePackageOf("not_ours"))
+        assertNull(StackedNotificationManager.sourcePackageOf(StackedNotificationManager.GROUP_KEY_PREFIX + ":abc"))
+    }
+
+    @Test
+    fun `stackKeyChanged is true only for fields the key is built from`() {
+        val before = BlockerRule(titleFilter = "News", ruleType = RuleType.STACK)
+        assertFalse(StackedNotificationManager.stackKeyChanged(before, before.copy(name = "Renamed", hitCount = 7)))
+        assertTrue(StackedNotificationManager.stackKeyChanged(before, before.copy(titleFilter = "Breaking")))
+        assertTrue(StackedNotificationManager.stackKeyChanged(before, before.copy(packageName = "p")))
+    }
+
+    @Test
+    fun `cancelStacksForRule tears down every app's stack of an all-apps rule`() {
+        val rule = BlockerRule(titleFilter = "News", ruleType = RuleType.STACK)
+        val channel = StackChannels.channelIdFor(rule)
+        val poster = FakeStackPoster()
+        val gkP = StackedNotificationManager.groupKeyFor("p", rule)
+        val gkQ = StackedNotificationManager.groupKeyFor("q", rule)
+        StackedNotificationManager.absorbAndPost(poster, gkP, channel, "App P", entry("a"), null)
+        StackedNotificationManager.absorbAndPost(poster, gkQ, channel, "App Q", entry("b"), null)
+        val posted = (poster.children.map { it.childId } + poster.summaries.map { it.summaryId }).distinct()
+
+        StackedNotificationManager.cancelStacksForRule(poster, rule)
+
+        assertTrue("every child and summary cancelled", poster.cancelled.containsAll(posted))
+        val after = FakeStackPoster()
+        StackedNotificationManager.absorbAndPost(after, gkP, channel, "App P", entry("c"), null)
+        StackedNotificationManager.absorbAndPost(after, gkQ, channel, "App Q", entry("d"), null)
+        assertTrue(after.children.all { it.cumulativeCount == 1 })
     }
 }

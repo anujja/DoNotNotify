@@ -1,0 +1,1 @@
+• New: Rules can apply to all apps. Pick "All apps" in the wizard to block, stack or throttle a keyword like "Sale" or "promo" from every app at once. A rule written for one app takes priority over an all-apps rule.

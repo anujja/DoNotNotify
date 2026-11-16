@@ -342,4 +342,24 @@ class RuleMatcherTest {
         assertEquals(null, RuleMatcher.findMatch("promo", MatchType.CONTAINS, null))
         assertEquals(null, RuleMatcher.findMatch("(unclosed", MatchType.REGEX, "(unclosed"))
     }
+
+    @Test
+    fun `rule without a package applies to any app`() {
+        val rule = BlockerRule(titleFilter = "Promo", ruleType = RuleType.DENYLIST)
+        assertTrue(rule.isAllApps)
+        assertTrue(rule.appliesTo("com.example.app"))
+        assertTrue(rule.appliesTo("com.other.app"))
+        assertTrue(RuleMatcher.matches(rule, "com.example.app", "Promo today", null))
+        assertTrue(RuleMatcher.matches(rule, "com.other.app", "Promo today", null))
+        assertFalse(RuleMatcher.matches(rule, "com.other.app", "Order shipped", null))
+    }
+
+    @Test
+    fun `rule with a package applies to that app only`() {
+        val rule = BlockerRule(packageName = "com.example.app", titleFilter = "Promo", ruleType = RuleType.DENYLIST)
+        assertFalse(rule.isAllApps)
+        assertTrue(rule.appliesTo("com.example.app"))
+        assertFalse(rule.appliesTo("com.other.app"))
+        assertFalse(RuleMatcher.shouldBlock("com.other.app", "Promo today", null, listOf(rule)))
+    }
 }

@@ -71,6 +71,7 @@ import com.donotnotify.donotnotify.StackChannels
 import com.donotnotify.donotnotify.StackedNotificationManager
 import com.donotnotify.donotnotify.ui.components.EmptyState
 import com.donotnotify.donotnotify.ui.components.RuleOptionIcons
+import com.donotnotify.donotnotify.ui.components.appLabel
 import com.donotnotify.donotnotify.ui.components.icon
 import com.donotnotify.donotnotify.ui.components.label
 import com.donotnotify.donotnotify.ui.components.throttleSummary
@@ -84,8 +85,10 @@ fun RulesScreen(
     paused: Boolean,
     onPausedChange: (Boolean) -> Unit
 ) {
-    // Group rules by packageName; apps with multiple rules get a section header
-    val grouped = rules.groupBy { it.packageName ?: it.appName ?: "" }
+    // Group rules by packageName; apps with multiple rules get a section header. All-apps rules
+    // (no package) form one group, listed first since they act on every app below.
+    val grouped = rules.groupBy { it.packageName?.takeIf { p -> p.isNotBlank() } ?: "" }
+        .entries.sortedBy { it.key.isNotEmpty() }
 
     val context = LocalContext.current
     val nudgePrefs = remember { context.getSharedPreferences("settings", Context.MODE_PRIVATE) }
@@ -185,10 +188,9 @@ fun RulesScreen(
                     }
                 } else {
                     // Multiple rules — show a section header then indented rule cards
-                    val appName = appRules[0].appName.orEmpty()
-                    item(key = "header_${appRules[0].packageName}") {
+                    item(key = "header_${appRules[0].packageName ?: "all_apps"}") {
                         Text(
-                            text = "$appName (${appRules.size})",
+                            text = "${appRules[0].appLabel()} (${appRules.size})",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier
@@ -346,7 +348,7 @@ private fun RuleCard(
             ) {
                 if (showAppName) {
                     Text(
-                        text = rule.appName.orEmpty(),
+                        text = rule.appLabel(),
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,

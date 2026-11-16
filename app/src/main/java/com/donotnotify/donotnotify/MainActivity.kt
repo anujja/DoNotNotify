@@ -322,7 +322,10 @@ class MainActivity : ComponentActivity() {
 
         notificationToShowDetailsDialog?.let { notification ->
             val actualBlockingRule = remember(notification, rules) {
-                val rulesForPackage = rules.filter { it.packageName == notification.packageName && it.isEnabled }
+                // The app's own rules, then all-apps ones: the order the listener judges them in.
+                val rulesForPackage = rules
+                    .filter { it.appliesTo(notification.packageName) && it.isEnabled }
+                    .sortedBy { it.isAllApps }
                 // STACK rules are intentionally excluded: they do not block, so a
                 // stack-only match correctly leaves the blocking-rule resolution null.
                 // THROTTLE rules come last: they only block repeats.
@@ -417,14 +420,12 @@ class MainActivity : ComponentActivity() {
                     // The stack's group key is derived from rule *content*, so an edit that changes
                     // any matched field strands the old stack under the pre-edit key. Tear it down
                     // — but only when the key actually moved, so a cosmetic edit (e.g. renaming the
-                    // rule) doesn't needlessly dismiss the user's live stack.
-                    val pkg = oldRule.packageName
-                    if (oldRule.ruleType == RuleType.STACK && pkg != null) {
-                        val oldKey = StackedNotificationManager.groupKeyFor(pkg, oldRule)
-                        val newKey = StackedNotificationManager.groupKeyFor(pkg, newRule)
-                        if (oldKey != newKey || newRule.ruleType != RuleType.STACK) {
-                            StackedNotificationManager.cancelStackForRule(context, pkg, oldRule)
-                        }
+                    // rule) doesn't needlessly dismiss the user's live stack. An all-apps rule may
+                    // have a stack per source app; cancelStacksForRule finds them all.
+                    if (oldRule.ruleType == RuleType.STACK &&
+                        (StackedNotificationManager.stackKeyChanged(oldRule, newRule) || newRule.ruleType != RuleType.STACK)
+                    ) {
+                        StackedNotificationManager.cancelStacksForRule(context, oldRule)
                     }
                     StackChannelsAndroid.sync(context)
                     ruleToEdit = null
@@ -434,9 +435,7 @@ class MainActivity : ComponentActivity() {
                 onDeleteRule = { deleted ->
                     rules = ruleStorage.deleteRuleById(deleted.id)
                     if (deleted.ruleType == RuleType.STACK) {
-                        deleted.packageName?.let {
-                            StackedNotificationManager.cancelStackForRule(context, it, deleted)
-                        }
+                        StackedNotificationManager.cancelStacksForRule(context, deleted)
                     }
                     StackChannelsAndroid.sync(context)
                     ruleToEdit = null

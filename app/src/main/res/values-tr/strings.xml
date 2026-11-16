@@ -120,6 +120,11 @@
     <string name="rule_wizard_package_warning">Bu bir paket adına benzemiyor, yine de kullanabilirsiniz.</string>
     <string name="rule_wizard_no_known_apps_title">Henüz gösterilecek uygulama yok</string>
     <string name="rule_wizard_no_known_apps_desc">Uygulamalar, bir bildirim gönderdiklerinde burada görünür. Yine de aşağıya bir paket adı girebilirsiniz.</string>
+    <string name="all_apps">Tüm uygulamalar</string>
+    <string name="all_apps_desc">Tüm uygulamalardan gelen bildirimler</string>
+    <string name="rule_wizard_preview_count_all_apps">Tüm uygulamaların son %2$d bildiriminden %1$d tanesi eşleşiyor</string>
+    <string name="rule_wizard_all_apps_needs_filter">Tüm uygulamalar için bir kural, başlık veya metin filtresi gerektirir. Filtre olmadan bu telefondaki her bildirime uygulanırdı.</string>
+    <string name="rule_wizard_allowlist_not_for_all_apps">İzin listesi tüm uygulamalar için kullanılamaz: bu telefondaki eşleşmeyen her bildirimi engellerdi.</string>
     <string name="rule_wizard_selected">Seçildi</string>
     <string name="rule_wizard_step_type_title">Kural türü seçin</string>
     <string name="rule_wizard_step_type_body">Eşleşen bildirimlere ne olsun?</string>

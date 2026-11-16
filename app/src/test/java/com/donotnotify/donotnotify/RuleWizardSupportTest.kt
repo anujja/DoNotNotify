@@ -203,6 +203,14 @@ class RuleWizardSupportTest {
         assertFalse(RuleWizardSupport.isDuplicate(existing, "com.a", "Promo", null, RuleType.STACK))
     }
 
+    @Test
+    fun `all-apps rule is a duplicate only of another all-apps rule with the same filters`() {
+        val allApps = existing + BlockerRule(titleFilter = "Sale", textFilter = null, ruleType = RuleType.DENYLIST)
+        assertTrue(RuleWizardSupport.isDuplicate(allApps, null, "Sale", null, RuleType.DENYLIST))
+        assertFalse(RuleWizardSupport.isDuplicate(allApps, null, "Promo", null, RuleType.DENYLIST))
+        assertFalse(RuleWizardSupport.isDuplicate(allApps, "com.a", "Sale", null, RuleType.DENYLIST))
+    }
+
     // --- looksLikePackageName ---
 
     @Test
@@ -265,6 +273,23 @@ class RuleWizardSupportTest {
     fun `preview of an invalid regex matches nothing`() {
         val p = RuleWizardSupport.previewFilters(history, "com.a", "(unclosed", MatchType.REGEX, "", MatchType.CONTAINS)
         assertEquals(0, p.matchCount)
+    }
+
+    @Test
+    fun `preview for all apps spans every app and names the matched one`() {
+        val p = RuleWizardSupport.previewFilters(history, null, "sale", MatchType.CONTAINS, "", MatchType.CONTAINS)
+        assertEquals(3, p.recentCount)
+        assertEquals(2, p.matchCount)
+        assertEquals(4L, p.latestMatch?.timestamp)
+        assertEquals("A", p.latestMatch?.appLabel)
+        assertEquals(RuleWizardSupport.PreviewField("Flash sale", 6..9), p.latestMatch?.title)
+    }
+
+    @Test
+    fun `preview falls back to the package when the notification has no app label`() {
+        val h = listOf(SimpleNotification(appLabel = null, packageName = "com.x", title = "Sale", text = "", timestamp = 1))
+        val p = RuleWizardSupport.previewFilters(h, null, "sale", MatchType.CONTAINS, "", MatchType.CONTAINS)
+        assertEquals("com.x", p.latestMatch?.appLabel)
     }
 
     // --- snippetAround / exampleField ---

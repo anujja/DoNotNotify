@@ -276,6 +276,11 @@
     <string name="rule_wizard_package_warning">パッケージ名ではないようですが、そのまま使用することもできます。</string>
     <string name="rule_wizard_no_known_apps_title">表示できるアプリがまだありません</string>
     <string name="rule_wizard_no_known_apps_desc">アプリが通知を送信するとここに表示されます。下でパッケージ名を直接入力することもできます。</string>
+    <string name="all_apps">すべてのアプリ</string>
+    <string name="all_apps_desc">すべてのアプリからの通知</string>
+    <string name="rule_wizard_preview_count_all_apps">すべてのアプリの最近の通知 %2$d 件中 %1$d 件が一致</string>
+    <string name="rule_wizard_all_apps_needs_filter">すべてのアプリを対象にするルールには、タイトルまたはテキストのフィルターが必要です。フィルターがないと、この端末のすべての通知に適用されてしまいます。</string>
+    <string name="rule_wizard_allowlist_not_for_all_apps">許可リストはすべてのアプリには使えません。一致しない通知をこの端末ですべてブロックしてしまうためです。</string>
     <string name="rule_wizard_selected">選択済み</string>
     <string name="rule_wizard_step_type_title">ルールの種類を選択</string>
     <string name="rule_wizard_step_type_body">一致した通知をどうしますか?</string>

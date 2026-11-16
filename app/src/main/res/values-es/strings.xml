@@ -120,6 +120,11 @@
     <string name="rule_wizard_package_warning">Esto no parece un nombre de paquete, pero puedes usarlo de todos modos.</string>
     <string name="rule_wizard_no_known_apps_title">Aún no hay aplicaciones que mostrar</string>
     <string name="rule_wizard_no_known_apps_desc">Las aplicaciones aparecerán aquí cuando publiquen una notificación. También puedes introducir un nombre de paquete abajo.</string>
+    <string name="all_apps">Todas las aplicaciones</string>
+    <string name="all_apps_desc">Notificaciones de todas las aplicaciones</string>
+    <string name="rule_wizard_preview_count_all_apps">Coinciden: %1$d de %2$d notificaciones recientes de todas las aplicaciones</string>
+    <string name="rule_wizard_all_apps_needs_filter">Una regla para todas las aplicaciones necesita un filtro de título o de texto. Sin él, se aplicaría a todas las notificaciones de este teléfono.</string>
+    <string name="rule_wizard_allowlist_not_for_all_apps">Lista de permitidos no está disponible para todas las aplicaciones: bloquearía todas las notificaciones de este teléfono que no coincidan.</string>
     <string name="rule_wizard_selected">Seleccionada</string>
     <string name="rule_wizard_step_type_title">Elige el tipo de regla</string>
     <string name="rule_wizard_step_type_body">¿Qué debe ocurrir con las notificaciones coincidentes?</string>

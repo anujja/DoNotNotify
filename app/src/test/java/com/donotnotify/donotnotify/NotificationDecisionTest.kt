@@ -187,4 +187,88 @@ class NotificationDecisionTest {
         assertFalse(RuleMatcher.shouldBlock("p", "News", null, listOf(throttle("News"))))
         assertFalse(RuleMatcher.shouldBlock("p", "Other", null, listOf(throttle("News"))))
     }
+
+    // ---- all-apps rules (no package) --------------------------------------------
+
+    private fun denyAll(t: String) = BlockerRule(titleFilter = t, ruleType = RuleType.DENYLIST)
+    private fun allowAll(t: String) = BlockerRule(titleFilter = t, ruleType = RuleType.ALLOWLIST)
+    private fun stackAll(t: String) = BlockerRule(titleFilter = t, ruleType = RuleType.STACK)
+    private fun throttleAll(t: String) = BlockerRule(titleFilter = t, ruleType = RuleType.THROTTLE)
+
+    @Test
+    fun `all-apps denylist blocks a match from any package`() {
+        val rules = listOf(denyAll("Sale"))
+        for (pkg in listOf("p", "q", "com.anything")) {
+            val d = RuleMatcher.planNotificationDecision(rules, pkg, "Big Sale", null, false)
+            assertTrue(pkg, d.isBlocked)
+            assertSame(rules[0], d.matchedDenylistRule)
+            assertEquals(listOf(0), d.matchedRuleIndices)
+            assertTrue(RuleMatcher.shouldBlock(pkg, "Big Sale", null, rules))
+        }
+        assertFalse(RuleMatcher.planNotificationDecision(rules, "p", "Order shipped", null, false).isBlocked)
+    }
+
+    @Test
+    fun `disabled or inactive all-apps rule is skipped`() {
+        val disabled = listOf(denyAll("Sale").copy(isEnabled = false))
+        assertFalse(RuleMatcher.planNotificationDecision(disabled, "p", "Sale", null, false).isBlocked)
+        assertFalse(RuleMatcher.shouldBlock("p", "Sale", null, disabled))
+
+        val daytimeOnly = listOf(denyAll("Sale").copy(advancedConfig = daytime))
+        assertFalse(RuleMatcher.planNotificationDecision(daytimeOnly, "p", "Sale", null, false, night).isBlocked)
+        assertTrue(RuleMatcher.planNotificationDecision(daytimeOnly, "p", "Sale", null, false, noon).isBlocked)
+    }
+
+    @Test
+    fun `an app's own stack rule wins over an all-apps stack rule listed before it`() {
+        val rules = listOf(stackAll("News"), stackAll("Breaking"), stack("News"))
+        val d = RuleMatcher.planNotificationDecision(rules, "p", "Breaking News", null, false)
+        assertTrue(d.shouldStack)
+        assertSame(rules[2], d.matchedStackRule)
+        assertEquals(listOf(2), d.matchedRuleIndices)
+        // Another app has no rule of its own, so the first all-apps rule takes it.
+        val other = RuleMatcher.planNotificationDecision(rules, "q", "Breaking News", null, false)
+        assertSame(rules[0], other.matchedStackRule)
+        assertEquals(listOf(0), other.matchedRuleIndices)
+    }
+
+    @Test
+    fun `an app's own denylist is the matched rule before an all-apps denylist listed earlier`() {
+        val rules = listOf(denyAll("Sale"), stackAll("x"), allow("zzz").copy(isEnabled = false), deny("Sale"))
+        val d = RuleMatcher.planNotificationDecision(rules, "p", "Sale", null, false)
+        assertTrue(d.isBlocked)
+        assertSame(rules[3], d.matchedDenylistRule)
+        assertEquals(listOf(3), d.matchedRuleIndices)
+    }
+
+    @Test
+    fun `all-apps allowlist is not a rule type for all apps and is ignored if stored`() {
+        assertFalse(RuleType.ALLOWLIST.isAllowedForAllApps)
+        assertTrue(RuleType.DENYLIST.isAllowedForAllApps && RuleType.STACK.isAllowedForAllApps && RuleType.THROTTLE.isAllowedForAllApps)
+        val rules = listOf(allowAll("John"))
+        assertFalse(RuleMatcher.planNotificationDecision(rules, "p", "Promo", null, false).isBlocked)
+        assertTrue(RuleMatcher.planNotificationDecision(rules, "q", "John", null, false).matchedRuleIndices.isEmpty())
+        assertFalse(RuleMatcher.shouldBlock("q", "Promo", null, rules))
+        // An app's own allowlist still gates that app, and only that app.
+        val own = listOf(allow("John"))
+        assertTrue(RuleMatcher.shouldBlock("p", "Promo", null, own))
+        assertFalse(RuleMatcher.shouldBlock("q", "Promo", null, own))
+    }
+
+    @Test
+    fun `throttle returns the app's own rule, then the all-apps rule`() {
+        val all = throttleAll("Speed")
+        val own = throttle("Speed")
+        val d = RuleMatcher.planNotificationDecision(listOf(all, own), "p", "Speed trap", null, false)
+        assertEquals(listOf(own, all), d.throttleRules)
+        assertEquals(listOf(1, 0), d.matchedRuleIndices)
+        assertEquals(listOf(all), RuleMatcher.planNotificationDecision(listOf(all, own), "q", "Speed trap", null, false).throttleRules)
+    }
+
+    @Test
+    fun `a blank package counts as all apps`() {
+        val rules = listOf(denyAll("Sale").copy(packageName = "  "))
+        assertTrue(rules[0].isAllApps)
+        assertTrue(RuleMatcher.planNotificationDecision(rules, "p", "Sale", null, false).isBlocked)
+    }
 }

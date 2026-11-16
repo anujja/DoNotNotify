@@ -1,6 +1,7 @@
 package com.donotnotify.donotnotify
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -148,5 +149,29 @@ class RuleImportTest {
         assertEquals(1, s.rules.size)
         assertEquals("en-US", s.locale)
         assertEquals("com.x", s.rules[0].packageName)
+    }
+
+    @Test
+    fun `rule without a package but with a filter imports as an all-apps rule`() {
+        val s = successOf("""[{"textFilter":"Sale"}]""")
+        assertEquals(1, s.rules.size)
+        assertNull(s.rules[0].packageName)
+        assertTrue(s.rules[0].isAllApps)
+        assertEquals(0, s.droppedCount)
+    }
+
+    @Test
+    fun `rule without a package and without filters is dropped`() {
+        val s = successOf("""[{"packageName":"com.x","textFilter":"keep"},{"ruleType":"DENYLIST"}]""")
+        assertEquals(1, s.rules.size)
+        assertEquals(1, s.droppedCount)
+    }
+
+    @Test
+    fun `all-apps allowlist rule is dropped, an app's own allowlist is kept`() {
+        val s = successOf("""[{"textFilter":"Sale","ruleType":"ALLOWLIST"},{"packageName":"com.x","textFilter":"Sale","ruleType":"ALLOWLIST"}]""")
+        assertEquals(1, s.rules.size)
+        assertEquals("com.x", s.rules[0].packageName)
+        assertEquals(1, s.droppedCount)
     }
 }

@@ -142,4 +142,17 @@ class CommunityShareTest {
         val userVariant = rule().copy(ruleType = RuleType.ALLOWLIST)
         assertTrue(CommunityShare.isNudgeEligible(userVariant, emptySet(), sigs))
     }
+
+    // --- all-apps rules ---
+
+    @Test
+    fun `all-apps rule is titled and described as All apps, with no package`() {
+        val payload = CommunityShare.sharePayload(rule().copy(appName = null, packageName = null))
+        assertTrue(payload.prefilled)
+        val title = payload.url.substringAfter("?title=").substringBefore("&body=")
+        assertEquals("[Contribution] All apps", URLDecoder.decode(title, "UTF-8"))
+        val body = decodedBody(payload.url)
+        assertTrue(body.contains("**App:** All apps\n"))
+        assertFalse(body.contains("(``)"))
+    }
 }

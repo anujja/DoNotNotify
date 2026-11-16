@@ -276,6 +276,11 @@
     <string name="rule_wizard_package_warning">Это не похоже на имя пакета, но вы всё равно можете его использовать.</string>
     <string name="rule_wizard_no_known_apps_title">Пока нет приложений для отображения</string>
     <string name="rule_wizard_no_known_apps_desc">Приложения появятся здесь, когда отправят уведомление. Вы также можете ввести имя пакета ниже.</string>
+    <string name="all_apps">Все приложения</string>
+    <string name="all_apps_desc">Уведомления от всех приложений</string>
+    <string name="rule_wizard_preview_count_all_apps">Подходят: %1$d из %2$d последних уведомлений от всех приложений</string>
+    <string name="rule_wizard_all_apps_needs_filter">Правилу для всех приложений нужен фильтр по заголовку или тексту. Без него оно применялось бы ко всем уведомлениям на этом телефоне.</string>
+    <string name="rule_wizard_allowlist_not_for_all_apps">Список разрешений недоступен для всех приложений: он блокировал бы все уведомления на этом телефоне, которые не подходят под него.</string>
     <string name="rule_wizard_selected">Выбрано</string>
     <string name="rule_wizard_step_type_title">Выберите тип правила</string>
     <string name="rule_wizard_step_type_body">Что делать с подходящими уведомлениями?</string>

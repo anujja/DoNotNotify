@@ -120,6 +120,11 @@
     <string name="rule_wizard_package_warning">这看起来不像包名，但您仍然可以使用它。</string>
     <string name="rule_wizard_no_known_apps_title">暂无可显示的应用</string>
     <string name="rule_wizard_no_known_apps_desc">应用发出通知后会显示在这里。您也可以在下方输入包名。</string>
+    <string name="all_apps">所有应用</string>
+    <string name="all_apps_desc">来自所有应用的通知</string>
+    <string name="rule_wizard_preview_count_all_apps">所有应用最近的 %2$d 条通知中有 %1$d 条匹配</string>
+    <string name="rule_wizard_all_apps_needs_filter">适用于所有应用的规则需要标题或文本筛选条件。否则它会作用于这部手机上的每一条通知。</string>
+    <string name="rule_wizard_allowlist_not_for_all_apps">允许名单不适用于所有应用：它会拦截这部手机上所有不匹配的通知。</string>
     <string name="rule_wizard_selected">已选择</string>
     <string name="rule_wizard_step_type_title">选择规则类型</string>
     <string name="rule_wizard_step_type_body">如何处理匹配的通知？</string>

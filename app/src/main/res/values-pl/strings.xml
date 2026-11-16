@@ -276,6 +276,11 @@
     <string name="rule_wizard_package_warning">To nie wygląda na nazwę pakietu, ale nadal możesz jej użyć.</string>
     <string name="rule_wizard_no_known_apps_title">Brak aplikacji do wyświetlenia</string>
     <string name="rule_wizard_no_known_apps_desc">Aplikacje pojawią się tutaj, gdy wyślą powiadomienie. Możesz też wpisać nazwę pakietu poniżej.</string>
+    <string name="all_apps">Wszystkie aplikacje</string>
+    <string name="all_apps_desc">Powiadomienia ze wszystkich aplikacji</string>
+    <string name="rule_wizard_preview_count_all_apps">Pasuje: %1$d z %2$d ostatnich powiadomień ze wszystkich aplikacji</string>
+    <string name="rule_wizard_all_apps_needs_filter">Reguła dla wszystkich aplikacji wymaga filtru tytułu lub treści. Bez niego działałaby na każde powiadomienie w tym telefonie.</string>
+    <string name="rule_wizard_allowlist_not_for_all_apps">Lista zezwoleń nie jest dostępna dla wszystkich aplikacji: blokowałaby każde powiadomienie w tym telefonie, które nie pasuje.</string>
     <string name="rule_wizard_selected">Wybrano</string>
     <string name="rule_wizard_step_type_title">Wybierz typ reguły</string>
     <string name="rule_wizard_step_type_body">Co ma się stać z pasującymi powiadomieniami?</string>

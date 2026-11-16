@@ -36,6 +36,9 @@ object CommunityShare {
      */
     const val MAX_PREFILLED_URL_LENGTH = 7000
 
+    /** How an all-apps rule names its app in the (English) issue. */
+    const val ALL_APPS_LABEL = "All apps"
+
     /**
      * Behavior-defining identity used to recognize prebuilt-catalog rules (which are
      * already community-shared and must never nudge). All fields that change what a rule
@@ -99,10 +102,17 @@ object CommunityShare {
 
     fun sharePayload(rule: BlockerRule, locale: String? = null): SharePayload {
         val json = contributionJson(rule, locale)
-        val appLabel = rule.appName?.takeIf { it.isNotBlank() }
-            ?: rule.packageName.orEmpty()
+        // The issue is written in English, like the rest of the body.
+        val appLabel = when {
+            rule.isAllApps -> ALL_APPS_LABEL
+            else -> rule.appName?.takeIf { it.isNotBlank() } ?: rule.packageName.orEmpty()
+        }
         val body = buildString {
-            appendLine("**App:** $appLabel (`${rule.packageName.orEmpty()}`)")
+            if (rule.isAllApps) {
+                appendLine("**App:** $appLabel")
+            } else {
+                appendLine("**App:** $appLabel (`${rule.packageName.orEmpty()}`)")
+            }
             appendLine()
             appendLine("**What it blocks:** <!-- describe, e.g. \"sale/coupon promo spam\" -->")
             appendLine()

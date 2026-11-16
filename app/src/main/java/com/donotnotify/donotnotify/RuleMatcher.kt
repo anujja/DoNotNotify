@@ -54,18 +54,36 @@ object RuleMatcher {
         // Conditions (time window, …) gate the rule before any filter is evaluated.
         if (!RuleConditions.isActive(rule.advancedConfig, matchContext)) return false
 
-        // If the rule has a package name, it must match.
+        // A rule for one app must be that app's; an all-apps rule covers every package.
         // Note: The caller usually filters by package name, but we check here to be safe.
-        if (!rule.packageName.isNullOrEmpty() && rule.packageName != packageName) return false
+        if (!rule.appliesTo(packageName)) return false
 
         return findMatch(rule.titleFilter, rule.titleMatchType, title) != null &&
                 findMatch(rule.textFilter, rule.textMatchType, text) != null
     }
 
     /**
+     * The rules that may apply to a notification from [packageName], app-specific ones first.
+     * Where the first match wins (DENYLIST, STACK), a rule written for this app thereby takes
+     * precedence over an all-apps rule, whatever order the user created them in. Each rule
+     * keeps its index into [rules], for hitCount increments. Stable, so rules of one kind
+     * stay in list order. An all-apps rule of a type the UI never offers for all apps
+     * ([RuleType.isAllowedForAllApps]: an ALLOWLIST, which would gate every app on the phone)
+     * is ignored rather than trusted.
+     */
+    private fun candidatesFor(rules: List<BlockerRule>, packageName: String): List<IndexedValue<BlockerRule>> =
+        rules.withIndex()
+            .filter { (_, rule) ->
+                rule.isEnabled && rule.appliesTo(packageName) &&
+                        (!rule.isAllApps || rule.ruleType.isAllowedForAllApps)
+            }
+            .sortedBy { (_, rule) -> rule.isAllApps }
+
+    /**
      * Determines if a notification should be blocked based on the provided rules.
      * Logic:
-     * 1. If there are active allowlist rules for the package, the notification MUST match at least one of them.
+     * 1. If there are active allowlist rules for the package (its own, or all-apps ones), the
+     *    notification MUST match at least one of them.
      * 2. If the notification matches any denylist rule, it IS blocked (even if it matched an allowlist rule).
      * A rule whose conditions don't hold right now is skipped entirely.
      */
@@ -80,8 +98,7 @@ object RuleMatcher {
         var matchesAllowlist = false
         var matchesDenylist = false
 
-        for (rule in rules) {
-            if (rule.packageName != packageName || !rule.isEnabled) continue
+        for ((_, rule) in candidatesFor(rules, packageName)) {
             if (!RuleConditions.isActive(rule.advancedConfig, matchContext)) continue
             when (rule.ruleType) {
                 RuleType.ALLOWLIST -> {
@@ -119,7 +136,9 @@ object RuleMatcher {
      * notification is already blocked or is ongoing. A rule whose conditions (time window, phone
      * usage) don't hold is skipped entirely, so an inactive ALLOWLIST rule doesn't gate the
      * app's other notifications. First enabled match wins for both
-     * DENYLIST and STACK (mirrors the existing short-circuit). Only matched rules'
+     * DENYLIST and STACK (mirrors the existing short-circuit), with the app's own rules judged
+     * before all-apps rules ([candidatesFor]), so e.g. an app's STACK rule keeps its stack even
+     * when an all-apps STACK rule matches too. Only matched rules'
      * indices are returned (for hitCount increments). [matchContext] is snapshotted once
      * so every rule is judged against the same time/device state.
      */
@@ -140,8 +159,7 @@ object RuleMatcher {
         val matchedThrottleRules = mutableListOf<BlockerRule>()
         val matchedRuleIndices = mutableListOf<Int>()
 
-        for ((index, rule) in rules.withIndex()) {
-            if (rule.packageName != packageName || !rule.isEnabled) continue
+        for ((index, rule) in candidatesFor(rules, packageName)) {
             if (!RuleConditions.isActive(rule.advancedConfig, matchContext)) continue
             when (rule.ruleType) {
                 RuleType.ALLOWLIST -> {

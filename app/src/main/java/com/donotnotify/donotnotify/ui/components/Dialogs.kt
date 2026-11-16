@@ -52,14 +52,17 @@ import com.donotnotify.donotnotify.MatchType
 import com.donotnotify.donotnotify.R
 import com.donotnotify.donotnotify.RuleType
 import com.donotnotify.donotnotify.StackChannels
+import com.donotnotify.donotnotify.isAllApps
+import com.donotnotify.donotnotify.isAllowedForAllApps
 
 /**
  * The rule type picker. A dropdown rather than segmented buttons: four types don't fit one row,
- * least of all in languages with long type names.
+ * least of all in languages with long type names. For an all-apps rule ([allApps]) the types
+ * not allowed for all apps are left out ([RuleType.isAllowedForAllApps]).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RuleTypeDropdown(selected: RuleType, onSelected: (RuleType) -> Unit) {
+private fun RuleTypeDropdown(selected: RuleType, allApps: Boolean, onSelected: (RuleType) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -79,7 +82,7 @@ private fun RuleTypeDropdown(selected: RuleType, onSelected: (RuleType) -> Unit)
                 .fillMaxWidth()
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            RuleType.entries.forEach { type ->
+            RuleType.entries.filter { !allApps || it.isAllowedForAllApps }.forEach { type ->
                 DropdownMenuItem(
                     text = { Text(type.label()) },
                     leadingIcon = { Icon(type.icon(), contentDescription = null, tint = type.accentColor()) },
@@ -115,9 +118,15 @@ private fun RuleDialog(
     var showDeleteConfirmationDialog by remember { mutableStateOf(false) } // State for delete confirmation
     val scrollState = rememberScrollState()
 
-    val suggestedName = remember(titleFilter, textFilter, initialRule.appName) {
-        suggestedStackRuleName(initialRule.appName.orEmpty(), titleFilter, textFilter)
+    val appLabel = initialRule.appLabel()
+    val suggestedName = remember(titleFilter, textFilter, appLabel) {
+        suggestedStackRuleName(appLabel, titleFilter, textFilter)
     }
+    // An all-apps rule without a filter would act on every notification on the phone.
+    val needsFilter = initialRule.isAllApps && titleFilter.isBlank() && textFilter.isBlank()
+    // Only a rule that reached storage outside the app can be an all-apps ALLOWLIST; it stays
+    // unsaveable until its type is changed.
+    val typeNotAllowed = initialRule.isAllApps && !ruleType.isAllowedForAllApps
 
     if (showAdvancedDialog) {
         AdvancedRuleConfigDialog(
@@ -141,7 +150,7 @@ private fun RuleDialog(
 
     if (showDeleteConfirmationDialog) {
         DeleteConfirmationDialog(
-            itemName = stringResource(R.string.rule_for, initialRule.appName.orEmpty()),
+            itemName = stringResource(R.string.rule_for, appLabel),
             onDismiss = { showDeleteConfirmationDialog = false },
             onConfirm = {
                 onDelete()
@@ -186,7 +195,7 @@ private fun RuleDialog(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                RuleTypeDropdown(selected = ruleType, onSelected = { ruleType = it })
+                RuleTypeDropdown(selected = ruleType, allApps = initialRule.isAllApps, onSelected = { ruleType = it })
 
                 Text(
                     text = ruleType.description(),
@@ -194,6 +203,14 @@ private fun RuleDialog(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp)
                 )
+                if (typeNotAllowed) {
+                    Text(
+                        text = stringResource(R.string.rule_wizard_allowlist_not_for_all_apps),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                    )
+                }
 
                 Spacer(modifier = Modifier.padding(vertical = 4.dp))
 
@@ -243,6 +260,15 @@ private fun RuleDialog(
                     }
                 }
 
+                if (needsFilter) {
+                    Text(
+                        text = stringResource(R.string.rule_wizard_all_apps_needs_filter),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+
                 Spacer(modifier = Modifier.padding(vertical = 16.dp))
 
                 Button(
@@ -272,7 +298,7 @@ private fun RuleDialog(
                             Text(stringResource(R.string.cancel))
                         }
                         Spacer(modifier = Modifier.width(8.dp))
-                        Button(onClick = {
+                        Button(enabled = !needsFilter && !typeNotAllowed, onClick = {
                             val newRule = initialRule.copy(
                                 titleFilter = titleFilter.ifBlank { null },
                                 titleMatchType = titleMatchType,
@@ -303,7 +329,7 @@ fun EditRuleDialog(
     onDeleteRule: (BlockerRule) -> Unit
 ) {
     RuleDialog(
-        title = stringResource(R.string.edit_rule_title, rule.appName.orEmpty()),
+        title = stringResource(R.string.edit_rule_title, rule.appLabel()),
         initialRule = rule,
         onDismiss = onDismiss,
         onSave = { newRule ->

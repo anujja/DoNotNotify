@@ -162,8 +162,11 @@ object RuleImport {
         val title = raw.titleFilter?.takeIf { it.isNotBlank() }
         val text = raw.textFilter?.takeIf { it.isNotBlank() }
 
-        // A rule with no package and no filters matches nothing meaningful — drop it.
+        // A rule with no package applies to every app; with no filters either it would act on
+        // every notification on the phone — drop it. Likewise an all-apps ALLOWLIST, which would
+        // block everything on the phone that doesn't match it.
         if (pkg == null && title == null && text == null) return null
+        if (pkg == null && !ruleType.isAllowedForAllApps) return null
 
         // Bound/validate imported regex patterns; drop the whole rule if unsafe.
         if (titleMatch == MatchType.REGEX && title != null && !isRegexSafe(title)) return null

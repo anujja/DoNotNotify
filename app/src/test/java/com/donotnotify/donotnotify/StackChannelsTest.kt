@@ -49,6 +49,7 @@ private class FakeChannelHost(
 class StackChannelsTest {
 
     private val naming = StackChannels.ChannelNaming(
+        allAppsLabel = "All apps",
         appRuleFormat = "%1\$s — rule %2\$s",
         unnamedFormat = "Stack rule %1\$s"
     )
@@ -386,10 +387,20 @@ class StackChannelsTest {
 
     @Test
     fun `a rule with no label at all still gets a usable name`() {
-        val rule = BlockerRule(ruleType = RuleType.STACK, titleFilter = "x")
+        // A missing package would make this an all-apps rule (named above), so the unnamed
+        // path is reached only through a package that sanitizes to nothing.
+        val rule = stackRule(app = "", pkg = "\u202E\u2066")
         val name = StackChannels.channelNameFor(rule, naming)
         assertTrue(name.isNotBlank())
         assertTrue(name.startsWith("Stack rule "))
+    }
+
+    @Test
+    fun `an all-apps rule is named after the All apps label, not a package`() {
+        val rule = BlockerRule(ruleType = RuleType.STACK, titleFilter = "x", id = "abcdef12-3456-7890-abcd-ef1234567890")
+        assertEquals("All apps — rule abcdef12", StackChannels.channelNameFor(rule, naming))
+        // A user-given name still wins.
+        assertEquals("Promos", StackChannels.channelNameFor(rule.copy(name = "Promos"), naming))
     }
 
     @Test

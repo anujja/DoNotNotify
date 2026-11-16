@@ -118,10 +118,12 @@ object StackChannels {
      * Localizable name fragments, passed in so the planner stays free of Android resources.
      * - [appRuleFormat]: two args — app label, short id. e.g. `"%1$s — rule %2$s"`
      * - [unnamedFormat]: one arg — short id. e.g. `"Stack rule %1$s"`
+     * - [allAppsLabel]: the app label of an all-apps rule. e.g. `"All apps"`
      */
     data class ChannelNaming(
         val appRuleFormat: String,
-        val unnamedFormat: String
+        val unnamedFormat: String,
+        val allAppsLabel: String
     )
 
     /**
@@ -196,7 +198,7 @@ object StackChannels {
 
         sanitize(rule.name)?.let { return truncate(it) }
 
-        val label = sanitize(rule.appName) ?: sanitize(rule.packageName)
+        val label = if (rule.isAllApps) naming.allAppsLabel else sanitize(rule.appName) ?: sanitize(rule.packageName)
         return if (label != null) {
             // Truncate the *label*, never the disambiguating suffix — two rules on one app must
             // stay tellable apart in system settings.

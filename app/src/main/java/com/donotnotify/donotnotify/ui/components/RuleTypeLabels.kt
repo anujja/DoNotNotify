@@ -3,10 +3,12 @@ package com.donotnotify.donotnotify.ui.components
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.donotnotify.donotnotify.AdvancedRuleConfig
+import com.donotnotify.donotnotify.BlockerRule
 import com.donotnotify.donotnotify.MatchType
 import com.donotnotify.donotnotify.R
 import com.donotnotify.donotnotify.RuleType
 import com.donotnotify.donotnotify.ThrottleManager
+import com.donotnotify.donotnotify.isAllApps
 
 /** Localized, user-facing label for a [RuleType] (pickers, badges, lists). */
 @Composable
@@ -27,6 +29,15 @@ fun RuleType.description(): String = stringResource(
         RuleType.THROTTLE -> R.string.rule_type_desc_throttle
     }
 )
+
+/**
+ * The app a rule is for, as its card, editor and section header show it: the app's name, else
+ * its package, or "All apps" for a rule with no package.
+ */
+@Composable
+fun BlockerRule.appLabel(): String =
+    if (isAllApps) stringResource(R.string.all_apps)
+    else appName?.takeIf { it.isNotBlank() } ?: packageName.orEmpty()
 
 /** Localized, user-facing label for a [MatchType] (segmented pickers). */
 @Composable

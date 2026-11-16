@@ -78,3 +78,24 @@ data class BlockerRule(
     /** Optional user-supplied label. Used as the notification channel name for STACK rules. */
     val name: String? = null
 ) : Parcelable
+
+/**
+ * A rule with no package applies to every app's notifications ("All apps" in the rule wizard).
+ * Such a rule always has at least one filter: the wizard, the editor and the importer refuse one
+ * without, since it would act on every notification on the phone. It is never an ALLOWLIST
+ * ([RuleType.isAllowedForAllApps]).
+ */
+val BlockerRule.isAllApps: Boolean
+    get() = packageName.isNullOrBlank()
+
+/**
+ * Whether a rule for all apps may be of this type. An ALLOWLIST for all apps would block every
+ * notification on the phone that doesn't match it, so the wizard and the editor don't offer it,
+ * the importer drops one, and [RuleMatcher] ignores one that reaches storage some other way.
+ */
+val RuleType.isAllowedForAllApps: Boolean
+    get() = this != RuleType.ALLOWLIST
+
+/** Whether the rule covers notifications from [packageName]: its own app, or every app. */
+fun BlockerRule.appliesTo(packageName: String?): Boolean =
+    isAllApps || this.packageName == packageName
