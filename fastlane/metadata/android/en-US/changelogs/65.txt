@@ -1,0 +1,2 @@
+• New: Rules can apply only on the days you pick, for example to keep work apps quiet at the weekend. Turn on "Days of the week" in a rule's Advanced Configuration.
+• Fixed: Searching for an app while creating a rule no longer hides the keyboard, and clearing the search returns to the top of the list.
