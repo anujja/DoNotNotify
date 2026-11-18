@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -72,7 +73,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -467,6 +467,12 @@ private fun AppStep(
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var showMissingAppHelp by rememberSaveable { mutableStateOf(false) }
+    // A fresh scroll state per query. A lazy list keeps its position by the first visible
+    // item's key, so a new query would otherwise open the results, or the full list once
+    // cleared, anchored on whatever row was on top before. The new state arrives with the
+    // recomposition that changes the items, so it can't race a layout pass the way a
+    // scroll request made from the text field's callback can.
+    val listState = rememberSaveable(searchQuery, saver = LazyListState.Saver) { LazyListState() }
 
     if (showMissingAppHelp) {
         MissingAppHelpDialog(onDismiss = { showMissingAppHelp = false })
@@ -559,6 +565,7 @@ private fun AppStep(
                 .fillMaxWidth()
                 .weight(1f)
                 .imePadding(),
+            state = listState,
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             // Always offered, even with no known apps: a keyword rule for every app needs none.
@@ -774,16 +781,25 @@ private fun ManualEntryCard(
     val focusRequester = remember { FocusRequester() }
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
+    val scope = rememberCoroutineScope()
 
     // The card sits at the bottom of the list, so its expansion happens below the
     // fold and the tap looks like a no-op. Focus the field (raising the IME) and,
     // once the expand animation and keyboard have settled, scroll it into view.
-    LaunchedEffect(expanded) {
-        if (expanded) {
-            delay(100)
-            focusRequester.requestFocus()
-            delay(350)
-            bringIntoViewRequester.bringIntoView()
+    // This runs from the tap, not from an effect on `expanded`: the card is a lazy
+    // list item, recomposed from scratch whenever it scrolls back into view (as a
+    // search narrows the list), and an effect would then hide the keyboard under
+    // the search field, or pull focus away from it.
+    fun toggle() {
+        val expand = !expanded
+        onExpandedChange(expand)
+        if (expand) {
+            scope.launch {
+                delay(100)
+                focusRequester.requestFocus()
+                delay(350)
+                bringIntoViewRequester.bringIntoView()
+            }
         } else {
             keyboard?.hide()
         }
@@ -793,7 +809,7 @@ private fun ManualEntryCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onExpandedChange(!expanded) }
+                .clickable { toggle() }
                 .padding(12.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
