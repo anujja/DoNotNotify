@@ -1,16 +1,26 @@
 package com.donotnotify.donotnotify.ui.components
 
 import android.app.TimePickerDialog
+import android.icu.text.DateFormatSymbols
+import android.icu.util.Calendar
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AccessAlarms
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Smartphone
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -21,17 +31,26 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.donotnotify.donotnotify.AdvancedRuleConfig
 import com.donotnotify.donotnotify.BlockerRule
 import com.donotnotify.donotnotify.DeviceUsage
 import com.donotnotify.donotnotify.R
+import com.donotnotify.donotnotify.RuleConditions
 import com.donotnotify.donotnotify.RuleType
+import com.donotnotify.donotnotify.Weekday
 import java.util.Locale
 
 /** Which group of the rule editor's options section an option is listed under. */
@@ -78,6 +97,7 @@ interface RuleOption {
 /** Every rule option, in display order. */
 val RULE_OPTIONS: List<RuleOption> = listOf(
     TimeWindowOption,
+    DaysOfWeekOption,
     DeviceUsageOption
 )
 
@@ -144,6 +164,77 @@ object TimeWindowOption : RuleOption {
                 minute = config.endTimeMinute,
                 onTimeSelected = { h, m -> onChange(config.copy(endTimeHour = h, endTimeMinute = m)) },
                 modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+object DaysOfWeekOption : RuleOption {
+    override val section = RuleOptionSection.CONDITION
+    override val icon = Icons.Filled.CalendarMonth
+
+    override fun appliesTo(ruleType: RuleType) = true
+    override fun isOn(config: AdvancedRuleConfig) = !config.daysOfWeek.isNullOrEmpty()
+    override fun setOn(config: AdvancedRuleConfig, on: Boolean) = config.copy(
+        daysOfWeek = if (on) config.daysOfWeek?.takeIf { it.isNotEmpty() } ?: Weekday.WORKDAYS else null
+    )
+
+    @Composable
+    override fun title() = stringResource(R.string.rule_condition_days)
+
+    @Composable
+    override fun description() = stringResource(R.string.rule_condition_days_desc)
+
+    /** E.g. "Mon – Fri", "Sat, Sun" or "Every day", in the locale's day names and week order. */
+    @Composable
+    override fun summary(config: AdvancedRuleConfig): String {
+        val days = config.daysOfWeek.orEmpty()
+        if (days.size == Weekday.entries.size) return stringResource(R.string.days_every_day)
+        val locale = Locale.getDefault()
+        val week = remember(locale) { localeWeek(locale) }
+        val names = remember(locale) { dayNames(locale, DateFormatSymbols.ABBREVIATED) }
+        val separator = stringResource(R.string.day_list_separator)
+        return Weekday.runs(days, week).map { run ->
+            if (run.size >= 3) {
+                stringResource(R.string.day_range, names.getValue(run.first()), names.getValue(run.last()))
+            } else {
+                run.joinToString(separator) { names.getValue(it) }
+            }
+        }.joinToString(separator)
+    }
+
+    @Composable
+    override fun Editor(config: AdvancedRuleConfig, onChange: (AdvancedRuleConfig) -> Unit) {
+        val selected = config.daysOfWeek.orEmpty()
+        val locale = Locale.getDefault()
+        val week = remember(locale) { localeWeek(locale) }
+        val initials = remember(locale) { dayNames(locale, DateFormatSymbols.NARROW) }
+        val fullNames = remember(locale) { dayNames(locale, DateFormatSymbols.WIDE) }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            week.forEach { day ->
+                val on = day in selected
+                DayCircle(
+                    initial = initials.getValue(day),
+                    name = fullNames.getValue(day),
+                    selected = on,
+                    onToggle = {
+                        // The last day can't be cleared: a rule for no days would never apply.
+                        val days = if (on) selected - day else selected + day
+                        if (days.isNotEmpty()) onChange(config.copy(daysOfWeek = days.sorted().toSet()))
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+        if (config.isTimeLimitEnabled && RuleConditions.spansMidnight(config)) {
+            Text(
+                stringResource(R.string.days_overnight_help),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 8.dp, start = 4.dp)
             )
         }
     }
@@ -231,6 +322,56 @@ internal fun RuleOptionSection.label(): String = when (this) {
 private fun DeviceUsage.label(): String = when (this) {
     DeviceUsage.IN_USE -> stringResource(R.string.device_usage_in_use)
     DeviceUsage.NOT_IN_USE -> stringResource(R.string.device_usage_not_in_use)
+}
+
+/** The locale's week, from its first day: Sunday in the US, Monday in most of Europe. */
+private fun localeWeek(locale: Locale): List<Weekday> =
+    Weekday.weekStartingOn(Weekday.fromCalendarDay(Calendar.getInstance(locale).firstDayOfWeek))
+
+/** Day names at [width], a [DateFormatSymbols] width such as NARROW ("M") or ABBREVIATED ("Mon"). */
+private fun dayNames(locale: Locale, width: Int): Map<Weekday, String> {
+    val names = DateFormatSymbols.getInstance(locale).getWeekdays(DateFormatSymbols.STANDALONE, width)
+    return Weekday.entries.associateWith { names[it.calendarDay] }
+}
+
+/** One day of the week as a round toggle showing its initial, filled while selected, like the Clock app's alarm days. */
+@Composable
+private fun DayCircle(
+    initial: String,
+    name: String,
+    selected: Boolean,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val container by animateColorAsState(
+        if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest,
+        label = "dayContainer"
+    )
+    val content by animateColorAsState(
+        if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+        label = "dayContent"
+    )
+    Box(contentAlignment = Alignment.Center, modifier = modifier) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .widthIn(max = 40.dp)
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .clip(CircleShape)
+                .background(container)
+                .toggleable(value = selected, role = Role.Checkbox, onValueChange = { onToggle() })
+                .semantics { contentDescription = name }
+        ) {
+            // The full name is the circle's description; the initial alone would read as "M".
+            Text(
+                initial,
+                style = MaterialTheme.typography.labelLarge,
+                color = content,
+                modifier = Modifier.clearAndSetSemantics { }
+            )
+        }
+    }
 }
 
 private fun formatClockTime(hour: Int, minute: Int): String =

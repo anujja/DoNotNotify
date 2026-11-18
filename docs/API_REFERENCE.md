@@ -33,7 +33,7 @@ Parcelable data class representing a notification filtering rule.
 | `hitCount` | `Int` | `0` | Number of times this rule has matched a notification |
 | `ruleType` | `RuleType` | `DENYLIST` | Whether this rule blocks, allowlists, or stacks |
 | `isEnabled` | `Boolean` | `true` | Whether the rule is currently active |
-| `advancedConfig` | `AdvancedRuleConfig?` | `null` | Optional time-window scheduling |
+| `advancedConfig` | `AdvancedRuleConfig?` | `null` | Optional conditions (time window, days of the week, phone usage) and THROTTLE length |
 
 ### `MatchType` (enum, `BlockerRule.kt`)
 
@@ -52,7 +52,7 @@ Parcelable data class representing a notification filtering rule.
 
 ### `AdvancedRuleConfig` (`BlockerRule.kt`)
 
-Parcelable data class for time-based rule scheduling.
+Parcelable data class for a rule's conditions and type-specific settings. Options added after the time window are one nullable field each, null meaning off.
 
 | Field | Type | Default | Description |
 |---|---|---|---|
@@ -61,6 +61,9 @@ Parcelable data class for time-based rule scheduling.
 | `startTimeMinute` | `Int` | `0` | Start minute (0-59) |
 | `endTimeHour` | `Int` | `17` | End hour (0-23) |
 | `endTimeMinute` | `Int` | `0` | End minute (0-59) |
+| `deviceUsage` | `DeviceUsage?` | `null` | Only while the phone is `IN_USE` (screen on and unlocked) or `NOT_IN_USE` |
+| `throttleSeconds` | `Int?` | `null` | THROTTLE rules: how long matches are blocked after one passes (null = 60 s) |
+| `daysOfWeek` | `Set<Weekday>?` | `null` | Only on these days; null or empty = every day. An overnight window belongs to the day it starts |
 
 ### `SimpleNotification` (`SimpleNotification.kt`)
 

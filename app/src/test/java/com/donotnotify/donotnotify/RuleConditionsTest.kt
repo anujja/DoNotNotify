@@ -7,7 +7,9 @@ import org.junit.Test
 
 class RuleConditionsTest {
 
-    private fun at(hour: Int, minute: Int = 0) = MatchContext(minuteOfDay = hour * 60 + minute)
+    private fun at(hour: Int, minute: Int = 0) = MatchContext(minuteOfDay = hour * 60 + minute, dayOfWeek = Weekday.MONDAY)
+
+    private fun on(day: Weekday, hour: Int, minute: Int = 0) = MatchContext(minuteOfDay = hour * 60 + minute, dayOfWeek = day)
 
     private fun window(startHour: Int, startMinute: Int, endHour: Int, endMinute: Int) =
         AdvancedRuleConfig(
@@ -52,29 +54,29 @@ class RuleConditionsTest {
     @Test
     fun `in-use condition follows device state`() {
         val config = AdvancedRuleConfig(deviceUsage = DeviceUsage.IN_USE)
-        assertTrue(RuleConditions.isActive(config, MatchContext(0, deviceInUse = true)))
-        assertFalse(RuleConditions.isActive(config, MatchContext(0, deviceInUse = false)))
+        assertTrue(RuleConditions.isActive(config, MatchContext(0, Weekday.MONDAY, deviceInUse = true)))
+        assertFalse(RuleConditions.isActive(config, MatchContext(0, Weekday.MONDAY, deviceInUse = false)))
     }
 
     @Test
     fun `not-in-use condition follows device state`() {
         val config = AdvancedRuleConfig(deviceUsage = DeviceUsage.NOT_IN_USE)
-        assertFalse(RuleConditions.isActive(config, MatchContext(0, deviceInUse = true)))
-        assertTrue(RuleConditions.isActive(config, MatchContext(0, deviceInUse = false)))
+        assertFalse(RuleConditions.isActive(config, MatchContext(0, Weekday.MONDAY, deviceInUse = true)))
+        assertTrue(RuleConditions.isActive(config, MatchContext(0, Weekday.MONDAY, deviceInUse = false)))
     }
 
     @Test
     fun `usage condition does not exclude a rule when device state is unknown`() {
         for (usage in DeviceUsage.entries) {
             val config = AdvancedRuleConfig(deviceUsage = usage)
-            assertTrue(usage.name, RuleConditions.isActive(config, MatchContext(0, deviceInUse = null)))
+            assertTrue(usage.name, RuleConditions.isActive(config, MatchContext(0, Weekday.MONDAY, deviceInUse = null)))
         }
     }
 
     @Test
     fun `no usage condition ignores device state`() {
-        assertTrue(RuleConditions.isActive(AdvancedRuleConfig(), MatchContext(0, deviceInUse = true)))
-        assertTrue(RuleConditions.isActive(AdvancedRuleConfig(), MatchContext(0, deviceInUse = false)))
+        assertTrue(RuleConditions.isActive(AdvancedRuleConfig(), MatchContext(0, Weekday.MONDAY, deviceInUse = true)))
+        assertTrue(RuleConditions.isActive(AdvancedRuleConfig(), MatchContext(0, Weekday.MONDAY, deviceInUse = false)))
     }
 
     @Test
@@ -114,5 +116,77 @@ class RuleConditionsTest {
         assertEquals(listOf(0), inside.matchedRuleIndices)
         assertFalse(outside.isBlocked)
         assertEquals(emptyList<Int>(), outside.matchedRuleIndices)
+    }
+
+    // ---- days of the week -------------------------------------------------------
+
+    @Test
+    fun `days condition applies only on the chosen days`() {
+        val weekend = AdvancedRuleConfig(daysOfWeek = setOf(Weekday.SATURDAY, Weekday.SUNDAY))
+        assertTrue(RuleConditions.isActive(weekend, on(Weekday.SATURDAY, 0)))
+        assertTrue(RuleConditions.isActive(weekend, on(Weekday.SUNDAY, 23, 59)))
+        assertFalse(RuleConditions.isActive(weekend, on(Weekday.FRIDAY, 23, 59)))
+        assertFalse(RuleConditions.isActive(weekend, on(Weekday.MONDAY, 0)))
+    }
+
+    @Test
+    fun `no days or an empty set means every day`() {
+        for (day in Weekday.entries) {
+            assertTrue(RuleConditions.isActive(AdvancedRuleConfig(daysOfWeek = null), on(day, 12)))
+            assertTrue(RuleConditions.isActive(AdvancedRuleConfig(daysOfWeek = emptySet()), on(day, 12)))
+        }
+    }
+
+    @Test
+    fun `days and a daytime window must both hold`() {
+        val workHours = window(9, 0, 17, 0).copy(daysOfWeek = Weekday.WORKDAYS)
+        assertTrue(RuleConditions.isActive(workHours, on(Weekday.WEDNESDAY, 10)))
+        assertFalse(RuleConditions.isActive(workHours, on(Weekday.WEDNESDAY, 20)))
+        assertFalse(RuleConditions.isActive(workHours, on(Weekday.SATURDAY, 10)))
+    }
+
+    @Test
+    fun `an overnight window belongs to the day it starts`() {
+        val fridayNight = window(22, 0, 7, 0).copy(daysOfWeek = setOf(Weekday.FRIDAY))
+        assertTrue(RuleConditions.isActive(fridayNight, on(Weekday.FRIDAY, 22, 0)))
+        assertTrue(RuleConditions.isActive(fridayNight, on(Weekday.FRIDAY, 23, 59)))
+        assertTrue(RuleConditions.isActive(fridayNight, on(Weekday.SATURDAY, 0, 0)))
+        assertTrue(RuleConditions.isActive(fridayNight, on(Weekday.SATURDAY, 7, 0)))
+        assertFalse(RuleConditions.isActive(fridayNight, on(Weekday.SATURDAY, 7, 1)))
+        assertFalse(RuleConditions.isActive(fridayNight, on(Weekday.SATURDAY, 22, 0)))
+        // Friday's small hours are Thursday night's.
+        assertFalse(RuleConditions.isActive(fridayNight, on(Weekday.FRIDAY, 3, 0)))
+    }
+
+    @Test
+    fun `sunday night runs into monday morning`() {
+        val sundayNight = window(22, 0, 7, 0).copy(daysOfWeek = setOf(Weekday.SUNDAY))
+        assertTrue(RuleConditions.isActive(sundayNight, on(Weekday.MONDAY, 3)))
+        assertFalse(RuleConditions.isActive(sundayNight, on(Weekday.SUNDAY, 3)))
+    }
+
+    @Test
+    fun `a switched-off time window does not shift the day`() {
+        val config = window(22, 0, 7, 0).copy(isTimeLimitEnabled = false, daysOfWeek = setOf(Weekday.FRIDAY))
+        assertTrue(RuleConditions.isActive(config, on(Weekday.FRIDAY, 3)))
+        assertFalse(RuleConditions.isActive(config, on(Weekday.SATURDAY, 3)))
+    }
+
+    @Test
+    fun `allowlist off its days does not gate the app`() {
+        val weekdayAllow = BlockerRule(
+            packageName = "p",
+            titleFilter = "Boss",
+            ruleType = RuleType.ALLOWLIST,
+            advancedConfig = AdvancedRuleConfig(daysOfWeek = Weekday.WORKDAYS)
+        )
+        val saturday = RuleMatcher.planNotificationDecision(
+            listOf(weekdayAllow), "p", "Promo", null, wasOngoing = false, matchContext = on(Weekday.SATURDAY, 12)
+        )
+        val tuesday = RuleMatcher.planNotificationDecision(
+            listOf(weekdayAllow), "p", "Promo", null, wasOngoing = false, matchContext = on(Weekday.TUESDAY, 12)
+        )
+        assertFalse(saturday.isBlocked)
+        assertTrue(tuesday.isBlocked)
     }
 }

@@ -221,6 +221,12 @@
     <string name="device_usage_summary_in_use">Telefon kullanımda</string>
     <string name="device_usage_summary_not_in_use">Telefon kullanımda değil</string>
     <string name="device_usage_help">Kullanımda: ekran açık ve kilidi açılmış.</string>
+    <string name="rule_condition_days">Haftanın günleri</string>
+    <string name="rule_condition_days_desc">Yalnızca seçtiğiniz günlerde</string>
+    <string name="days_every_day">Her gün</string>
+    <string name="day_range">%1$s – %2$s</string>
+    <string name="day_list_separator">", "</string>
+    <string name="days_overnight_help">Saatleriniz gece yarısını geçiyor, bu yüzden seçtiğiniz her gün ertesi sabaha kadar sürer.</string>
     <string name="throttle_unit_seconds">sn</string>
     <string name="throttle_unit_minutes">dk</string>
     <string name="duration_seconds_short">%d sn</string>

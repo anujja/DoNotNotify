@@ -192,7 +192,9 @@ object StackedNotificationManager {
         ) + listOfNotNull(
             // Options added later join the signature only when set, so existing rules keep
             // their keys (and their live stacks) across the upgrade that introduced them.
-            cfg?.deviceUsage?.let { "deviceUsage=${it.name}" }
+            cfg?.deviceUsage?.let { "deviceUsage=${it.name}" },
+            cfg?.daysOfWeek?.filterNotNull()?.takeIf { it.isNotEmpty() }
+                ?.let { days -> "daysOfWeek=" + days.sorted().joinToString(",") { it.name } }
         )
         val canon = buildString {
             for (f in fields) {

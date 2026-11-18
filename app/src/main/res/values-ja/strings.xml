@@ -155,6 +155,12 @@
     <string name="device_usage_summary_in_use">スマホ使用中</string>
     <string name="device_usage_summary_not_in_use">スマホ未使用</string>
     <string name="device_usage_help">使用中とは、画面がオンでロックが解除されている状態です。</string>
+    <string name="rule_condition_days">曜日</string>
+    <string name="rule_condition_days_desc">選んだ曜日のみ</string>
+    <string name="days_every_day">毎日</string>
+    <string name="day_range">%1$s〜%2$s</string>
+    <string name="day_list_separator">、</string>
+    <string name="days_overnight_help">時間帯が午前0時をまたぐため、選んだ曜日は翌朝まで続きます。</string>
     <string name="throttle_unit_seconds">秒</string>
     <string name="throttle_unit_minutes">分</string>
     <string name="duration_seconds_short">%d秒</string>

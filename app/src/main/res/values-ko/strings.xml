@@ -218,6 +218,12 @@
     <string name="device_usage_summary_in_use">휴대폰 사용 중</string>
     <string name="device_usage_summary_not_in_use">휴대폰 사용 안 함</string>
     <string name="device_usage_help">사용 중은 화면이 켜져 있고 잠금이 해제된 상태를 의미합니다.</string>
+    <string name="rule_condition_days">요일</string>
+    <string name="rule_condition_days_desc">선택한 요일에만</string>
+    <string name="days_every_day">매일</string>
+    <string name="day_range">%1$s~%2$s</string>
+    <string name="day_list_separator">", "</string>
+    <string name="days_overnight_help">시간대가 자정을 넘기 때문에 선택한 요일은 다음 날 아침까지 이어집니다.</string>
     <string name="throttle_unit_seconds">초</string>
     <string name="throttle_unit_minutes">분</string>
     <string name="duration_seconds_short">%d초</string>

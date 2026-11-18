@@ -300,6 +300,12 @@ The pattern uses nullable state variables: setting to non-null shows the dialog,
 - Supports overnight ranges (e.g., 22:00 to 06:00) - handles midnight crossing
 - Time is evaluated in the device's current timezone
 
+### Days of the Week
+
+- When `daysOfWeek` is non-empty, the rule only activates on those days (`Weekday`, our own enum since `java.time` needs API 26)
+- With a time window that crosses midnight, the hours after midnight belong to the day the window started, as in Do Not Disturb schedules: Friday with 22:00 to 07:00 covers Friday night through 07:00 Saturday
+- The picker shows the locale's week order (Sunday first in the US, Monday first in most of Europe) and never lets the last day be cleared
+
 ### Hit Counting
 
 - Each time a rule matches, its `hitCount` is incremented

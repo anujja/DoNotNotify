@@ -221,6 +221,12 @@
     <string name="device_usage_summary_in_use">Phone in use</string>
     <string name="device_usage_summary_not_in_use">Phone not in use</string>
     <string name="device_usage_help">In use means the screen is on and unlocked.</string>
+    <string name="rule_condition_days">Days of the week</string>
+    <string name="rule_condition_days_desc">Only on the days you pick</string>
+    <string name="days_every_day">Every day</string>
+    <string name="day_range">%1$s – %2$s</string>
+    <string name="day_list_separator">", "</string>
+    <string name="days_overnight_help">Your hours cross midnight, so each day you pick runs into the next morning.</string>
     <string name="throttle_unit_seconds">sec</string>
     <string name="throttle_unit_minutes">min</string>
     <string name="duration_seconds_short">%d s</string>

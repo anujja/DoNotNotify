@@ -126,6 +126,19 @@ class StackedNotificationManagerTest {
     }
 
     @Test
+    fun `days of the week change the key, but not their order`() {
+        val base = BlockerRule(packageName = "p", titleFilter = "x", ruleType = RuleType.STACK)
+        val weekend = base.copy(advancedConfig = AdvancedRuleConfig(daysOfWeek = setOf(Weekday.SATURDAY, Weekday.SUNDAY)))
+        val weekendReversed = base.copy(advancedConfig = AdvancedRuleConfig(daysOfWeek = setOf(Weekday.SUNDAY, Weekday.SATURDAY)))
+        val workdays = base.copy(advancedConfig = AdvancedRuleConfig(daysOfWeek = Weekday.WORKDAYS))
+        val noDays = base.copy(advancedConfig = AdvancedRuleConfig(daysOfWeek = emptySet()))
+        val key = { r: BlockerRule -> StackedNotificationManager.groupKeyFor("p", r) }
+        assertEquals(3, listOf(base, weekend, workdays).map(key).toSet().size)
+        assertEquals(key(weekend), key(weekendReversed))
+        assertEquals(key(base.copy(advancedConfig = AdvancedRuleConfig())), key(noDays))
+    }
+
+    @Test
     fun `throttle length does not change the key`() {
         // Only THROTTLE rules use it (it's cleared from other types on save), so it must not re-key.
         val timed = AdvancedRuleConfig(isTimeLimitEnabled = true, startTimeHour = 22, endTimeHour = 7)

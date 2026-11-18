@@ -52,7 +52,12 @@ data class AdvancedRuleConfig(
     /** Only apply the rule while the phone is (or isn't) in use. */
     val deviceUsage: DeviceUsage? = null,
     /** THROTTLE rules: how long matches are blocked after one passes; null means the default. */
-    val throttleSeconds: Int? = null
+    val throttleSeconds: Int? = null,
+    /**
+     * Only apply the rule on these days; null or empty means every day. With a time window that
+     * spans midnight, a day covers the window that starts on it (`RuleConditions.isOnScheduledDay`).
+     */
+    val daysOfWeek: Set<Weekday>? = null
 ) : Parcelable
 
 @Keep

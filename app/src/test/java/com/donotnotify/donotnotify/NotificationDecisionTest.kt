@@ -25,8 +25,8 @@ class NotificationDecisionTest {
     // ---- conditions vs allowlist gating ----------------------------------------
 
     private val daytime = AdvancedRuleConfig(isTimeLimitEnabled = true, startTimeHour = 9, endTimeHour = 17)
-    private val noon = MatchContext(minuteOfDay = 12 * 60)
-    private val night = MatchContext(minuteOfDay = 22 * 60)
+    private val noon = MatchContext(minuteOfDay = 12 * 60, dayOfWeek = Weekday.MONDAY)
+    private val night = MatchContext(minuteOfDay = 22 * 60, dayOfWeek = Weekday.MONDAY)
 
     @Test
     fun `allowlist outside its time window does not gate the app`() {
@@ -46,8 +46,8 @@ class NotificationDecisionTest {
     @Test
     fun `allowlist limited to phone not in use gates only while not in use`() {
         val rules = listOf(allow("John").copy(advancedConfig = AdvancedRuleConfig(deviceUsage = DeviceUsage.NOT_IN_USE)))
-        val inUse = MatchContext(minuteOfDay = 0, deviceInUse = true)
-        val idle = MatchContext(minuteOfDay = 0, deviceInUse = false)
+        val inUse = MatchContext(minuteOfDay = 0, dayOfWeek = Weekday.MONDAY, deviceInUse = true)
+        val idle = MatchContext(minuteOfDay = 0, dayOfWeek = Weekday.MONDAY, deviceInUse = false)
         assertFalse(RuleMatcher.planNotificationDecision(rules, "p", "Promo", null, false, inUse).isBlocked)
         assertFalse(RuleMatcher.planNotificationDecision(rules, "p", "John", null, false, inUse).isBlocked)
         assertTrue(RuleMatcher.planNotificationDecision(rules, "p", "Promo", null, false, idle).isBlocked)

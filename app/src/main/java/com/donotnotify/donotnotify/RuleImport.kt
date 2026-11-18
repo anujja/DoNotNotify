@@ -177,6 +177,13 @@ object RuleImport {
             ?.takeIf { it > 0 }
             ?.coerceAtMost(ThrottleManager.MAX_SECONDS)
 
+        // Gson turns an unknown day name into a null element; with none left the condition is off.
+        val daysOfWeek = raw.advancedConfig?.daysOfWeek
+            ?.filterNotNull()
+            ?.sorted()
+            ?.toSet()
+            ?.takeIf { it.isNotEmpty() }
+
         return raw.copy(
             packageName = pkg,
             titleFilter = title,
@@ -184,7 +191,7 @@ object RuleImport {
             titleMatchType = titleMatch,
             textMatchType = textMatch,
             ruleType = ruleType,
-            advancedConfig = raw.advancedConfig?.copy(throttleSeconds = throttleSeconds)
+            advancedConfig = raw.advancedConfig?.copy(throttleSeconds = throttleSeconds, daysOfWeek = daysOfWeek)
         )
     }
 

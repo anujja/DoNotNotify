@@ -218,6 +218,12 @@
     <string name="device_usage_summary_in_use">Teléfono en uso</string>
     <string name="device_usage_summary_not_in_use">Teléfono sin usar</string>
     <string name="device_usage_help">En uso significa que la pantalla está encendida y desbloqueada.</string>
+    <string name="rule_condition_days">Días de la semana</string>
+    <string name="rule_condition_days_desc">Solo los días que elijas</string>
+    <string name="days_every_day">Todos los días</string>
+    <string name="day_range">%1$s – %2$s</string>
+    <string name="day_list_separator">", "</string>
+    <string name="days_overnight_help">Tu horario cruza la medianoche, así que cada día elegido se extiende hasta la mañana siguiente.</string>
     <string name="throttle_unit_seconds">seg</string>
     <string name="throttle_unit_minutes">min</string>
     <string name="duration_seconds_short">%d s</string>

@@ -81,6 +81,36 @@ class RuleImportTest {
     }
 
     @Test
+    fun `days of the week import, unknown days are dropped, and none left means off`() {
+        val s = successOf(
+            """[
+                {"packageName":"a","textFilter":"x","advancedConfig":{"daysOfWeek":["SUNDAY","SATURDAY"]}},
+                {"packageName":"b","textFilter":"x","advancedConfig":{"daysOfWeek":["FRIDAY","SOMEDAY"]}},
+                {"packageName":"c","textFilter":"x","advancedConfig":{"daysOfWeek":["SOMEDAY"]}},
+                {"packageName":"d","textFilter":"x","advancedConfig":{"daysOfWeek":[]}},
+                {"packageName":"e","textFilter":"x","advancedConfig":{"isTimeLimitEnabled":true}}
+            ]"""
+        )
+        assertEquals(listOf(Weekday.SATURDAY, Weekday.SUNDAY), s.rules[0].advancedConfig?.daysOfWeek?.toList())
+        assertEquals(setOf(Weekday.FRIDAY), s.rules[1].advancedConfig?.daysOfWeek)
+        assertNull(s.rules[2].advancedConfig?.daysOfWeek)
+        assertNull(s.rules[3].advancedConfig?.daysOfWeek)
+        assertNull(s.rules[4].advancedConfig?.daysOfWeek)
+    }
+
+    @Test
+    fun `days of the week survive an export round trip`() {
+        val rule = BlockerRule(
+            packageName = "a",
+            textFilter = "x",
+            advancedConfig = AdvancedRuleConfig(daysOfWeek = setOf(Weekday.SATURDAY, Weekday.SUNDAY))
+        )
+        val json = RuleExportSerializer.toJson(RuleExport(rules = listOf(rule)))
+        assertTrue(json, json.contains("SATURDAY") && json.contains("SUNDAY"))
+        assertEquals(rule.advancedConfig?.daysOfWeek, successOf(json).rules.single().advancedConfig?.daysOfWeek)
+    }
+
+    @Test
     fun `throttle rules import, and an invalid length falls back to the default`() {
         val s = successOf(
             """[

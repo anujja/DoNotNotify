@@ -218,6 +218,12 @@
     <string name="device_usage_summary_in_use">手机使用中</string>
     <string name="device_usage_summary_not_in_use">手机未使用</string>
     <string name="device_usage_help">“使用中”指屏幕已亮起且已解锁。</string>
+    <string name="rule_condition_days">星期</string>
+    <string name="rule_condition_days_desc">仅在你选择的星期几</string>
+    <string name="days_every_day">每天</string>
+    <string name="day_range">%1$s – %2$s</string>
+    <string name="day_list_separator">、</string>
+    <string name="days_overnight_help">时间段跨过午夜，所以所选的每一天会延续到次日早上。</string>
     <string name="throttle_unit_seconds">秒</string>
     <string name="throttle_unit_minutes">分钟</string>
     <string name="duration_seconds_short">%d秒</string>

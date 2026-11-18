@@ -155,6 +155,12 @@
     <string name="device_usage_summary_in_use">Телефон используется</string>
     <string name="device_usage_summary_not_in_use">Телефон не используется</string>
     <string name="device_usage_help">«Используется» — экран включён и разблокирован.</string>
+    <string name="rule_condition_days">Дни недели</string>
+    <string name="rule_condition_days_desc">Только в выбранные дни</string>
+    <string name="days_every_day">Каждый день</string>
+    <string name="day_range">%1$s – %2$s</string>
+    <string name="day_list_separator">", "</string>
+    <string name="days_overnight_help">Время переходит через полночь, поэтому каждый выбранный день продолжается до утра следующего.</string>
     <string name="throttle_unit_seconds">сек</string>
     <string name="throttle_unit_minutes">мин</string>
     <string name="duration_seconds_short">%d с</string>
