@@ -245,10 +245,10 @@ private const val SHARE_PREVIEW_MAX_CHARS = 4000
 
 /**
  * In-app review step before anything reaches the network: shows the JSON that will be
- * embedded in the prefilled GitHub issue. The browser is opened only from here, and the
- * nudge is marked handled only when the handoff succeeds. Rules too large to prefill
- * (payload.prefilled == false) switch to a copy-and-paste flow: the confirm button first
- * puts the JSON on the clipboard, then opens the plain new-issue page.
+ * prefilled into the rules repo's share form on GitHub. The browser is opened only from
+ * here, and the nudge is marked handled only when the handoff succeeds. Rules too large to
+ * prefill (payload.prefilled == false) switch to a copy-and-paste flow: the confirm button
+ * first puts the JSON on the clipboard, then opens the form without it.
  */
 @Composable
 private fun CommunitySharePreviewDialog(
