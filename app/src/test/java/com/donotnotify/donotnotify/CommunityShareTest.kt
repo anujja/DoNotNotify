@@ -2,6 +2,7 @@ package com.donotnotify.donotnotify
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.net.URLDecoder
@@ -18,33 +19,49 @@ class CommunityShareTest {
         id = "device-local-id"
     )
 
-    private fun decodedBody(url: String): String {
-        val body = url.substringAfter("&body=")
-        return URLDecoder.decode(body, "UTF-8")
-    }
+    /** The share URL's query parameters, decoded. Values are percent-encoded, so `&`/`=` split safely. */
+    private fun params(url: String): Map<String, String> =
+        url.substringAfter('?').split('&').associate { pair ->
+            val key = pair.substringBefore('=')
+            val value = pair.substringAfter('=', missingDelimiterValue = "")
+            URLDecoder.decode(key, "UTF-8") to URLDecoder.decode(value, "UTF-8")
+        }
 
     // --- sharePayload: prefilled flow ---
 
     @Test
-    fun `normal rule prefills the community repo new-issue page`() {
+    fun `normal rule prefills the community repo's share form`() {
         val payload = CommunityShare.sharePayload(rule())
         assertTrue(payload.prefilled)
-        assertTrue(payload.url.startsWith("${CommunityShare.REPO_URL}/issues/new?title="))
+        assertTrue(payload.url.startsWith("${CommunityShare.REPO_URL}/issues/new?template=contribution.yml&"))
         assertTrue(payload.url.length <= CommunityShare.MAX_PREFILLED_URL_LENGTH)
+    }
+
+    @Test
+    fun `no free-form body is sent, since issue forms ignore it`() {
+        val payload = CommunityShare.sharePayload(rule())
+        assertEquals(
+            setOf("template", "title", CommunityShare.FIELD_APP, CommunityShare.FIELD_RULE_JSON),
+            params(payload.url).keys
+        )
     }
 
     @Test
     fun `title names the app`() {
         val payload = CommunityShare.sharePayload(rule())
-        val title = payload.url.substringAfter("?title=").substringBefore("&body=")
-        assertEquals("[Contribution] Flipkart", URLDecoder.decode(title, "UTF-8"))
+        assertEquals("[Contribution] Flipkart", params(payload.url)["title"])
     }
 
     @Test
-    fun `url body embeds the payload json, which is an importable export envelope`() {
+    fun `app field names the app and its package`() {
+        val payload = CommunityShare.sharePayload(rule())
+        assertEquals("Flipkart (`com.flipkart.android`)", params(payload.url)[CommunityShare.FIELD_APP])
+    }
+
+    @Test
+    fun `rule-json field carries the payload json verbatim, which is an importable export envelope`() {
         val payload = CommunityShare.sharePayload(rule(), locale = "en-US")
-        val body = decodedBody(payload.url)
-        assertTrue(body.contains(payload.json))
+        assertEquals(payload.json, params(payload.url)[CommunityShare.FIELD_RULE_JSON])
         val result = RuleImport.parse(payload.json)
         assertTrue(result is ImportResult.Success)
         val imported = (result as ImportResult.Success).rules.single()
@@ -56,7 +73,7 @@ class CommunityShareTest {
     @Test
     fun `device-local id and hitCount never leave the device`() {
         val payload = CommunityShare.sharePayload(rule(hitCount = 12345))
-        for (content in listOf(payload.json, decodedBody(payload.url))) {
+        for (content in listOf(payload.json) + params(payload.url).values) {
             assertFalse(content.contains("device-local-id"))
             assertFalse(content.contains("hitCount"))
             assertFalse(content.contains("12345"))
@@ -66,8 +83,7 @@ class CommunityShareTest {
     @Test
     fun `blank appName falls back to packageName in title`() {
         val payload = CommunityShare.sharePayload(rule().copy(appName = " "))
-        val title = URLDecoder.decode(payload.url.substringAfter("?title=").substringBefore("&body="), "UTF-8")
-        assertEquals("[Contribution] com.flipkart.android", title)
+        assertEquals("[Contribution] com.flipkart.android", params(payload.url)["title"])
     }
 
     @Test
@@ -75,9 +91,8 @@ class CommunityShareTest {
         val r = rule().copy(appName = "メルカリ", textFilter = "(?i).*(お得|割引|「セール」).*")
         val payload = CommunityShare.sharePayload(r, locale = "ja")
         assertTrue(payload.prefilled)
-        val title = URLDecoder.decode(payload.url.substringAfter("?title=").substringBefore("&body="), "UTF-8")
-        assertEquals("[Contribution] メルカリ", title)
-        val json = decodedBody(payload.url).substringAfter("```json\n").substringBefore("```")
+        assertEquals("[Contribution] メルカリ", params(payload.url)["title"])
+        val json = params(payload.url).getValue(CommunityShare.FIELD_RULE_JSON)
         val imported = (RuleImport.parse(json) as ImportResult.Success).rules.single()
         assertEquals("(?i).*(お得|割引|「セール」).*", imported.textFilter)
     }
@@ -94,7 +109,13 @@ class CommunityShareTest {
         )
         val payload = CommunityShare.sharePayload(huge)
         assertFalse(payload.prefilled)
-        assertEquals(CommunityShare.NEW_ISSUE_URL, payload.url)
+        assertTrue(payload.url.length <= CommunityShare.MAX_PREFILLED_URL_LENGTH)
+        // The form still opens with title and app filled in; only the JSON is left to paste.
+        assertTrue(payload.url.startsWith(CommunityShare.CONTRIBUTION_ISSUE_URL))
+        val params = params(payload.url)
+        assertEquals("[Contribution] Flipkart", params["title"])
+        assertEquals("Flipkart (`com.flipkart.android`)", params[CommunityShare.FIELD_APP])
+        assertNull(params[CommunityShare.FIELD_RULE_JSON])
         // The payload still carries the full rule for the clipboard path.
         val imported = (RuleImport.parse(payload.json) as ImportResult.Success).rules.single()
         assertEquals("a".repeat(4000), imported.titleFilter)
@@ -149,10 +170,8 @@ class CommunityShareTest {
     fun `all-apps rule is titled and described as All apps, with no package`() {
         val payload = CommunityShare.sharePayload(rule().copy(appName = null, packageName = null))
         assertTrue(payload.prefilled)
-        val title = payload.url.substringAfter("?title=").substringBefore("&body=")
-        assertEquals("[Contribution] All apps", URLDecoder.decode(title, "UTF-8"))
-        val body = decodedBody(payload.url)
-        assertTrue(body.contains("**App:** All apps\n"))
-        assertFalse(body.contains("(``)"))
+        val params = params(payload.url)
+        assertEquals("[Contribution] All apps", params["title"])
+        assertEquals("All apps", params[CommunityShare.FIELD_APP])
     }
 }

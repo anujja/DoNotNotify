@@ -21,6 +21,17 @@ object CommunityShare {
     const val NEW_ISSUE_URL = "$REPO_URL/issues/new"
 
     /**
+     * The rules repo's "Share a rule" issue form (`.github/ISSUE_TEMPLATE/contribution.yml`).
+     * The form labels the issue `contribution` (a label in the URL would be ignored for
+     * contributors without triage access), and GitHub prefills its fields from query
+     * parameters named by field id: [FIELD_APP], [FIELD_RULE_JSON]. The form's "What it
+     * blocks" / "What it keeps" fields are left for the user to write.
+     */
+    const val CONTRIBUTION_ISSUE_URL = "$NEW_ISSUE_URL?template=contribution.yml"
+    const val FIELD_APP = "app"
+    const val FIELD_RULE_JSON = "rule-json"
+
+    /**
      * A user-authored rule with at least this many hits has proven itself; that is the
      * moment we invite the user to share it.
      */
@@ -94,42 +105,33 @@ object CommunityShare {
 
     /**
      * Everything the share dialog needs. [prefilled] tells the UI which flow it is:
-     * true — [url] carries the whole issue (title + body with [json]) and opening it is
-     * the entire hand-off; false — the rule was too large for a URL, [url] is the plain
-     * new-issue page and the UI must put [json] on the clipboard so the user can paste.
+     * true — [url] opens the share form with title, app and [json] filled in, and opening
+     * it is the entire hand-off; false — the rule was too large for a URL, [url] opens the
+     * form with only title and app filled in, and the UI must put [json] on the clipboard
+     * so the user can paste it into the form's Rule JSON field.
      */
     data class SharePayload(val url: String, val prefilled: Boolean, val json: String)
 
     fun sharePayload(rule: BlockerRule, locale: String? = null): SharePayload {
         val json = contributionJson(rule, locale)
-        // The issue is written in English, like the rest of the body.
+        // The issue is written in English, like the rest of the form.
         val appLabel = when {
             rule.isAllApps -> ALL_APPS_LABEL
             else -> rule.appName?.takeIf { it.isNotBlank() } ?: rule.packageName.orEmpty()
         }
-        val body = buildString {
-            if (rule.isAllApps) {
-                appendLine("**App:** $appLabel")
-            } else {
-                appendLine("**App:** $appLabel (`${rule.packageName.orEmpty()}`)")
-            }
-            appendLine()
-            appendLine("**What it blocks:** <!-- describe, e.g. \"sale/coupon promo spam\" -->")
-            appendLine()
-            appendLine("**What it keeps:** <!-- e.g. \"order and delivery updates\" -->")
-            appendLine()
-            appendLine("```json")
-            appendLine(json)
-            append("```")
-        }
-        // Percent-encoding never shrinks its input, so an over-cap raw body can skip
+        val app = if (rule.isAllApps) appLabel else "$appLabel (`${rule.packageName.orEmpty()}`)"
+        val formUrl = "$CONTRIBUTION_ISSUE_URL&title=${encode("[Contribution] $appLabel")}" +
+                "&$FIELD_APP=${encode(app)}"
+        // An app label can't realistically blow the cap, but never hand GitHub a URL it 414s.
+        val manualUrl = if (formUrl.length <= MAX_PREFILLED_URL_LENGTH) formUrl else CONTRIBUTION_ISSUE_URL
+        // Percent-encoding never shrinks its input, so an over-cap raw JSON can skip
         // encoding entirely — the encoding work below is bounded by the cap.
-        if (body.length > MAX_PREFILLED_URL_LENGTH) {
-            return SharePayload(NEW_ISSUE_URL, prefilled = false, json = json)
+        if (formUrl.length + json.length > MAX_PREFILLED_URL_LENGTH) {
+            return SharePayload(manualUrl, prefilled = false, json = json)
         }
-        val url = "$NEW_ISSUE_URL?title=${encode("[Contribution] $appLabel")}&body=${encode(body)}"
+        val url = "$formUrl&$FIELD_RULE_JSON=${encode(json)}"
         return if (url.length > MAX_PREFILLED_URL_LENGTH) {
-            SharePayload(NEW_ISSUE_URL, prefilled = false, json = json)
+            SharePayload(manualUrl, prefilled = false, json = json)
         } else {
             SharePayload(url, prefilled = true, json = json)
         }
