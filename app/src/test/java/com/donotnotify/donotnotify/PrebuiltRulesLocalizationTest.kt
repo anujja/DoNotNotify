@@ -30,14 +30,65 @@ class PrebuiltRulesLocalizationTest {
 
     private val AMAZON = "com.amazon.mShop.android.shopping"
     private val GPAY = "com.google.android.apps.nbu.paisa.user"
+    private val LINKEDIN = "com.linkedin.android"
+    private val TINDER = "com.tinder"
+    private val REDDIT = "com.reddit.frontpage"
+
+    private val LOCALES = listOf("raw", "raw-es", "raw-fr", "raw-ja", "raw-ko", "raw-pl", "raw-ru", "raw-zh-rCN")
+
+    /** A message notification in each locale, using the phrase for "new message" these rules once blocked. */
+    private val localizedNewMessage = mapOf(
+        "raw-es" to "Tienes un nuevo mensaje de Juan",
+        "raw-fr" to "Vous avez un nouveau message de Jean",
+        "raw-ja" to "山田さんから新着メッセージがあります",
+        "raw-ko" to "김민수님의 새 메시지",
+        "raw-pl" to "Jan: nowa wiadomość",
+        "raw-ru" to "У вас новое сообщение от Ивана",
+        "raw-zh-rCN" to "张三给你发了新消息"
+    )
 
     private fun matchesText(rule: BlockerRule, text: String) =
         RuleMatcher.matches(rule, rule.packageName, null, text)
 
     @Test
+    fun `engagement rules never block messages or replies from people`() {
+        for (dir in LOCALES) {
+            val linkedin = rule(dir, LINKEDIN)
+            val tinder = rule(dir, TINDER)
+            val reddit = rule(dir, REDDIT)
+            val messages = listOf("New message from Jane Doe", "Jane Doe sent you a message") +
+                    listOfNotNull(localizedNewMessage[dir])
+            for (text in messages) {
+                assertFalse("$dir: LinkedIn blocked '$text'", matchesText(linkedin, text))
+                assertFalse("$dir: Tinder blocked '$text'", matchesText(tinder, text))
+            }
+            assertFalse(
+                "$dir: LinkedIn blocked a person's recommendation",
+                matchesText(linkedin, "Jane Doe recommended you for Senior Engineer")
+            )
+            for (text in listOf(
+                "u/someone replied to your comment",
+                "u/someone mentioned you in r/android",
+                "Mod notice: your post was removed"
+            )) {
+                assertFalse("$dir: Reddit blocked '$text'", matchesText(reddit, text))
+            }
+        }
+    }
+
+    @Test
+    fun `engagement rules still block the bait in every locale`() {
+        for (dir in LOCALES) {
+            assertTrue("$dir: LinkedIn", matchesText(rule(dir, LINKEDIN), "Jobs recommended for you"))
+            assertTrue("$dir: LinkedIn", matchesText(rule(dir, LINKEDIN), "Someone viewed your profile"))
+            assertTrue("$dir: Tinder", matchesText(rule(dir, TINDER), "You have a new match!"))
+            assertTrue("$dir: Reddit", matchesText(rule(dir, REDDIT), "Trending in r/worldnews"))
+        }
+    }
+
+    @Test
     fun `english keywords still match in every locale`() {
-        val locales = listOf("raw", "raw-es", "raw-fr", "raw-ja", "raw-ko", "raw-pl", "raw-ru", "raw-zh-rCN")
-        for (dir in locales) {
+        for (dir in LOCALES) {
             val amazon = rule(dir, AMAZON)
             assertTrue("$dir: english 'offer' should still match", matchesText(amazon, "Special offer just for you"))
             assertFalse("$dir: benign text should not match", matchesText(amazon, "Your package was delivered"))
