@@ -37,6 +37,7 @@
         <package android:name="com.hulu.plus" />
         <package android:name="com.linkedin.android" />
         <package android:name="com.google.android.apps.nbu.paisa.user" />
+        <package android:name="ru.ozon.app.android" />
 
     </queries>
 
