@@ -52,6 +52,21 @@ class PrebuiltRulesFilesTest {
     }
 
     @Test
+    fun `every prebuilt package is declared in the manifest's queries`() {
+        // Without a <queries> entry, Android 11+ hides the app from getInstalledPackages(),
+        // so its prebuilt rule would never auto-install or show in the prebuilt browser.
+        val manifest = File(resDir().parentFile, "AndroidManifest.xml").readText(Charsets.UTF_8)
+        val queries = manifest.substringAfter("<queries>").substringBefore("</queries>")
+        val declared = Regex("""<package\s+android:name="([^"]+)"""").findAll(queries)
+            .map { it.groupValues[1] }
+            .toSet()
+        for (dir in localeDirs) {
+            val missing = packagesOf(load(dir)) - declared
+            assertTrue("$dir: packages missing from the manifest's <queries>: $missing", missing.isEmpty())
+        }
+    }
+
+    @Test
     fun `every rule has at least one filter`() {
         for (dir in localeDirs) {
             for (rule in load(dir)) {

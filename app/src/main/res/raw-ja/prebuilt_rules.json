@@ -338,12 +338,30 @@
     "isEnabled": true
   },
   {
+    "appName": "LinkedIn",
+    "packageName": "com.linkedin.android",
+    "titleFilter": "Missed Notifications",
+    "titleMatchType": "CONTAINS",
+    "textFilter": "See updates from LinkedIn that you may have missed",
+    "textMatchType": "CONTAINS",
+    "ruleType": "DENYLIST",
+    "isEnabled": true
+  },
+  {
     "appName": "GPay",
     "packageName": "com.google.android.apps.nbu.paisa.user",
     "titleFilter": "(?i).*(reward|特典).*",
     "titleMatchType": "REGEX",
     "textFilter": "(?i).*(tap to reveal|タップして確認).*",
     "textMatchType": "REGEX",
+    "ruleType": "DENYLIST",
+    "isEnabled": true
+  },
+  {
+    "appName": "OZON",
+    "packageName": "ru.ozon.app.android",
+    "titleFilter": "(?iu).*(вам понравился заказ|вы выиграли морковки).*",
+    "titleMatchType": "REGEX",
     "ruleType": "DENYLIST",
     "isEnabled": true
   }
